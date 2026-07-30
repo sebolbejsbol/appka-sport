@@ -1,0 +1,21 @@
+# Native dirs — niech EAS zrobi czysty prebuild swoim toolchainem
+android/
+ios/
+
+# Dependencies — EAS instaluje je sam z package-lock.json
+node_modules/
+
+# Lokalne śmieci / artefakty (nie potrzebne do builda)
+.expo-test-export/
+.tmp-0049-parts/
+.expo/
+web-build/
+dist/
+
+# Skrypty uploadu boisk — niepotrzebne w buildzie aplikacji
+scripts/basketball-upload/
+scripts/osm-poland/
+
+# Inne
+*.log
+.git/

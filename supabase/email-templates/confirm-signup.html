@@ -1,0 +1,103 @@
+<!--
+  DUDIE DAY — szablon e-maila "Confirm signup".
+  Wklej zawartość do: Supabase Dashboard → Authentication → Emails → Confirm signup → Message body (HTML).
+  Zmienne Supabase: {{ .ConfirmationURL }} podmienia się automatycznie.
+-->
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Potwierdź konto · DUDIE DAY</title>
+  </head>
+  <body style="margin:0; padding:0; background-color:#eef2f9; -webkit-font-smoothing:antialiased; font-family:'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <!-- Preheader (ukryty podgląd w skrzynce) -->
+    <div style="display:none; max-height:0; overflow:hidden; opacity:0; color:#eef2f9;">
+      Jeden klik dzieli Cię od grania — potwierdź swój adres e-mail.
+    </div>
+
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#eef2f9;">
+      <tr>
+        <td align="center" style="padding:32px 16px;">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:480px; width:100%; background-color:#ffffff; border-radius:20px; overflow:hidden; box-shadow:0 10px 30px rgba(10,14,22,0.10);">
+
+            <!-- Nagłówek z marką -->
+            <tr>
+              <td style="background-color:#05070c; padding:36px 32px 30px 32px; text-align:center;">
+                <div style="display:inline-block; padding:8px 16px; border-radius:999px; background-color:rgba(31,107,255,0.18); border:1px solid rgba(31,107,255,0.45);">
+                  <span style="font-size:18px; font-weight:800; letter-spacing:1.5px; color:#ffffff;">DUDIE&nbsp;DAY</span>
+                </div>
+                <p style="margin:18px 0 0 0; font-size:13px; line-height:18px; color:#9aa6bd; letter-spacing:0.3px;">
+                  Sport i wydarzenia w całej Polsce
+                </p>
+              </td>
+            </tr>
+
+            <!-- Treść -->
+            <tr>
+              <td style="padding:36px 32px 8px 32px; text-align:center;">
+                <div style="font-size:44px; line-height:44px;">🎉</div>
+                <h1 style="margin:18px 0 0 0; font-size:23px; line-height:30px; font-weight:800; color:#0a0e16;">
+                  Już prawie gotowe!
+                </h1>
+                <p style="margin:14px 0 0 0; font-size:15px; line-height:23px; color:#51607a;">
+                  Cieszymy się, że dołączasz do DUDIE&nbsp;DAY. Potwierdź swój adres
+                  e-mail, aby aktywować konto i zacząć dołączać do wydarzeń w okolicy.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Przycisk CTA -->
+            <tr>
+              <td style="padding:28px 32px 8px 32px; text-align:center;">
+                <table role="presentation" cellpadding="0" cellspacing="0" align="center">
+                  <tr>
+                    <td style="border-radius:999px; background-color:#1f6bff;">
+                      <a href="{{ .ConfirmationURL }}" target="_blank"
+                        style="display:inline-block; padding:15px 38px; font-size:16px; font-weight:800; color:#ffffff; text-decoration:none; border-radius:999px; letter-spacing:0.3px;">
+                        Potwierdź konto
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+
+            <!-- Fallback link -->
+            <tr>
+              <td style="padding:22px 32px 0 32px; text-align:center;">
+                <p style="margin:0; font-size:12px; line-height:18px; color:#8a97ad;">
+                  Jeśli przycisk nie działa, skopiuj i wklej ten adres do przeglądarki:
+                </p>
+                <p style="margin:8px 0 0 0; font-size:12px; line-height:18px; word-break:break-all;">
+                  <a href="{{ .ConfirmationURL }}" target="_blank" style="color:#1f6bff; text-decoration:underline;">{{ .ConfirmationURL }}</a>
+                </p>
+              </td>
+            </tr>
+
+            <!-- Separator -->
+            <tr>
+              <td style="padding:28px 32px 0 32px;">
+                <div style="height:1px; background-color:#e6ebf3; width:100%;"></div>
+              </td>
+            </tr>
+
+            <!-- Stopka -->
+            <tr>
+              <td style="padding:20px 32px 34px 32px; text-align:center;">
+                <p style="margin:0; font-size:12px; line-height:18px; color:#9aa6bd;">
+                  Nie zakładałeś konta w DUDIE&nbsp;DAY? Po prostu zignoruj tę wiadomość.
+                </p>
+                <p style="margin:12px 0 0 0; font-size:11px; line-height:16px; color:#b3bccd;">
+                  © DUDIE DAY · Polska · sport amatorski
+                </p>
+              </td>
+            </tr>
+
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

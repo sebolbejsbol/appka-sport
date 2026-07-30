@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "13100109783",
+    "project_id": "apkkasport",
+    "storage_bucket": "apkkasport.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:13100109783:android:8f5777ec7452d18c538592",
+        "android_client_info": {
+          "package_name": "com.appkasport.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgZvhnXrvHl1Laz9rey7HKZRCqFOhYBfA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
