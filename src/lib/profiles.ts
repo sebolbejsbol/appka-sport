@@ -4,6 +4,8 @@ import { supabase } from '@/lib/supabase';
 
 export type Gender = 'male' | 'female' | 'other';
 
+export type AppRole = 'user' | 'admin' | 'super_admin';
+
 export type Profile = {
   id: string;
   nick: string | null;
@@ -19,10 +21,11 @@ export type Profile = {
   sports: string[];
   language: 'pl' | 'en';
   is_admin: boolean;
+  role: AppRole;
 };
 
 const PROFILE_COLUMNS =
-  'id, nick, birth_year, show_birth_year, gender, avatar_url, country_code, city, bio, favorite_sport, skill_level, sports, language, is_admin';
+  'id, nick, birth_year, show_birth_year, gender, avatar_url, country_code, city, bio, favorite_sport, skill_level, sports, language, is_admin, role';
 
 /**
  * Pobiera profil użytkownika, a jeśli go jeszcze nie ma — tworzy na podstawie
@@ -220,4 +223,17 @@ export async function getProfileAdminFlag(
 
   if (error) return { isAdmin: false, error };
   return { isAdmin: Boolean(data?.is_admin), error: null };
+}
+
+export async function getProfileRole(
+  userId: string,
+): Promise<{ role: AppRole; error: { message: string } | null }> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('role')
+    .eq('id', userId)
+    .maybeSingle<{ role: AppRole }>();
+
+  if (error) return { role: 'user', error };
+  return { role: data?.role ?? 'user', error: null };
 }
