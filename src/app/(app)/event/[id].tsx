@@ -453,10 +453,10 @@ export default function EventDetailScreen() {
   const subLabel = event ? subcategoryLabel(event.subcategory) : null;
   const priceText = event
     ? event.payment_status !== 'paid'
-      ? 'Bezpłatne'
+      ? t('createEvent.free')
       : event.price_cents != null
         ? `${event.price_cents % 100 === 0 ? (event.price_cents / 100).toFixed(0) : (event.price_cents / 100).toFixed(2)} zł`
-        : 'Płatne'
+        : t('eventFilters.paymentPaid')
     : '';
 
   return (
@@ -543,7 +543,7 @@ export default function EventDetailScreen() {
           <View style={styles.card}>
             {isExtended ? (
               event.location_name ? (
-                <DetailRow label="Lokalizacja" value={event.location_name} />
+                <DetailRow label={t('event.locationLabel')} value={event.location_name} />
               ) : null
             ) : (
               <DetailRow label={t('event.atCourt')} value={formatCourtName(event.field_name)} />
@@ -569,7 +569,7 @@ export default function EventDetailScreen() {
               }
             />
             <DetailRow label={t('event.players')} value={playersText} />
-            {isExtended ? <DetailRow label="Cena" value={priceText} /> : null}
+            {isExtended ? <DetailRow label={t('event.priceLabel')} value={priceText} /> : null}
             {!isExtended ? (
               <Pressable
                 onPress={() => setOpinionsOpen(true)}

@@ -1,0 +1,7 @@
+{
+  "buildCommand": "npx expo export -p web",
+  "outputDirectory": "dist",
+  "rewrites": [
+    { "source": "/((?!_expo|assets|favicon.ico|apple-touch-icon.png|maplibre-gl-worker.mjs|maplibre-gl-shared.mjs).*)", "destination": "/index.html" }
+  ]
+}

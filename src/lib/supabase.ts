@@ -17,8 +17,10 @@ export const supabase = createClient(supabaseUrl, supabaseKey, {
     storage: AsyncStorage,
     autoRefreshToken: true,
     persistSession: true,
-    // Na telefonie nie odczytujemy sesji z adresu URL (to mechanizm webowy dla logowania OAuth).
-    detectSessionInUrl: false,
+    // Na webie po powrocie z logowania OAuth (Google/Facebook/Apple) Supabase
+    // musi odczytać sesję z adresu URL. Na telefonie ten mechanizm nie ma
+    // zastosowania — tam OAuth wraca przez deep link (patrz src/lib/oauth.ts).
+    detectSessionInUrl: Platform.OS === 'web',
   },
 });
 

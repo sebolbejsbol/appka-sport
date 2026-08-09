@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 
 import { LegalDocumentHost } from '@/components/legal-document-host';
+import { WebAppShell } from '@/components/web-app-shell';
 import { Brand } from '@/constants/theme';
 import { LocaleProvider, useLocale } from '@/context/locale';
 import { SessionProvider, useSession } from '@/context/session';
@@ -28,7 +29,9 @@ export default function RootLayout() {
   return (
     <LocaleProvider>
       <SessionProvider>
-        <RootNavigator />
+        <WebAppShell>
+          <RootNavigator />
+        </WebAppShell>
       </SessionProvider>
     </LocaleProvider>
   );
@@ -41,7 +44,7 @@ export default function RootLayout() {
  * Stack.Protected automatycznie przekierowuje, gdy zmieni się stan sesji.
  */
 function RootNavigator() {
-  const { session, isLoading, isPasswordRecovery } = useSession();
+  const { session, isLoading, isPasswordRecovery, needsProfileSetup } = useSession();
   // Konsumujemy język tutaj, żeby cała nawigacja przerenderowała się po zmianie
   // języka. Bez tego React pomijał poddrzewo ekranów (children providera mają stałą
   // tożsamość), więc np. mapa/eventy/profil zostawały w starym języku.
@@ -73,11 +76,11 @@ function RootNavigator() {
           KAŻDY ekran (mapa, eventy, profil, ustawienia…) renderuje się od nowa w nowym
           języku — „od początku do końca", bez gubienia sesji. */}
       <Stack key={locale} screenOptions={{ headerShown: false }}>
-        <Stack.Protected guard={!!session && !isPasswordRecovery}>
+        <Stack.Protected guard={!!session && !isPasswordRecovery && !needsProfileSetup}>
           <Stack.Screen name="(app)" />
         </Stack.Protected>
 
-        <Stack.Protected guard={!session || isPasswordRecovery}>
+        <Stack.Protected guard={!session || isPasswordRecovery || needsProfileSetup}>
           <Stack.Screen name="(auth)" />
         </Stack.Protected>
       </Stack>

@@ -19,6 +19,7 @@ import { useSession } from '@/context/session';
 import { t } from '@/i18n';
 import {
   divisionForXp,
+  divisionName,
   getLeaderboard,
   getPlayerRank,
   type LeaderboardEntry,
@@ -167,7 +168,7 @@ function PlayerRow({ entry, highlight }: { entry: LeaderboardEntry; highlight: b
         </Text>
         <View style={[styles.divBadge, { backgroundColor: division.tint }]}>
           <Text style={styles.divEmoji}>{division.emoji}</Text>
-          <Text style={[styles.divName, { color: division.color }]}>{division.name}</Text>
+          <Text style={[styles.divName, { color: division.color }]}>{divisionName(division)}</Text>
         </View>
       </View>
       <View style={styles.rowXpWrap}>

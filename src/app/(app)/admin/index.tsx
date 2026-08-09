@@ -15,24 +15,29 @@ type AdminTool = {
   path: '/admin/fields' | '/admin/reports';
 };
 
-const ADMIN_TOOLS: AdminTool[] = [
-  {
-    key: 'fields',
-    title: t('admin.fieldsTitle'),
-    hint: t('admin.fieldsHint'),
-    path: '/admin/fields',
-  },
-  {
-    key: 'reports',
-    title: t('admin.reportsTitle'),
-    hint: t('admin.reportsHint'),
-    path: '/admin/reports',
-  },
-];
+// Funkcja, nie stała modułowa — inaczej etykiety zamrażałyby się w języku
+// z chwili importu modułu i nie zmieniałyby się po przełączeniu języka.
+function buildAdminTools(): AdminTool[] {
+  return [
+    {
+      key: 'fields',
+      title: t('admin.fieldsTitle'),
+      hint: t('admin.fieldsHint'),
+      path: '/admin/fields',
+    },
+    {
+      key: 'reports',
+      title: t('admin.reportsTitle'),
+      hint: t('admin.reportsHint'),
+      path: '/admin/reports',
+    },
+  ];
+}
 
 export default function AdminHubScreen() {
   const insets = useSafeAreaInsets();
   const { isAdmin, loading } = useIsAdmin();
+  const ADMIN_TOOLS = buildAdminTools();
 
   if (loading) {
     return (

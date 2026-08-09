@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Alert,
   Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -193,29 +194,35 @@ export default function SettingsScreen() {
           <View style={styles.card}>
             <Text style={styles.cardTitle}>{t('settings.notificationsTitle')}</Text>
             <Text style={styles.cardHint}>{t('settings.notificationsHint')}</Text>
-            <Text style={styles.status}>{statusText()}</Text>
 
-            <View style={styles.rowBetween}>
-              <Text style={styles.rowLabel}>{t('settings.notificationsToggle')}</Text>
-              <Switch
-                value={enabled}
-                onValueChange={handleToggle}
-                disabled={busy}
-                trackColor={{ true: Brand.primary }}
-              />
-            </View>
+            {Platform.OS === 'web' ? (
+              <Text style={styles.status}>{t('settings.notificationsWebUnavailable')}</Text>
+            ) : (
+              <>
+                <Text style={styles.status}>{statusText()}</Text>
 
-            {hint ? <Text style={styles.errorText}>{hint}</Text> : null}
+                <View style={styles.rowBetween}>
+                  <Text style={styles.rowLabel}>{t('settings.notificationsToggle')}</Text>
+                  <Switch
+                    value={enabled}
+                    onValueChange={handleToggle}
+                    disabled={busy}
+                    trackColor={{ true: Brand.primary }}
+                  />
+                </View>
 
-            {permission === 'denied' ? (
-              <Button
-                label={t('settings.notificationsOpenSettings')}
-                variant="secondary"
-                onPress={() => void Linking.openSettings()}
-                disabled={busy}
-              />
-            ) : null}
+                {hint ? <Text style={styles.errorText}>{hint}</Text> : null}
 
+                {permission === 'denied' ? (
+                  <Button
+                    label={t('settings.notificationsOpenSettings')}
+                    variant="secondary"
+                    onPress={() => void Linking.openSettings()}
+                    disabled={busy}
+                  />
+                ) : null}
+              </>
+            )}
           </View>
 
           <View style={styles.card}>

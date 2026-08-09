@@ -102,6 +102,38 @@ export async function isNickAvailable(
   return Boolean(data);
 }
 
+export type ClaimProfileResult =
+  | 'ok'
+  | 'nick_taken'
+  | 'invalid_nick'
+  | 'already_set'
+  | 'error';
+
+/**
+ * Jednorazowe uzupełnienie nicku (+ opcjonalnie roku urodzenia i kraju) dla
+ * konta, które nie ma jeszcze nicku — typowo po pierwszym logowaniu przez
+ * Google/Facebook/Apple. Działa tylko RAZ: gdy nick jest już ustawiony,
+ * baza odrzuca wywołanie (nick jest zablokowany na stałe od tego momentu).
+ */
+export async function claimProfileBasics(
+  nick: string,
+  birthYear: number | null,
+  countryCode: string | null,
+): Promise<{ result: ClaimProfileResult; error: { message: string } | null }> {
+  const { error } = await supabase.rpc('claim_profile_basics', {
+    p_nick: nick.trim(),
+    p_birth_year: birthYear,
+    p_country_code: countryCode,
+  });
+  if (!error) return { result: 'ok', error: null };
+
+  const msg = error.message ?? '';
+  if (msg.includes('nick_taken')) return { result: 'nick_taken', error };
+  if (msg.includes('invalid_nick')) return { result: 'invalid_nick', error };
+  if (msg.includes('nick_already_set')) return { result: 'already_set', error };
+  return { result: 'error', error };
+}
+
 export async function updateProfile(
   patch: ProfileUpdate,
 ): Promise<{ error: { message: string } | null; result: UpdateProfileResult }> {

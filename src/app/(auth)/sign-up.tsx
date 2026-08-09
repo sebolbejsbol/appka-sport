@@ -21,7 +21,7 @@ import { Typography } from '@/constants/ui';
 import { useLocale } from '@/context/locale';
 import { t, SUPPORTED_LOCALES, type Locale, type TKey } from '@/i18n';
 import { mapAuthError } from '@/lib/auth-errors';
-import { PROFILE_COUNTRIES, countryCodeToFlag } from '@/lib/countries';
+import { PROFILE_COUNTRIES, countryCodeToFlag, countryLabel } from '@/lib/countries';
 import { markerEmoji, subcategoriesFor } from '@/lib/event-categories';
 import { openLegalDocument } from '@/lib/legal-navigation';
 import { goBack } from '@/lib/navigation';
@@ -352,7 +352,7 @@ export default function SignUpScreen() {
                       style={[styles.countryChip, selected && styles.countryChipSelected]}>
                       <Text
                         style={[styles.countryChipText, selected && styles.countryChipTextSelected]}>
-                        {countryCodeToFlag(country.code)} {country.name}
+                        {countryCodeToFlag(country.code)} {countryLabel(country.code)}
                       </Text>
                     </Pressable>
                   );

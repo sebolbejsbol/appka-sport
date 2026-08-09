@@ -1,8 +1,10 @@
+import { t, type TKey } from '@/i18n';
 import { supabase } from '@/lib/supabase';
 
 export type Division = {
   id: string;
-  name: string;
+  /** Klucz i18n nazwy rangi — tłumaczone dopiero przy odczycie (patrz `divisionName`). */
+  nameKey: TKey;
   emoji: string;
   /** Kolor wiodący rangi (badge, akcenty). */
   color: string;
@@ -14,17 +16,22 @@ export type Division = {
 
 /** Rangi od najniższej do najwyższej (10 poziomów, rosnące progi XP). */
 export const DIVISIONS: Division[] = [
-  { id: 'rookie', name: 'Żółtodziób', emoji: '🐣', color: '#a16207', tint: '#fef9c3', minXp: 0 },
-  { id: 'amateur', name: 'Amator', emoji: '🏃', color: '#65a30d', tint: '#f7fee7', minXp: 200 },
-  { id: 'player', name: 'Zawodnik', emoji: '🔥', color: '#0d9488', tint: '#f0fdfa', minXp: 500 },
-  { id: 'pro', name: 'Wyjadacz', emoji: '⚡', color: '#0891b2', tint: '#ecfeff', minXp: 1000 },
-  { id: 'tough', name: 'Twardziel', emoji: '🥊', color: '#2563eb', tint: '#eff6ff', minXp: 1800 },
-  { id: 'veteran', name: 'Weteran', emoji: '🏅', color: '#7c3aed', tint: '#f5f3ff', minXp: 3000 },
-  { id: 'ace', name: 'As', emoji: '🦅', color: '#c026d3', tint: '#fdf4ff', minXp: 5000 },
-  { id: 'master', name: 'Mistrz', emoji: '👑', color: '#db2777', tint: '#fdf2f8', minXp: 8000 },
-  { id: 'titan', name: 'Tytan', emoji: '🐉', color: '#dc2626', tint: '#fef2f2', minXp: 12000 },
-  { id: 'legend', name: 'Legenda', emoji: '🌟', color: '#d97706', tint: '#fffbeb', minXp: 18000 },
+  { id: 'rookie', nameKey: 'ranking.divisionRookie', emoji: '🐣', color: '#a16207', tint: '#fef9c3', minXp: 0 },
+  { id: 'amateur', nameKey: 'ranking.divisionAmateur', emoji: '🏃', color: '#65a30d', tint: '#f7fee7', minXp: 200 },
+  { id: 'player', nameKey: 'ranking.divisionPlayer', emoji: '🔥', color: '#0d9488', tint: '#f0fdfa', minXp: 500 },
+  { id: 'pro', nameKey: 'ranking.divisionPro', emoji: '⚡', color: '#0891b2', tint: '#ecfeff', minXp: 1000 },
+  { id: 'tough', nameKey: 'ranking.divisionTough', emoji: '🥊', color: '#2563eb', tint: '#eff6ff', minXp: 1800 },
+  { id: 'veteran', nameKey: 'ranking.divisionVeteran', emoji: '🏅', color: '#7c3aed', tint: '#f5f3ff', minXp: 3000 },
+  { id: 'ace', nameKey: 'ranking.divisionAce', emoji: '🦅', color: '#c026d3', tint: '#fdf4ff', minXp: 5000 },
+  { id: 'master', nameKey: 'ranking.divisionMaster', emoji: '👑', color: '#db2777', tint: '#fdf2f8', minXp: 8000 },
+  { id: 'titan', nameKey: 'ranking.divisionTitan', emoji: '🐉', color: '#dc2626', tint: '#fef2f2', minXp: 12000 },
+  { id: 'legend', nameKey: 'ranking.divisionLegend', emoji: '🌟', color: '#d97706', tint: '#fffbeb', minXp: 18000 },
 ];
+
+/** Przetłumaczona nazwa rangi w aktualnym języku — wywoływać w renderze, nie raz przy imporcie. */
+export function divisionName(division: Division): string {
+  return t(division.nameKey);
+}
 
 export type DivisionProgress = {
   division: Division;

@@ -17,7 +17,7 @@ import { UserAvatar } from '@/components/user-avatar';
 import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useSession } from '@/context/session';
-import { t } from '@/i18n';
+import { getLocale, t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
 import { formatTeamSport } from '@/lib/sports';
 import {
@@ -32,11 +32,13 @@ import {
 } from '@/lib/teams';
 
 const MONTHS_PL = ['sty', 'lut', 'mar', 'kwi', 'maj', 'cze', 'lip', 'sie', 'wrz', 'paź', 'lis', 'gru'];
+const MONTHS_EN = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 function formatFounded(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return '';
-  return `${MONTHS_PL[d.getMonth()]} ${d.getFullYear()}`;
+  const months = getLocale() === 'en' ? MONTHS_EN : MONTHS_PL;
+  return `${months[d.getMonth()]} ${d.getFullYear()}`;
 }
 
 function roleLabel(role: TeamMember['role']): string {

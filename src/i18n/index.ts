@@ -55,6 +55,9 @@ export function subscribeLocale(listener: Listener): () => void {
 /** Język urządzenia (2-literowy kod) bez dodatkowych zależności natywnych. */
 export function getDeviceLanguage(): string {
   try {
+    // Web: domyślny interfejs po angielsku (niezależnie od języka przeglądarki),
+    // z możliwością ręcznej zmiany w ustawieniach — zgodnie z wymaganiami wersji webowej.
+    if (Platform.OS === 'web') return 'en';
     let raw = 'pl';
     if (Platform.OS === 'ios') {
       const settings = NativeModules.SettingsManager?.settings;

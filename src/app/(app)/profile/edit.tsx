@@ -36,18 +36,24 @@ const BIO_MAX = 300;
 
 type GenderOption = { value: Gender | null; label: string };
 
-const GENDER_OPTIONS: GenderOption[] = [
-  { value: null, label: t('profile.genderUndisclosed') },
-  { value: 'male', label: t('profile.genderMale') },
-  { value: 'female', label: t('profile.genderFemale') },
-  { value: 'other', label: t('profile.genderOther') },
-];
+// Funkcja (nie stała modułowa!) — musi być wywoływana w renderze, żeby po
+// zmianie języka etykiety przeliczyły się na nowo (stała liczona raz przy
+// imporcie modułu zamrażałaby etykiety w języku sprzed startu aplikacji).
+function buildGenderOptions(): GenderOption[] {
+  return [
+    { value: null, label: t('profile.genderUndisclosed') },
+    { value: 'male', label: t('profile.genderMale') },
+    { value: 'female', label: t('profile.genderFemale') },
+    { value: 'other', label: t('profile.genderOther') },
+  ];
+}
 
 export default function ProfileEditScreen() {
   const insets = useSafeAreaInsets();
   const { session } = useSession();
   const user = session?.user;
   const userId = user?.id;
+  const GENDER_OPTIONS = buildGenderOptions();
 
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);

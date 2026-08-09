@@ -1,5 +1,8 @@
-const WEEKDAYS = ['niedz.', 'pon.', 'wt.', 'śr.', 'czw.', 'pt.', 'sob.'];
-const MONTHS = [
+import { getLocale, t } from '@/i18n';
+
+const WEEKDAYS_PL = ['niedz.', 'pon.', 'wt.', 'śr.', 'czw.', 'pt.', 'sob.'];
+const WEEKDAYS_EN = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+const MONTHS_PL = [
   'sty',
   'lut',
   'mar',
@@ -13,6 +16,28 @@ const MONTHS = [
   'lis',
   'gru',
 ];
+const MONTHS_EN = [
+  'Jan',
+  'Feb',
+  'Mar',
+  'Apr',
+  'May',
+  'Jun',
+  'Jul',
+  'Aug',
+  'Sep',
+  'Oct',
+  'Nov',
+  'Dec',
+];
+
+function weekdays(): string[] {
+  return getLocale() === 'en' ? WEEKDAYS_EN : WEEKDAYS_PL;
+}
+
+function months(): string[] {
+  return getLocale() === 'en' ? MONTHS_EN : MONTHS_PL;
+}
 
 function pad(n: number): string {
   return String(n).padStart(2, '0');
@@ -22,7 +47,7 @@ function pad(n: number): string {
 export function formatEventDateTime(iso: string): string {
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
-  return `${WEEKDAYS[d.getDay()]}, ${d.getDate()} ${MONTHS[d.getMonth()]}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return `${weekdays()[d.getDay()]}, ${d.getDate()} ${months()[d.getMonth()]}, ${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 /** Sama godzina, np. „18:00”. */
@@ -42,12 +67,12 @@ export function formatRelativeShortTime(iso: string, now = new Date()): string {
   const diffHours = Math.floor(diffMin / 60);
   const diffDays = Math.floor(diffHours / 24);
 
-  if (diffMin < 1) return 'teraz';
+  if (diffMin < 1) return t('common.timeNow');
   if (diffMin < 60) return `${diffMin} min`;
-  if (diffHours < 24) return `${diffHours} godz.`;
-  if (diffDays === 1) return 'wczoraj';
-  if (diffDays < 7) return `${diffDays} d.`;
-  return `${d.getDate()} ${MONTHS[d.getMonth()]}`;
+  if (diffHours < 24) return `${diffHours} ${t('common.timeHoursShort')}`;
+  if (diffDays === 1) return t('common.timeYesterday');
+  if (diffDays < 7) return `${diffDays} ${t('common.timeDaysShort')}`;
+  return `${d.getDate()} ${months()[d.getMonth()]}`;
 }
 
 /** Domyślny start nowego meczu: najbliższa pełna godzina + 1h. */

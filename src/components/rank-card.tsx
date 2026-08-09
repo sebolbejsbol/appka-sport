@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
-import { divisionProgress } from '@/lib/ranking';
+import { divisionName, divisionProgress } from '@/lib/ranking';
 
 type Props = {
   xp: number;
@@ -17,7 +17,7 @@ export function RankCard({ xp, rank, total, onPress }: Props) {
 
   const progressNote = next
     ? t('ranking.nextDivision')
-        .replace('{name}', next.name)
+        .replace('{name}', divisionName(next))
         .replace('{xp}', String(xpToNext))
     : t('ranking.maxDivision');
 
@@ -36,7 +36,7 @@ export function RankCard({ xp, rank, total, onPress }: Props) {
 
         <View style={styles.headText}>
           <Text style={styles.divisionLabel}>{t('ranking.division')}</Text>
-          <Text style={styles.divisionName}>{division.name}</Text>
+          <Text style={styles.divisionName}>{divisionName(division)}</Text>
         </View>
 
         <View style={styles.rankPill}>

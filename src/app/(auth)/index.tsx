@@ -1,36 +1,48 @@
 import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { AppBrandMark } from '@/components/app-brand-mark';
 import { Button } from '@/components/button';
 import { LegalFooterLinks } from '@/components/legal-footer-links';
+import { OAuthButtons } from '@/components/oauth-buttons';
 import { Brand } from '@/constants/theme';
 import { Typography } from '@/constants/ui';
 import { t } from '@/i18n';
 
 export default function WelcomeScreen() {
   const insets = useSafeAreaInsets();
+  const [oauthError, setOauthError] = useState<string | null>(null);
 
   return (
     <View style={styles.container}>
       <StatusBar style="dark" />
-      <View style={[styles.hero, { paddingTop: insets.top + 56 }]}>
-        <AppBrandMark size={250} />
-        <Text style={styles.subtitle}>{t('welcome.subtitle')}</Text>
-      </View>
+      <ScrollView
+        contentContainerStyle={styles.scroll}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}>
+        <View style={[styles.hero, { paddingTop: insets.top + 40 }]}>
+          <AppBrandMark size={220} />
+          <Text style={styles.subtitle}>{t('welcome.subtitle')}</Text>
+        </View>
 
-      <View style={[styles.buttons, { paddingBottom: insets.bottom + 28 }]}>
-        <Button label={t('welcome.login')} onPress={() => router.push('/sign-in')} />
-        <Button
-          label={t('welcome.register')}
-          variant="secondary"
-          onPress={() => router.push('/sign-up')}
-        />
-        <Text style={styles.footer}>{t('welcome.footer')}</Text>
-        <LegalFooterLinks style={styles.legalFooter} />
-      </View>
+        <View style={[styles.buttons, { paddingBottom: insets.bottom + 28 }]}>
+          <Button label={t('welcome.login')} onPress={() => router.push('/sign-in')} />
+          <Button
+            label={t('welcome.register')}
+            variant="secondary"
+            onPress={() => router.push('/sign-up')}
+          />
+
+          <OAuthButtons onError={setOauthError} />
+          {oauthError ? <Text style={styles.oauthError}>{oauthError}</Text> : null}
+
+          <Text style={styles.footer}>{t('welcome.footer')}</Text>
+          <LegalFooterLinks style={styles.legalFooter} />
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -39,7 +51,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Brand.screenBackground,
+  },
+  scroll: {
+    flexGrow: 1,
     justifyContent: 'space-between',
+  },
+  oauthError: {
+    fontSize: 13,
+    color: Brand.danger,
+    fontWeight: '500',
+    textAlign: 'center',
   },
   hero: {
     alignItems: 'center',

@@ -13,6 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { LegalFooterLinks } from '@/components/legal-footer-links';
+import { OAuthButtons } from '@/components/oauth-buttons';
 import { ScreenHeader } from '@/components/screen-header';
 import { TextField } from '@/components/text-field';
 import { Brand } from '@/constants/theme';
@@ -30,6 +31,7 @@ export default function SignInScreen() {
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
   const [formError, setFormError] = useState<string | undefined>();
+  const [oauthError, setOauthError] = useState<string | undefined>();
   const [submitting, setSubmitting] = useState(false);
 
   async function handleSubmit() {
@@ -113,6 +115,11 @@ export default function SignInScreen() {
           />
         </View>
 
+        <View style={styles.oauthSection}>
+          <OAuthButtons disabled={submitting} onError={setOauthError} />
+          {!!oauthError && <Text style={styles.formError}>{oauthError}</Text>}
+        </View>
+
         <View style={styles.switchRow}>
           <Text style={styles.switchText}>{t('signIn.noAccount')} </Text>
           <Pressable onPress={() => router.replace('/sign-up')} hitSlop={8} disabled={submitting}>
@@ -164,6 +171,10 @@ const styles = StyleSheet.create({
   },
   submit: {
     marginTop: 8,
+  },
+  oauthSection: {
+    marginTop: 28,
+    gap: 12,
   },
   switchRow: {
     flexDirection: 'row',

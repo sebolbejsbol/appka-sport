@@ -6,6 +6,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type PropsWithChildren,
 } from 'react';
@@ -26,6 +27,14 @@ type SessionContextValue = {
   /** Sesja z linku odzyskiwania hasła — użytkownik musi ustawić nowe hasło przed wejściem w app. */
   isPasswordRecovery: boolean;
   clearPasswordRecovery: () => void;
+  /**
+   * Konto istnieje, ale profil nie ma jeszcze nicku (typowe po pierwszym
+   * logowaniu przez Google/Facebook/Apple — dostawca nie przekazuje nicku).
+   * Użytkownik musi go dokończyć na /complete-profile, zanim wejdzie w appkę.
+   */
+  needsProfileSetup: boolean;
+  /** Wywoływane przez ekran /complete-profile zaraz po udanym zapisaniu nicku. */
+  markProfileComplete: () => void;
   signOut: () => Promise<void>;
 };
 
@@ -47,13 +56,30 @@ async function handleRecoveryUrl(url: string): Promise<void> {
   }
 }
 
+/** Profil bez nicku = konto nowe przez OAuth, które jeszcze nie dokończyło rejestracji. */
+async function fetchNeedsProfileSetup(userId: string): Promise<boolean> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('nick')
+    .eq('id', userId)
+    .maybeSingle<{ nick: string | null }>();
+  if (error) return false;
+  return !data?.nick;
+}
+
 export function SessionProvider({ children }: PropsWithChildren) {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
+  const [needsProfileSetup, setNeedsProfileSetup] = useState(false);
+  const checkedUserIdRef = useRef<string | null>(null);
 
   const clearPasswordRecovery = useCallback(() => {
     setIsPasswordRecovery(false);
+  }, []);
+
+  const markProfileComplete = useCallback(() => {
+    setNeedsProfileSetup(false);
   }, []);
 
   useEffect(() => {
@@ -68,6 +94,10 @@ export function SessionProvider({ children }: PropsWithChildren) {
         setIsPasswordRecovery(true);
         router.replace('/reset-password' as Href);
       }
+      if (event === 'SIGNED_OUT') {
+        checkedUserIdRef.current = null;
+        setNeedsProfileSetup(false);
+      }
     });
 
     const unsubscribeLinks = subscribeToAuthDeepLinks((url) => {
@@ -80,18 +110,37 @@ export function SessionProvider({ children }: PropsWithChildren) {
     };
   }, []);
 
+  // Sprawdzamy brak nicku raz na sesję (nie przy każdym odświeżeniu tokenu).
+  useEffect(() => {
+    const userId = session?.user?.id ?? null;
+    if (!userId) return;
+    if (checkedUserIdRef.current === userId) return;
+    checkedUserIdRef.current = userId;
+
+    void fetchNeedsProfileSetup(userId).then((needsSetup) => {
+      setNeedsProfileSetup(needsSetup);
+      if (needsSetup) {
+        router.replace('/complete-profile' as Href);
+      }
+    });
+  }, [session?.user?.id]);
+
   const value = useMemo<SessionContextValue>(
     () => ({
       session,
       isLoading,
       isPasswordRecovery,
       clearPasswordRecovery,
+      needsProfileSetup,
+      markProfileComplete,
       signOut: async () => {
         setIsPasswordRecovery(false);
+        setNeedsProfileSetup(false);
+        checkedUserIdRef.current = null;
         await supabase.auth.signOut();
       },
     }),
-    [session, isLoading, isPasswordRecovery, clearPasswordRecovery],
+    [session, isLoading, isPasswordRecovery, clearPasswordRecovery, needsProfileSetup, markProfileComplete],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;
