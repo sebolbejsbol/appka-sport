@@ -1319,6 +1319,7 @@ export const pl = {
     grantConfirmMessage: 'Ten użytkownik będzie mógł tworzyć i zarządzać oficjalnymi turniejami.',
     removeConfirmTitle: 'Odebrać dostęp administratora?',
     removeConfirmMessage: 'Ten użytkownik straci dostęp do narzędzi administracyjnych.',
+    loadMore: 'Wczytaj więcej',
   },
   errors: {
     emailRequired: 'Podaj adres e-mail.',

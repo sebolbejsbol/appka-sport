@@ -1312,6 +1312,7 @@ export const en: DeepPartialWide<Translations> = {
     grantConfirmMessage: 'This user will be able to create and manage official tournaments.',
     removeConfirmTitle: 'Remove Admin access?',
     removeConfirmMessage: 'This user will lose access to admin tools.',
+    loadMore: 'Load more',
   },
   errors: {
     emailRequired: 'Enter your email.',

@@ -20,30 +20,39 @@ $$;
 comment on column public.profiles.role is
   'Rola aplikacji: user | admin | super_admin. is_admin jest z nią zsynchronizowane.';
 
--- 2) Rozszerz istniejącą ochronę profilu (migracje 0020/0021/0043/0068):
---    is_admin, nick, a teraz też role — zablokowane z API.
+-- Backfill: istniejący is_admin = true -> role = 'admin' (nie może być
+-- is_admin=true przy role='user', to złamałoby założenie synchronizacji).
+update public.profiles set role = 'admin' where is_admin and role = 'user';
+
+-- 2) Rozszerz istniejącą ochronę profilu (migracje 0020/0021/0043/0068).
+--    Punkt wyjścia to AKTUALNA wersja funkcji z 0068 — dokładamy tylko role.
+--    Po zmianie funkcja blokuje z API:
+--    - is_admin oraz role: zawsze (INSERT wymusza wartości domyślne,
+--      UPDATE przywraca stare),
+--    - nick oraz country_code: dopiero gdy są już ustawione (null można
+--      uzupełnić raz, np. konta OAuth przez claim_profile_basics).
 create or replace function public.profiles_protect_admin()
 returns trigger
 language plpgsql
 as $$
 begin
-  if current_user in ('postgres', 'supabase_admin') then
-    return new;
-  end if;
-
+  if current_user in ('postgres', 'supabase_admin') then return new; end if;
   if tg_op = 'INSERT' then
     new.is_admin := false;
     new.role := 'user';
     return new;
   end if;
-
   if tg_op = 'UPDATE' then
     new.is_admin := old.is_admin;
     new.role := old.role;
-    new.nick := old.nick;
+    if old.nick is not null then
+      new.nick := old.nick;
+    end if;
+    if old.country_code is not null then
+      new.country_code := old.country_code;
+    end if;
     return new;
   end if;
-
   return new;
 end;
 $$;
@@ -70,7 +79,7 @@ grant execute on function public.is_super_admin() to authenticated;
 --    (kolejne fazy turniejowe będą tu dopisywać kolejne akcje).
 create table if not exists public.admin_audit_log (
   id uuid primary key default gen_random_uuid(),
-  actor_id uuid not null references auth.users (id) on delete cascade,
+  actor_id uuid references auth.users (id) on delete set null,
   action text not null,
   entity_type text not null,
   entity_id uuid,

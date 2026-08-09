@@ -1,6 +1,6 @@
 import { useFocusEffect } from 'expo-router';
 import type { Href } from 'expo-router';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   Alert,
@@ -33,32 +33,60 @@ export default function AdminUsersScreen() {
   const [users, setUsers] = useState<AdminUserRow[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
+
+  // Ile wierszy mamy już wczytanych = offset kolejnej strony. Trzymane w ref,
+  // żeby `load` nie zależało od `users` (inaczej efekty poniżej pętliłyby się).
+  const loadedCountRef = useRef(0);
 
   useEffect(() => {
     const timeout = setTimeout(() => setDebouncedSearch(search.trim()), 300);
     return () => clearTimeout(timeout);
   }, [search]);
 
-  const load = useCallback(async () => {
-    if (!isSuperAdmin) return;
-    setLoading(true);
-    setLoadError(false);
-    setActionError(null);
-    const { data, totalCount: count, error } = await getAdminUserList(
-      debouncedSearch,
-      filter,
-      PAGE_SIZE,
-      0,
-    );
-    setUsers(data);
-    setTotalCount(count);
-    setLoadError(Boolean(error));
-    setLoading(false);
-  }, [debouncedSearch, filter, isSuperAdmin]);
+  const load = useCallback(
+    async (append = false) => {
+      if (!isSuperAdmin) return;
+      if (append) {
+        setLoadingMore(true);
+      } else {
+        setLoading(true);
+        setLoadError(false);
+        loadedCountRef.current = 0;
+      }
+      setActionError(null);
+
+      const { data, totalCount: count, error } = await getAdminUserList(
+        debouncedSearch,
+        filter,
+        PAGE_SIZE,
+        append ? loadedCountRef.current : 0,
+      );
+
+      if (append) {
+        if (error) {
+          setActionError(t('adminUsers.loadError'));
+        } else if (data.length > 0) {
+          loadedCountRef.current += data.length;
+          setUsers((prev) => [...prev, ...data]);
+          setTotalCount(count);
+        }
+        setLoadingMore(false);
+        return;
+      }
+
+      setUsers(data);
+      loadedCountRef.current = data.length;
+      setTotalCount(count);
+      setLoadError(Boolean(error));
+      setLoading(false);
+    },
+    [debouncedSearch, filter, isSuperAdmin],
+  );
 
   useEffect(() => {
     if (isSuperAdmin) void load();
@@ -197,6 +225,21 @@ export default function AdminUsersScreen() {
               onRemove={() => confirmRemove(item)}
             />
           )}
+          ListFooterComponent={
+            users.length < totalCount ? (
+              <View style={styles.footer}>
+                {loadingMore ? (
+                  <ActivityIndicator color={Brand.primary} />
+                ) : (
+                  <Pressable
+                    style={({ pressed }) => [styles.loadMoreBtn, pressed && styles.pressed]}
+                    onPress={() => void load(true)}>
+                    <Text style={styles.loadMoreText}>{t('adminUsers.loadMore')}</Text>
+                  </Pressable>
+                )}
+              </View>
+            ) : null
+          }
         />
       )}
     </View>
@@ -379,5 +422,22 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.85,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingVertical: 16,
+  },
+  loadMoreBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 999,
+    backgroundColor: Brand.surface,
+    borderWidth: 1,
+    borderColor: Brand.border,
+  },
+  loadMoreText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: Brand.textPrimary,
   },
 });
