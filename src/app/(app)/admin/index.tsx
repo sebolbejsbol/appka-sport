@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/screen-header';
 import { Brand } from '@/constants/theme';
-import { useIsAdmin } from '@/hooks/use-is-admin';
+import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
 
@@ -12,13 +12,13 @@ type AdminTool = {
   key: string;
   title: string;
   hint: string;
-  path: '/admin/fields' | '/admin/reports';
+  path: '/admin/fields' | '/admin/reports' | '/admin/users';
 };
 
 // Funkcja, nie stała modułowa — inaczej etykiety zamrażałyby się w języku
 // z chwili importu modułu i nie zmieniałyby się po przełączeniu języka.
-function buildAdminTools(): AdminTool[] {
-  return [
+function buildAdminTools(isSuperAdmin: boolean): AdminTool[] {
+  const tools: AdminTool[] = [
     {
       key: 'fields',
       title: t('admin.fieldsTitle'),
@@ -32,12 +32,23 @@ function buildAdminTools(): AdminTool[] {
       path: '/admin/reports',
     },
   ];
+
+  if (isSuperAdmin) {
+    tools.push({
+      key: 'users',
+      title: t('admin.usersTitle'),
+      hint: t('admin.usersHint'),
+      path: '/admin/users',
+    });
+  }
+
+  return tools;
 }
 
 export default function AdminHubScreen() {
   const insets = useSafeAreaInsets();
-  const { isAdmin, loading } = useIsAdmin();
-  const ADMIN_TOOLS = buildAdminTools();
+  const { isAdmin, isSuperAdmin, loading } = useUserRole();
+  const ADMIN_TOOLS = buildAdminTools(isSuperAdmin);
 
   if (loading) {
     return (
