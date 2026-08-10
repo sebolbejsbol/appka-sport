@@ -99,9 +99,19 @@ export default function EditTournamentScreen() {
 
     const input = tournamentFormValueToInput(value);
     let logoUrl = input.logoUrl;
-    if (value.logoBase64 && value.logoUri) {
-      const { publicUrl } = await uploadTournamentLogo(tournamentId, value.logoUri, value.logoMime, value.logoBase64);
-      if (publicUrl) logoUrl = publicUrl;
+    if (value.logoUri && !value.logoUri.startsWith('http')) {
+      const { publicUrl, error: uploadErr } = await uploadTournamentLogo(
+        tournamentId,
+        value.logoUri,
+        value.logoMime,
+        value.logoBase64,
+      );
+      if (uploadErr) {
+        setError(t('tournamentForm.saveError'));
+        setBusy(false);
+        return;
+      }
+      logoUrl = publicUrl;
     }
 
     const result = await updateTournament(tournamentId, { ...input, logoUrl });

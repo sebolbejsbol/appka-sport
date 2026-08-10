@@ -82,7 +82,10 @@ export default function EventsScreen() {
     setEvents(data);
     setActiveTeams(teams);
     setTournaments(
-      [...tournamentsResult.data].sort((a, b) => a.event_date.localeCompare(b.event_date)),
+      [...tournamentsResult.data]
+        .filter((tItem) => tItem.status !== 'completed')
+        .sort((a, b) => a.event_date.localeCompare(b.event_date))
+        .slice(0, 8),
     );
     setLoadError(!!error);
     setLoading(false);
@@ -399,13 +402,16 @@ function TournamentsRail({
   return (
     <View style={styles.shelf}>
       <Text style={styles.shelfTitle}>🏆 {t('eventsList.tournamentsRailTitle')}</Text>
-      <View style={styles.tournamentRailList}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.shelfRow}>
         {tournaments.map((tItem) => (
           <View key={tItem.id} style={styles.tournamentRailItem}>
             <TournamentCard tournament={tItem} onPress={onOpenTournament} />
           </View>
         ))}
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -688,11 +694,8 @@ const styles = StyleSheet.create({
   shelf: {
     marginBottom: 18,
   },
-  tournamentRailList: {
-    gap: 14,
-  },
   tournamentRailItem: {
-    width: '100%',
+    width: 220,
   },
   shelfTitle: {
     fontSize: 16,

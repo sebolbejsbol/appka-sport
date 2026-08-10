@@ -11,6 +11,9 @@ declare
   v_admin uuid; v_user uuid;
   v_status text; v_id uuid;
   v_group_count integer;
+  v_draft_id uuid; v_cancelled_id uuid; v_geo_id uuid;
+  v_lat double precision; v_lng double precision;
+  v_rls_role_ok boolean := true;
 begin
   select id into v_admin from public.profiles where role in ('admin', 'super_admin') order by created_at limit 1;
   select id into v_user from public.profiles where role = 'user' order by created_at limit 1;
@@ -99,6 +102,7 @@ begin
     4, 2, 5, 0, false, 3, 1, 0, true, array['Grupa A']
   );
   if v_status <> 'ok' or v_id is null then raise exception 'FAIL draft create, got %', v_status; end if;
+  v_draft_id := v_id; -- zachowane do testu list_tournaments (krok 12) — v_id jest reużywane dalej
   perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
   if exists (select 1 from public.get_tournament_detail(v_id)) then
     raise exception 'FAIL non-admin can see draft tournament';
@@ -113,6 +117,72 @@ begin
     if sqlerrm <> 'not_admin' then raise exception 'FAIL wrong error for admin_view, got %', sqlerrm; end if;
   end;
   insert into _t values ('list_tournaments admin_view gated OK');
+
+  -- 11) Fixture: turniej anulowany (do testu widoczności list_tournaments, krok 12)
+  perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
+  select status, tournament_id into v_status, v_cancelled_id from public.admin_create_tournament(
+    'Cancelled Cup', null, null, 'basketball', current_date + 30, '10:00', null,
+    null, now() + interval '7 days', null, null, null, null, null, null,
+    8, 2, 5, 0, false, 3, 1, 0, true, array['Grupa A']
+  );
+  if v_status <> 'ok' or v_cancelled_id is null then
+    raise exception 'FAIL cancelled fixture create, got %', v_status;
+  end if;
+  select public.admin_set_tournament_status(v_cancelled_id, 'registration_open') into v_status;
+  if v_status <> 'ok' then raise exception 'FAIL cancelled fixture ->registration_open, got %', v_status; end if;
+  select public.admin_set_tournament_status(v_cancelled_id, 'cancelled') into v_status;
+  if v_status <> 'ok' then raise exception 'FAIL cancelled fixture ->cancelled, got %', v_status; end if;
+  insert into _t values ('cancelled fixture created OK');
+
+  -- 12) list_tournaments(null, false) (widok publiczny) musi wykluczać draft i cancelled
+  perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
+  if exists (select 1 from public.list_tournaments(null, false, 50, 0) where id = v_draft_id) then
+    raise exception 'FAIL list_tournaments(false) leaks draft tournament (%).', v_draft_id;
+  end if;
+  if exists (select 1 from public.list_tournaments(null, false, 50, 0) where id = v_cancelled_id) then
+    raise exception 'FAIL list_tournaments(false) leaks cancelled tournament (%).', v_cancelled_id;
+  end if;
+  insert into _t values ('list_tournaments(null,false) excludes draft+cancelled OK');
+
+  -- 13) latitude/longitude (migracja 0072) round-trip przez list_tournaments
+  perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
+  select status, tournament_id into v_status, v_geo_id from public.admin_create_tournament(
+    'Geo Cup', null, null, 'basketball', current_date + 40, '10:00', null,
+    null, now() + interval '7 days', 'Hala Warszawa', null, 'Warszawa', 52.2297, 21.0122, null,
+    8, 2, 5, 0, false, 3, 1, 0, true, array['Grupa A']
+  );
+  if v_status <> 'ok' or v_geo_id is null then raise exception 'FAIL geo fixture create, got %', v_status; end if;
+  select latitude, longitude into v_lat, v_lng
+    from public.list_tournaments(null, true, 50, 0)
+    where id = v_geo_id;
+  if v_lat is distinct from 52.2297::double precision or v_lng is distinct from 21.0122::double precision then
+    raise exception 'FAIL lat/lng round-trip via list_tournaments, got % / %', v_lat, v_lng;
+  end if;
+  insert into _t values ('lat/lng round-trip via list_tournaments OK');
+
+  -- 14) (opcjonalny) RLS jako defense-in-depth: surowy SELECT spoza RPC nie może
+  --     zwrócić draftu zwykłemu userowi. Przełączamy ROLE na 'authenticated' (bez
+  --     bypassrls), bo skrypt jest zwykle odpalany jako superuser 'postgres',
+  --     który i tak omija RLS niezależnie od polityk.
+  perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
+  begin
+    set local role authenticated;
+  exception when others then
+    v_rls_role_ok := false;
+  end;
+  if v_rls_role_ok then
+    -- Poza tym begin/exception, żeby prawdziwa regresja RLS (wiersz widoczny)
+    -- realnie wywaliła cały test przez 'raise exception', a nie została połknięta
+    -- jako "sprawdzenie pominięte".
+    select count(*) into v_group_count from public.tournaments where status = 'draft';
+    reset role;
+    if v_group_count > 0 then
+      raise exception 'FAIL RLS: raw select as non-admin returned % draft row(s)', v_group_count;
+    end if;
+    insert into _t values ('RLS blocks raw draft select for non-admin OK');
+  else
+    insert into _t values ('RLS raw-select check skipped (SET LOCAL ROLE authenticated not permitted here)');
+  end if;
 
   raise notice 'Wszystkie testy turniejów zaliczone: %', (select string_agg(step, ', ') from _t);
 end;
