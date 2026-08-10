@@ -129,6 +129,7 @@ export type SetTournamentStatusResult =
   | 'not_admin'
   | 'not_found'
   | 'invalid_transition'
+  | 'not_enough_teams'
   | 'error';
 
 function parseSport(raw: unknown): TournamentSport {
