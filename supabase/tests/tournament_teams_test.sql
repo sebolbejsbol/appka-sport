@@ -1,4 +1,4 @@
-﻿-- ============================================================================
+-- ============================================================================
 -- Rejestracja drużyn na turniej — testy funkcjonalne backendu (asercje PL/pgSQL).
 -- Uruchamiaj na środowisku testowym/stagingu, jako postgres w SQL Editor.
 -- Wymaga: co najmniej 1 profil admin/super_admin, 1 profil user zarządzający
