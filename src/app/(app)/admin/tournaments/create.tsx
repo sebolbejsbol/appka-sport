@@ -1,6 +1,6 @@
 import { router, type Href } from 'expo-router';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
@@ -12,6 +12,7 @@ import {
   validateTournamentForm,
 } from '@/components/tournament-form';
 import { Brand } from '@/constants/theme';
+import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
 import { createTournament, updateTournament } from '@/lib/tournaments';
@@ -19,6 +20,7 @@ import { uploadTournamentLogo } from '@/lib/tournament-storage';
 
 export default function CreateTournamentScreen() {
   const insets = useSafeAreaInsets();
+  const { isAdmin, loading: roleLoading } = useUserRole();
   const [value, setValue] = useState(emptyTournamentFormValue());
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,7 +40,7 @@ export default function CreateTournamentScreen() {
     setError(null);
 
     const input = tournamentFormValueToInput(value);
-    const result = await createTournament(input);
+    const result = await createTournament({ ...input, logoUrl: null });
 
     if (result.status !== 'ok') {
       setError(t('tournamentForm.createError'));
@@ -46,7 +48,7 @@ export default function CreateTournamentScreen() {
       return;
     }
 
-    if (value.logoUri && value.logoBase64) {
+    if (value.logoUri) {
       const { publicUrl } = await uploadTournamentLogo(
         result.tournamentId,
         value.logoUri,
@@ -63,6 +65,27 @@ export default function CreateTournamentScreen() {
       pathname: '/admin/tournaments/[id]/edit',
       params: { id: result.tournamentId },
     } as Href);
+  }
+
+  if (roleLoading) {
+    return (
+      <View style={[styles.flex, { paddingTop: insets.top + 12 }]}>
+        <ActivityIndicator color={Brand.primary} style={styles.loader} />
+      </View>
+    );
+  }
+
+  if (!isAdmin) {
+    return (
+      <View style={styles.flex}>
+        <ScreenHeader
+          insetTop={insets.top}
+          title={t('tournamentForm.createTitle')}
+          onBack={() => goBack('/admin/tournaments' as Href)}
+        />
+        <Text style={styles.muted}>{t('admin.notAuthorized')}</Text>
+      </View>
+    );
   }
 
   return (
@@ -85,6 +108,8 @@ export default function CreateTournamentScreen() {
 
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Brand.screenBackground },
+  loader: { marginTop: 32 },
+  muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
   content: { paddingHorizontal: 20, paddingTop: 8 },
   errorText: { fontSize: 14, color: Brand.danger, marginTop: 12 },
   submit: { marginTop: 20 },

@@ -270,70 +270,77 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
       </View>
 
       <View style={styles.row}>
-        <TextField
-          label={t('tournamentForm.eventDate')}
-          value={value.eventDate}
-          onChangeText={(eventDate) => onChange({ eventDate })}
-          placeholder={t('tournamentForm.eventDatePlaceholder')}
-          editable={!disabled}
-          style={styles.flex1}
-        />
-        <TextField
-          label={t('tournamentForm.startTime')}
-          value={value.startTime}
-          onChangeText={(startTime) => onChange({ startTime })}
-          placeholder={t('tournamentForm.timePlaceholder')}
-          editable={!disabled}
-          style={styles.flex1}
-        />
-        <TextField
-          label={t('tournamentForm.endTime')}
-          value={value.endTime}
-          onChangeText={(endTime) => onChange({ endTime })}
-          placeholder={t('tournamentForm.timePlaceholder')}
-          editable={!disabled}
-          style={styles.flex1}
-        />
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.eventDate')}
+            value={value.eventDate}
+            onChangeText={(eventDate) => onChange({ eventDate })}
+            placeholder={t('tournamentForm.eventDatePlaceholder')}
+            editable={!disabled}
+          />
+        </View>
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.startTime')}
+            value={value.startTime}
+            onChangeText={(startTime) => onChange({ startTime })}
+            placeholder={t('tournamentForm.timePlaceholder')}
+            editable={!disabled}
+          />
+        </View>
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.endTime')}
+            value={value.endTime}
+            onChangeText={(endTime) => onChange({ endTime })}
+            placeholder={t('tournamentForm.timePlaceholder')}
+            editable={!disabled}
+          />
+        </View>
       </View>
 
       <Text style={styles.label}>{t('tournamentForm.registrationOpens')}</Text>
       <View style={styles.row}>
-        <TextField
-          label={t('tournamentForm.eventDate')}
-          value={value.regOpenDate}
-          onChangeText={(regOpenDate) => onChange({ regOpenDate })}
-          placeholder={t('tournamentForm.eventDatePlaceholder')}
-          editable={!disabled}
-          style={styles.flex1}
-        />
-        <TextField
-          label={t('tournamentForm.startTime')}
-          value={value.regOpenTime}
-          onChangeText={(regOpenTime) => onChange({ regOpenTime })}
-          placeholder={t('tournamentForm.timePlaceholder')}
-          editable={!disabled}
-          style={styles.flex1}
-        />
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.dateLabel')}
+            value={value.regOpenDate}
+            onChangeText={(regOpenDate) => onChange({ regOpenDate })}
+            placeholder={t('tournamentForm.eventDatePlaceholder')}
+            editable={!disabled}
+          />
+        </View>
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.timeLabel')}
+            value={value.regOpenTime}
+            onChangeText={(regOpenTime) => onChange({ regOpenTime })}
+            placeholder={t('tournamentForm.timePlaceholder')}
+            editable={!disabled}
+          />
+        </View>
       </View>
 
       <Text style={styles.label}>{t('tournamentForm.registrationCloses')}</Text>
       <View style={styles.row}>
-        <TextField
-          label={t('tournamentForm.eventDate')}
-          value={value.regCloseDate}
-          onChangeText={(regCloseDate) => onChange({ regCloseDate })}
-          placeholder={t('tournamentForm.eventDatePlaceholder')}
-          editable={!disabled}
-          style={styles.flex1}
-        />
-        <TextField
-          label={t('tournamentForm.startTime')}
-          value={value.regCloseTime}
-          onChangeText={(regCloseTime) => onChange({ regCloseTime })}
-          placeholder={t('tournamentForm.timePlaceholder')}
-          editable={!disabled}
-          style={styles.flex1}
-        />
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.dateLabel')}
+            value={value.regCloseDate}
+            onChangeText={(regCloseDate) => onChange({ regCloseDate })}
+            placeholder={t('tournamentForm.eventDatePlaceholder')}
+            editable={!disabled}
+          />
+        </View>
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.timeLabel')}
+            value={value.regCloseTime}
+            onChangeText={(regCloseTime) => onChange({ regCloseTime })}
+            placeholder={t('tournamentForm.timePlaceholder')}
+            editable={!disabled}
+          />
+        </View>
       </View>
 
       <TextField
@@ -364,40 +371,44 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
       <Text style={styles.sectionTitle}>{t('tournamentForm.sectionConfig')}</Text>
 
       <View style={styles.row}>
-        <TextField
-          label={t('tournamentForm.maxTeams')}
-          value={value.maxTeams}
-          onChangeText={(maxTeams) => onChange({ maxTeams })}
-          keyboardType="numeric"
-          editable={!disabled}
-          style={styles.flex1}
-        />
-        <TextField
-          label={t('tournamentForm.minTeams')}
-          value={value.minTeams}
-          onChangeText={(minTeams) => onChange({ minTeams })}
-          keyboardType="numeric"
-          editable={!disabled}
-          style={styles.flex1}
-        />
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.maxTeams')}
+            value={value.maxTeams}
+            onChangeText={(maxTeams) => onChange({ maxTeams })}
+            keyboardType="numeric"
+            editable={!disabled}
+          />
+        </View>
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.minTeams')}
+            value={value.minTeams}
+            onChangeText={(minTeams) => onChange({ minTeams })}
+            keyboardType="numeric"
+            editable={!disabled}
+          />
+        </View>
       </View>
       <View style={styles.row}>
-        <TextField
-          label={t('tournamentForm.playersPerTeam')}
-          value={value.playersPerTeam}
-          onChangeText={(playersPerTeam) => onChange({ playersPerTeam })}
-          keyboardType="numeric"
-          editable={!disabled}
-          style={styles.flex1}
-        />
-        <TextField
-          label={t('tournamentForm.substitutesPerTeam')}
-          value={value.substitutesPerTeam}
-          onChangeText={(substitutesPerTeam) => onChange({ substitutesPerTeam })}
-          keyboardType="numeric"
-          editable={!disabled}
-          style={styles.flex1}
-        />
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.playersPerTeam')}
+            value={value.playersPerTeam}
+            onChangeText={(playersPerTeam) => onChange({ playersPerTeam })}
+            keyboardType="numeric"
+            editable={!disabled}
+          />
+        </View>
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.substitutesPerTeam')}
+            value={value.substitutesPerTeam}
+            onChangeText={(substitutesPerTeam) => onChange({ substitutesPerTeam })}
+            keyboardType="numeric"
+            editable={!disabled}
+          />
+        </View>
       </View>
 
       <ToggleRow
@@ -408,30 +419,33 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
       />
 
       <View style={styles.row}>
-        <TextField
-          label={t('tournamentForm.pointsWin')}
-          value={value.pointsWin}
-          onChangeText={(pointsWin) => onChange({ pointsWin })}
-          keyboardType="numeric"
-          editable={!disabled}
-          style={styles.flex1}
-        />
-        <TextField
-          label={t('tournamentForm.pointsDraw')}
-          value={value.pointsDraw}
-          onChangeText={(pointsDraw) => onChange({ pointsDraw })}
-          keyboardType="numeric"
-          editable={!disabled}
-          style={styles.flex1}
-        />
-        <TextField
-          label={t('tournamentForm.pointsLoss')}
-          value={value.pointsLoss}
-          onChangeText={(pointsLoss) => onChange({ pointsLoss })}
-          keyboardType="numeric"
-          editable={!disabled}
-          style={styles.flex1}
-        />
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.pointsWin')}
+            value={value.pointsWin}
+            onChangeText={(pointsWin) => onChange({ pointsWin })}
+            keyboardType="numeric"
+            editable={!disabled}
+          />
+        </View>
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.pointsDraw')}
+            value={value.pointsDraw}
+            onChangeText={(pointsDraw) => onChange({ pointsDraw })}
+            keyboardType="numeric"
+            editable={!disabled}
+          />
+        </View>
+        <View style={styles.flex1}>
+          <TextField
+            label={t('tournamentForm.pointsLoss')}
+            value={value.pointsLoss}
+            onChangeText={(pointsLoss) => onChange({ pointsLoss })}
+            keyboardType="numeric"
+            editable={!disabled}
+          />
+        </View>
       </View>
 
       <ToggleRow

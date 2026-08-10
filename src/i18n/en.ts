@@ -1344,6 +1344,8 @@ export const en: DeepPartialWide<Translations> = {
     pickLogo: 'Choose logo',
     eventDate: 'Event date',
     eventDatePlaceholder: 'YYYY-MM-DD',
+    dateLabel: 'Date',
+    timeLabel: 'Time',
     startTime: 'Start time',
     endTime: 'End time (optional)',
     timePlaceholder: 'HH:MM',

@@ -1351,6 +1351,8 @@ export const pl = {
     pickLogo: 'Wybierz logo',
     eventDate: 'Data wydarzenia',
     eventDatePlaceholder: 'RRRR-MM-DD',
+    dateLabel: 'Data',
+    timeLabel: 'Godzina',
     startTime: 'Godzina rozpoczęcia',
     endTime: 'Godzina zakończenia (opcjonalnie)',
     timePlaceholder: 'GG:MM',
