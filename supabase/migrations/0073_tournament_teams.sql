@@ -66,7 +66,7 @@ begin
 
   select status, sport, max_teams, requires_approval
     into v_t_status, v_t_sport, v_max_teams, v_requires_approval
-    from public.tournaments where id = p_tournament_id;
+    from public.tournaments where id = p_tournament_id for update;
   if not found then return 'tournament_not_found'; end if;
 
   select sport into v_team_sport from public.teams where id = p_team_id;
@@ -164,7 +164,7 @@ begin
   if v_status <> 'pending' then return 'not_pending'; end if;
 
   if p_accept then
-    select max_teams into v_max_teams from public.tournaments where id = v_tournament_id;
+    select max_teams into v_max_teams from public.tournaments where id = v_tournament_id for update;
     select count(*) into v_approved_count
       from public.tournament_teams
       where tournament_id = v_tournament_id and status = 'approved';
@@ -296,6 +296,7 @@ begin
 end;
 $$;
 
+revoke all on function public.list_tournament_team_registrations(uuid, boolean) from public;
 grant execute on function public.list_tournament_team_registrations(uuid, boolean) to authenticated;
 
 -- 9) Status rejestracji dla własnej drużyny (dla przycisku "Zarejestruj" na
@@ -324,6 +325,7 @@ begin
 end;
 $$;
 
+revoke all on function public.get_my_team_registration_status(uuid, uuid) from public;
 grant execute on function public.get_my_team_registration_status(uuid, uuid) to authenticated;
 
 -- 10) Dopięcie kontroli min_teams przy przejściu registration_closed -> ready
