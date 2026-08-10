@@ -124,7 +124,7 @@ begin
   end if;
   insert into _t values ('assign team to group OK');
 
-  -- 13) registration_closed -> ready zablokowane, dopóki nie ma min_teams (min_teams=2, tylko 1 approved)
+  -- 13) close -> ready zablokowane, dopóki nie ma min_teams (min_teams=2, tylko 1 approved)
   select public.admin_set_tournament_status(v_tournament_id, 'registration_closed') into v_status;
   if v_status <> 'ok' then raise exception 'FAIL close registration, got %', v_status; end if;
 
@@ -132,7 +132,8 @@ begin
   if v_status <> 'not_enough_teams' then raise exception 'FAIL ready blocked below min_teams, got %', v_status; end if;
   insert into _t values ('ready transition blocked below min_teams OK');
 
-  -- 14) Rejestrujemy i zatwierdzamy drugą drużynę (2/2), wtedy ready powinno przejść
+  -- 14) Reopen (registration_closed -> registration_open jest legalne), rejestrujemy i
+  --     zatwierdzamy drugą drużynę, docierając do 2/2 approved (turniej wciąż otwarty)
   perform set_config('request.jwt.claims', json_build_object('sub', v_manager, 'role', 'authenticated')::text, true);
   select public.admin_set_tournament_status(v_tournament_id, 'registration_open') into v_status;
   if v_status <> 'not_admin' then raise exception 'FAIL non-admin reopen blocked, got %', v_status; end if;
@@ -154,17 +155,10 @@ begin
   perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
   select public.admin_respond_team_registration(v_second_reg_id, true) into v_status;
   if v_status <> 'ok' then raise exception 'FAIL second team approve, got %', v_status; end if;
+  insert into _t values ('second team registered and approved (2/2), tournament still registration_open OK');
 
-  select public.admin_set_tournament_status(v_tournament_id, 'registration_closed') into v_status;
-  if v_status <> 'ok' then raise exception 'FAIL close registration (2), got %', v_status; end if;
-  select public.admin_set_tournament_status(v_tournament_id, 'ready') into v_status;
-  if v_status <> 'ok' then raise exception 'FAIL ready transition once min_teams met, got %', v_status; end if;
-  insert into _t values ('ready transition succeeds once min_teams met (2/2) OK');
-
-  -- 15) tournament_full: turniej ma już 2/2 approved (max_teams=2), trzecia drużyna nie może dołączyć
-  select public.admin_set_tournament_status(v_tournament_id, 'registration_open') into v_status;
-  if v_status <> 'ok' then raise exception 'FAIL reopen for full-test, got %', v_status; end if;
-
+  -- 15) tournament_full: turniej ma już 2/2 approved (max_teams=2), wciąż registration_open —
+  --     trzecia drużyna nie może dołączyć
   insert into public.teams (name, sport, owner_id) values ('Test Registration FC 3', 'basketball', v_outsider)
   returning id into v_third_team_id;
   insert into public.team_members (team_id, user_id, role) values (v_third_team_id, v_outsider, 'owner');
@@ -173,12 +167,19 @@ begin
   if v_status <> 'tournament_full' then raise exception 'FAIL tournament_full not enforced, got %', v_status; end if;
   insert into _t values ('tournament_full enforced at registration (2/2 approved) OK');
 
-  -- 16) Wycofanie zgłoszenia
+  -- 16) Wycofanie nigdy niezarejestrowanej drużyny -> not_registered
   select public.withdraw_team_registration(v_tournament_id, v_third_team_id) into v_status;
-  -- v_third_team_id nigdy nie miała zapisanego wiersza (rejestracja odrzucona przez tournament_full)
   if v_status <> 'not_registered' then raise exception 'FAIL withdraw of never-registered team, got %', v_status; end if;
   insert into _t values ('withdraw of never-registered team returns not_registered OK');
 
+  -- 17) Teraz zamykamy zapisy i przechodzimy do ready — 2/2 approved spełnia min_teams=2
+  select public.admin_set_tournament_status(v_tournament_id, 'registration_closed') into v_status;
+  if v_status <> 'ok' then raise exception 'FAIL close registration (2), got %', v_status; end if;
+  select public.admin_set_tournament_status(v_tournament_id, 'ready') into v_status;
+  if v_status <> 'ok' then raise exception 'FAIL ready transition once min_teams met, got %', v_status; end if;
+  insert into _t values ('ready transition succeeds once min_teams met (2/2) OK');
+
+  -- 18) Wycofanie zaakceptowanej drużyny (dozwolone nawet po 'ready' — patrz design doc)
   perform set_config('request.jwt.claims', json_build_object('sub', v_manager, 'role', 'authenticated')::text, true);
   select public.withdraw_team_registration(v_tournament_id, v_team_id) into v_status;
   if v_status <> 'ok' then raise exception 'FAIL withdraw approved team, got %', v_status; end if;
