@@ -1382,6 +1382,7 @@ export const pl = {
     errDate: 'Podaj prawidłową datę wydarzenia (RRRR-MM-DD).',
     errTime: 'Podaj prawidłową godzinę (GG:MM).',
     errRegistrationWindow: 'Zamknięcie zapisów musi być po otwarciu, a data zamknięcia jest wymagana.',
+    errRegistrationOpenFormat: 'Podaj prawidłową datę (RRRR-MM-DD) i godzinę (GG:MM) otwarcia zapisów, albo zostaw oba pola puste.',
     errMaxTeams: 'Maks. drużyn musi być między 2 a 128.',
     errMinTeams: 'Min. drużyn musi być co najmniej 2 i nie więcej niż maks. drużyn.',
     errPlayersPerTeam: 'Zawodników w drużynie musi być między 1 a 30.',

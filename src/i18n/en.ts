@@ -1375,6 +1375,7 @@ export const en: DeepPartialWide<Translations> = {
     errDate: 'Enter a valid event date (YYYY-MM-DD).',
     errTime: 'Enter a valid time (HH:MM).',
     errRegistrationWindow: 'Registration must close after it opens, and a closing date is required.',
+    errRegistrationOpenFormat: 'Enter a valid registration opening date (YYYY-MM-DD) and time (HH:MM), or leave both blank.',
     errMaxTeams: 'Max teams must be between 2 and 128.',
     errMinTeams: 'Min teams must be at least 2 and no more than max teams.',
     errPlayersPerTeam: 'Players per team must be between 1 and 30.',

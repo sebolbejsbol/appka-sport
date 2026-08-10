@@ -131,7 +131,7 @@ export function validateTournamentForm(v: TournamentFormValue): string | null {
   let opensIso: string | null = null;
   if (v.regOpenDate.trim() || v.regOpenTime.trim()) {
     opensIso = parseLocalDateTime(v.regOpenDate, v.regOpenTime);
-    if (!opensIso) return t('tournamentForm.errRegistrationWindow');
+    if (!opensIso) return t('tournamentForm.errRegistrationOpenFormat');
     if (opensIso >= closesIso) return t('tournamentForm.errRegistrationWindow');
   }
 
