@@ -32,6 +32,8 @@ import {
 } from '@/lib/event-categories';
 import { getActiveTeams, type ActiveTeam } from '@/lib/teams';
 import { formatTeamSport } from '@/lib/sports';
+import { TournamentCard } from '@/components/tournament-card';
+import { listTournaments, type TournamentListItem } from '@/lib/tournaments';
 import { t } from '@/i18n';
 import {
   applyDiscoverFilters,
@@ -63,6 +65,7 @@ export default function EventsScreen() {
   const { coords } = useUserLocation();
 
   const [events, setEvents] = useState<DiscoverEvent[]>([]);
+  const [tournaments, setTournaments] = useState<TournamentListItem[]>([]);
   const [activeTeams, setActiveTeams] = useState<ActiveTeam[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -71,12 +74,19 @@ export default function EventsScreen() {
   const [filters, setFilters] = useState<DiscoverFilters>(DEFAULT_DISCOVER_FILTERS);
 
   const load = useCallback(async () => {
-    const [{ data, error }, teams] = await Promise.all([
+    const [{ data, error }, teams, tournamentsResult] = await Promise.all([
       getDiscoverEvents(),
       getActiveTeams(8),
+      listTournaments(null, false),
     ]);
     setEvents(data);
     setActiveTeams(teams);
+    setTournaments(
+      [...tournamentsResult.data]
+        .filter((tItem) => tItem.status !== 'completed')
+        .sort((a, b) => a.event_date.localeCompare(b.event_date))
+        .slice(0, 8),
+    );
     setLoadError(!!error);
     setLoading(false);
   }, []);
@@ -131,6 +141,10 @@ export default function EventsScreen() {
       subcategory: event.subcategory,
     });
     router.push({ pathname: '/event/[id]', params: { id: event.id } });
+  }, []);
+
+  const openTournament = useCallback((tournament: TournamentListItem) => {
+    router.push({ pathname: '/tournament/[id]', params: { id: tournament.id } });
   }, []);
 
   function openTeam(teamId: string) {
@@ -260,7 +274,13 @@ export default function EventsScreen() {
       {loading ? (
         <ActivityIndicator color={Brand.primary} style={styles.loader} />
       ) : view === 'map' ? (
-        <EventsMap events={visibleEvents} userCoords={coords} onSelectEvent={openEvent} />
+        <EventsMap
+          events={visibleEvents}
+          tournaments={tournaments}
+          userCoords={coords}
+          onSelectEvent={openEvent}
+          onSelectTournament={openTournament}
+        />
       ) : loadError && events.length === 0 ? (
         <View style={styles.emptyBlock}>
           <Text style={styles.emptyTitle}>{t('eventsList.loadFailTitle')}</Text>
@@ -291,14 +311,19 @@ export default function EventsScreen() {
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Brand.primary} />
           }
           ListHeaderComponent={
-            showDiscoveryShelf ? (
-              <PopularShelf
-                events={popularEvents}
-                teams={activeTeams}
-                onOpenEvent={openEvent}
-                onOpenTeam={openTeam}
-              />
-            ) : null
+            <>
+              {tournaments.length > 0 ? (
+                <TournamentsRail tournaments={tournaments} onOpenTournament={openTournament} />
+              ) : null}
+              {showDiscoveryShelf ? (
+                <PopularShelf
+                  events={popularEvents}
+                  teams={activeTeams}
+                  onOpenEvent={openEvent}
+                  onOpenTeam={openTeam}
+                />
+              ) : null}
+            </>
           }
           renderItem={({ item }) => (
             <EventCard event={item} userCoords={coords} onPress={openEvent} />
@@ -363,6 +388,30 @@ function PopularShelf({
           </ScrollView>
         </>
       ) : null}
+    </View>
+  );
+}
+
+function TournamentsRail({
+  tournaments,
+  onOpenTournament,
+}: {
+  tournaments: TournamentListItem[];
+  onOpenTournament: (tournament: TournamentListItem) => void;
+}) {
+  return (
+    <View style={styles.shelf}>
+      <Text style={styles.shelfTitle}>🏆 {t('eventsList.tournamentsRailTitle')}</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.shelfRow}>
+        {tournaments.map((tItem) => (
+          <View key={tItem.id} style={styles.tournamentRailItem}>
+            <TournamentCard tournament={tItem} onPress={onOpenTournament} />
+          </View>
+        ))}
+      </ScrollView>
     </View>
   );
 }
@@ -644,6 +693,9 @@ const styles = StyleSheet.create({
   },
   shelf: {
     marginBottom: 18,
+  },
+  tournamentRailItem: {
+    width: 220,
   },
   shelfTitle: {
     fontSize: 16,
