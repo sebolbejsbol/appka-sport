@@ -58,3 +58,6 @@ scripts/.cache/
 
 # secrets — Firebase service account private key (NIE commitować)
 *-firebase-adminsdk-*.json
+
+# local git worktrees used for isolated feature work
+.claude/worktrees/
