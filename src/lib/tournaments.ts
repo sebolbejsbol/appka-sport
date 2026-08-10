@@ -74,6 +74,8 @@ export type TournamentListItem = {
   end_time: string | null;
   location_name: string | null;
   city: string | null;
+  latitude: number | null;
+  longitude: number | null;
   status: TournamentStatus;
   max_teams: number;
   min_teams: number;
@@ -196,6 +198,8 @@ function mapTournamentListRow(raw: Record<string, unknown>): TournamentListItem 
     end_time: typeof raw.end_time === 'string' ? raw.end_time : null,
     location_name: typeof raw.location_name === 'string' ? raw.location_name : null,
     city: typeof raw.city === 'string' ? raw.city : null,
+    latitude: typeof raw.latitude === 'number' ? raw.latitude : null,
+    longitude: typeof raw.longitude === 'number' ? raw.longitude : null,
     status: parseStatus(raw.status),
     max_teams: Number(raw.max_teams) || 0,
     min_teams: Number(raw.min_teams) || 0,
