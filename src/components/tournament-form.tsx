@@ -204,19 +204,19 @@ type Props = {
   disabled?: boolean;
 };
 
-const LOCATION_PICKER_COPY: LocationPickerCopy = {
-  mapPickerTitle: t('tournamentForm.locationPickTitle'),
-  mapPickerHint: t('tournamentForm.locationPickHint'),
-  cancelPicker: t('common.cancel'),
-  confirmLocation: t('tournamentForm.locationPick'),
-  locationSelected: t('tournamentForm.locationSelected'),
-  changeLocation: t('tournamentForm.locationChange'),
-  openMapPicker: t('tournamentForm.locationPick'),
-  openMapPickerHint: t('tournamentForm.locationPickHintShort'),
-};
-
 export function TournamentForm({ value, onChange, disabled }: Props) {
   const [busyLogo, setBusyLogo] = useState(false);
+
+  const LOCATION_PICKER_COPY: LocationPickerCopy = {
+    mapPickerTitle: t('tournamentForm.locationPickTitle'),
+    mapPickerHint: t('tournamentForm.locationPickHint'),
+    cancelPicker: t('common.cancel'),
+    confirmLocation: t('tournamentForm.locationPick'),
+    locationSelected: t('tournamentForm.locationSelected'),
+    changeLocation: t('tournamentForm.locationChange'),
+    openMapPicker: t('tournamentForm.locationPick'),
+    openMapPickerHint: t('tournamentForm.locationPickHintShort'),
+  };
 
   async function pickLogo() {
     if (disabled) return;
