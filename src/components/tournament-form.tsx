@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, Image } from 'react-native';
 
+import { FieldReportLocationPicker, type LocationPickerCopy } from '@/components/field-report-map-picker';
 import { TextField } from '@/components/text-field';
 import { Brand, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
@@ -26,6 +27,8 @@ export type TournamentFormValue = {
   locationName: string;
   address: string;
   city: string;
+  latitude: number | null;
+  longitude: number | null;
   contactInfo: string;
   maxTeams: string;
   minTeams: string;
@@ -58,6 +61,8 @@ export function emptyTournamentFormValue(): TournamentFormValue {
     locationName: '',
     address: '',
     city: '',
+    latitude: null,
+    longitude: null,
     contactInfo: '',
     maxTeams: '8',
     minTeams: '2',
@@ -99,6 +104,8 @@ export function tournamentToFormValue(tournament: Tournament): TournamentFormVal
     locationName: tournament.location_name ?? '',
     address: tournament.address ?? '',
     city: tournament.city ?? '',
+    latitude: tournament.latitude,
+    longitude: tournament.longitude,
     contactInfo: tournament.contact_info ?? '',
     maxTeams: String(tournament.max_teams),
     minTeams: String(tournament.min_teams),
@@ -175,8 +182,8 @@ export function tournamentFormValueToInput(v: TournamentFormValue): NewTournamen
     locationName: v.locationName.trim() || null,
     address: v.address.trim() || null,
     city: v.city.trim() || null,
-    latitude: null,
-    longitude: null,
+    latitude: v.latitude,
+    longitude: v.longitude,
     contactInfo: v.contactInfo.trim() || null,
     maxTeams: toInt(v.maxTeams),
     minTeams: toInt(v.minTeams),
@@ -195,6 +202,17 @@ type Props = {
   value: TournamentFormValue;
   onChange: (patch: Partial<TournamentFormValue>) => void;
   disabled?: boolean;
+};
+
+const LOCATION_PICKER_COPY: LocationPickerCopy = {
+  mapPickerTitle: t('tournamentForm.locationPickTitle'),
+  mapPickerHint: t('tournamentForm.locationPickHint'),
+  cancelPicker: t('common.cancel'),
+  confirmLocation: t('tournamentForm.locationPick'),
+  locationSelected: t('tournamentForm.locationSelected'),
+  changeLocation: t('tournamentForm.locationChange'),
+  openMapPicker: t('tournamentForm.locationPick'),
+  openMapPickerHint: t('tournamentForm.locationPickHintShort'),
 };
 
 export function TournamentForm({ value, onChange, disabled }: Props) {
@@ -342,6 +360,16 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
           />
         </View>
       </View>
+
+      <FieldReportLocationPicker
+        value={
+          value.latitude != null && value.longitude != null
+            ? { lat: value.latitude, lng: value.longitude }
+            : null
+        }
+        onChange={(loc) => onChange({ latitude: loc.lat, longitude: loc.lng })}
+        copy={LOCATION_PICKER_COPY}
+      />
 
       <TextField
         label={t('tournamentForm.locationName')}
