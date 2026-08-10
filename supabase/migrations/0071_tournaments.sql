@@ -419,6 +419,7 @@ as $$
     and (t.status not in ('draft', 'cancelled') or public.is_app_admin());
 $$;
 
+revoke all on function public.get_tournament_detail(uuid) from public;
 grant execute on function public.get_tournament_detail(uuid) to authenticated;
 
 -- 9) Lista (admin_view=true wymaga is_app_admin(); false = tylko opublikowane)
@@ -465,6 +466,7 @@ begin
 end;
 $$;
 
+revoke all on function public.list_tournaments(text, boolean, integer, integer) from public;
 grant execute on function public.list_tournaments(text, boolean, integer, integer) to authenticated;
 
 notify pgrst, 'reload schema';
