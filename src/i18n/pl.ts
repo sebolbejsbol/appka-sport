@@ -365,6 +365,7 @@ export const pl = {
     emptyCreateHint: 'Zmień filtry albo utwórz pierwsze wydarzenie przyciskiem „＋ Utwórz".',
     popularNearby: 'Popularne w okolicy',
     mostActiveTeams: 'Najaktywniejsze zespoły',
+    tournamentsRailTitle: 'Turnieje',
   },
   eventFilters: {
     title: 'Filtry eventów',

@@ -366,6 +366,7 @@ export const en: DeepPartialWide<Translations> = {
     emptyCreateHint: 'Change the filters or create the first event with the “＋ Create” button.',
     popularNearby: 'Popular nearby',
     mostActiveTeams: 'Most active teams',
+    tournamentsRailTitle: 'Tournaments',
   },
   eventFilters: {
     title: 'Event filters',
