@@ -13,7 +13,9 @@ declare
   v_admin uuid; v_manager uuid; v_outsider uuid;
   v_tournament_id uuid;
   v_team_id uuid; v_wrongsport_team_id uuid; v_second_team_id uuid; v_third_team_id uuid;
+  v_reject_team_id uuid; v_remove_team_id uuid;
   v_status text; v_reg_id uuid; v_second_reg_id uuid; v_group_id uuid;
+  v_reject_reg_id uuid; v_remove_reg_id uuid;
 begin
   select id into v_admin from public.profiles where role in ('admin', 'super_admin') order by created_at limit 1;
   select id into v_manager from public.profiles where role = 'user' order by created_at limit 1;
@@ -119,12 +121,54 @@ begin
   -- 12) Przypisanie do grupy
   select public.admin_assign_team_group(v_reg_id, v_group_id) into v_status;
   if v_status <> 'ok' then raise exception 'FAIL assign group, got %', v_status; end if;
-  if (select group_id from public.tournament_teams where id = v_reg_id) is null then
-    raise exception 'FAIL group_id not persisted';
+  if (select group_id from public.tournament_teams where id = v_reg_id) is distinct from v_group_id then
+    raise exception 'FAIL group_id not persisted correctly';
   end if;
   insert into _t values ('assign team to group OK');
 
-  -- 13) close -> ready zablokowane, dopóki nie ma min_teams (min_teams=2, tylko 1 approved)
+  -- 13) Odrzucenie zgłoszenia (druga, tymczasowa drużyna) — testuje gałąź p_accept=false
+  perform set_config('request.jwt.claims', json_build_object('sub', v_manager, 'role', 'authenticated')::text, true);
+  insert into public.teams (name, sport, owner_id) values ('Test Registration Reject', 'basketball', v_manager)
+  returning id into v_reject_team_id;
+  insert into public.team_members (team_id, user_id, role) values (v_reject_team_id, v_manager, 'owner');
+
+  select public.register_team_for_tournament(v_tournament_id, v_reject_team_id) into v_status;
+  if v_status <> 'ok' then raise exception 'FAIL reject-fixture team register, got %', v_status; end if;
+  select id into v_reject_reg_id from public.tournament_teams
+    where tournament_id = v_tournament_id and team_id = v_reject_team_id;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
+  select public.admin_respond_team_registration(v_reject_reg_id, false) into v_status;
+  if v_status <> 'ok' then raise exception 'FAIL reject registration, got %', v_status; end if;
+  select status into v_status from public.tournament_teams where id = v_reject_reg_id;
+  if v_status <> 'rejected' then raise exception 'FAIL expected rejected, got %', v_status; end if;
+  insert into _t values ('admin reject -> rejected OK');
+
+  -- 14) Usunięcie już zaakceptowanej drużyny (trzecia, tymczasowa drużyna) —
+  --     testuje admin_remove_team_registration; podnosi liczbę approved do 2/2
+  --     na chwilę, po czym usunięcie sprowadza ją z powrotem do 1/2, więc
+  --     dalsze kroki (min_teams=2) nadal widzą tylko v_team_id jako approved.
+  perform set_config('request.jwt.claims', json_build_object('sub', v_manager, 'role', 'authenticated')::text, true);
+  insert into public.teams (name, sport, owner_id) values ('Test Registration Remove', 'basketball', v_manager)
+  returning id into v_remove_team_id;
+  insert into public.team_members (team_id, user_id, role) values (v_remove_team_id, v_manager, 'owner');
+
+  select public.register_team_for_tournament(v_tournament_id, v_remove_team_id) into v_status;
+  if v_status <> 'ok' then raise exception 'FAIL remove-fixture team register, got %', v_status; end if;
+  select id into v_remove_reg_id from public.tournament_teams
+    where tournament_id = v_tournament_id and team_id = v_remove_team_id;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
+  select public.admin_respond_team_registration(v_remove_reg_id, true) into v_status;
+  if v_status <> 'ok' then raise exception 'FAIL remove-fixture team approve, got %', v_status; end if;
+
+  select public.admin_remove_team_registration(v_remove_reg_id) into v_status;
+  if v_status <> 'ok' then raise exception 'FAIL admin_remove_team_registration, got %', v_status; end if;
+  select status into v_status from public.tournament_teams where id = v_remove_reg_id;
+  if v_status <> 'rejected' then raise exception 'FAIL expected rejected after remove, got %', v_status; end if;
+  insert into _t values ('admin_remove_team_registration -> rejected OK');
+
+  -- 15) close -> ready zablokowane, dopóki nie ma min_teams (min_teams=2, tylko 1 approved: v_team_id)
   select public.admin_set_tournament_status(v_tournament_id, 'registration_closed') into v_status;
   if v_status <> 'ok' then raise exception 'FAIL close registration, got %', v_status; end if;
 
@@ -132,7 +176,7 @@ begin
   if v_status <> 'not_enough_teams' then raise exception 'FAIL ready blocked below min_teams, got %', v_status; end if;
   insert into _t values ('ready transition blocked below min_teams OK');
 
-  -- 14) Reopen (registration_closed -> registration_open jest legalne), rejestrujemy i
+  -- 16) Reopen (registration_closed -> registration_open jest legalne), rejestrujemy i
   --     zatwierdzamy drugą drużynę, docierając do 2/2 approved (turniej wciąż otwarty)
   perform set_config('request.jwt.claims', json_build_object('sub', v_manager, 'role', 'authenticated')::text, true);
   select public.admin_set_tournament_status(v_tournament_id, 'registration_open') into v_status;
@@ -157,7 +201,7 @@ begin
   if v_status <> 'ok' then raise exception 'FAIL second team approve, got %', v_status; end if;
   insert into _t values ('second team registered and approved (2/2), tournament still registration_open OK');
 
-  -- 15) tournament_full: turniej ma już 2/2 approved (max_teams=2), wciąż registration_open —
+  -- 17) tournament_full: turniej ma już 2/2 approved (max_teams=2), wciąż registration_open —
   --     trzecia drużyna nie może dołączyć
   insert into public.teams (name, sport, owner_id) values ('Test Registration FC 3', 'basketball', v_outsider)
   returning id into v_third_team_id;
@@ -168,12 +212,12 @@ begin
   if v_status <> 'tournament_full' then raise exception 'FAIL tournament_full not enforced, got %', v_status; end if;
   insert into _t values ('tournament_full enforced at registration (2/2 approved) OK');
 
-  -- 16) Wycofanie nigdy niezarejestrowanej drużyny -> not_registered
+  -- 18) Wycofanie nigdy niezarejestrowanej drużyny -> not_registered
   select public.withdraw_team_registration(v_tournament_id, v_third_team_id) into v_status;
   if v_status <> 'not_registered' then raise exception 'FAIL withdraw of never-registered team, got %', v_status; end if;
   insert into _t values ('withdraw of never-registered team returns not_registered OK');
 
-  -- 17) Teraz zamykamy zapisy i przechodzimy do ready — 2/2 approved spełnia min_teams=2
+  -- 19) Teraz zamykamy zapisy i przechodzimy do ready — 2/2 approved spełnia min_teams=2
   perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
   select public.admin_set_tournament_status(v_tournament_id, 'registration_closed') into v_status;
   if v_status <> 'ok' then raise exception 'FAIL close registration (2), got %', v_status; end if;
@@ -181,7 +225,7 @@ begin
   if v_status <> 'ok' then raise exception 'FAIL ready transition once min_teams met, got %', v_status; end if;
   insert into _t values ('ready transition succeeds once min_teams met (2/2) OK');
 
-  -- 18) Wycofanie zaakceptowanej drużyny (dozwolone nawet po 'ready' — patrz design doc)
+  -- 20) Wycofanie zaakceptowanej drużyny (dozwolone nawet po 'ready' — patrz design doc)
   perform set_config('request.jwt.claims', json_build_object('sub', v_manager, 'role', 'authenticated')::text, true);
   select public.withdraw_team_registration(v_tournament_id, v_team_id) into v_status;
   if v_status <> 'ok' then raise exception 'FAIL withdraw approved team, got %', v_status; end if;
@@ -194,8 +238,12 @@ begin
   delete from public.tournament_teams where tournament_id = v_tournament_id;
   delete from public.tournament_groups where tournament_id = v_tournament_id;
   delete from public.tournaments where id = v_tournament_id;
-  delete from public.team_members where team_id in (v_team_id, v_wrongsport_team_id, v_second_team_id, v_third_team_id);
-  delete from public.teams where id in (v_team_id, v_wrongsport_team_id, v_second_team_id, v_third_team_id);
+  delete from public.team_members where team_id in (
+    v_team_id, v_wrongsport_team_id, v_second_team_id, v_third_team_id, v_reject_team_id, v_remove_team_id
+  );
+  delete from public.teams where id in (
+    v_team_id, v_wrongsport_team_id, v_second_team_id, v_third_team_id, v_reject_team_id, v_remove_team_id
+  );
   insert into _t values ('fixture cleanup OK');
 
   raise notice 'Wszystkie testy rejestracji drużyn zaliczone: %', (select string_agg(step, ', ') from _t);
