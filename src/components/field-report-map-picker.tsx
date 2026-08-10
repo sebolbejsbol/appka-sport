@@ -39,9 +39,34 @@ export type FieldReportLocation = {
   lat: number;
 };
 
+export type LocationPickerCopy = {
+  mapPickerTitle: string;
+  mapPickerHint: string;
+  cancelPicker: string;
+  confirmLocation: string;
+  locationSelected: string;
+  changeLocation: string;
+  openMapPicker: string;
+  openMapPickerHint: string;
+};
+
+function resolveCopy(copy?: Partial<LocationPickerCopy>): LocationPickerCopy {
+  return {
+    mapPickerTitle: copy?.mapPickerTitle ?? t('fieldReport.mapPickerTitle'),
+    mapPickerHint: copy?.mapPickerHint ?? t('fieldReport.mapPickerHint'),
+    cancelPicker: copy?.cancelPicker ?? t('fieldReport.cancelPicker'),
+    confirmLocation: copy?.confirmLocation ?? t('fieldReport.confirmLocation'),
+    locationSelected: copy?.locationSelected ?? t('fieldReport.locationSelected'),
+    changeLocation: copy?.changeLocation ?? t('fieldReport.changeLocation'),
+    openMapPicker: copy?.openMapPicker ?? t('fieldReport.openMapPicker'),
+    openMapPickerHint: copy?.openMapPickerHint ?? t('fieldReport.openMapPickerHint'),
+  };
+}
+
 type Props = {
   value: FieldReportLocation | null;
   onChange: (location: FieldReportLocation) => void;
+  copy?: Partial<LocationPickerCopy>;
 };
 
 function zoomFromState(state?: MapState, fallback = DEFAULT_ZOOM): number {
@@ -88,11 +113,12 @@ function CrosshairPin() {
 type MapModalProps = {
   visible: boolean;
   initialCenter: LngLat;
+  copy: LocationPickerCopy;
   onConfirm: (location: FieldReportLocation) => void;
   onClose: () => void;
 };
 
-function FieldReportMapModal({ visible, initialCenter, onConfirm, onClose }: MapModalProps) {
+function FieldReportMapModal({ visible, initialCenter, copy, onConfirm, onClose }: MapModalProps) {
   const insets = useSafeAreaInsets();
   const [features, setFeatures] = useState(EMPTY_FEATURES);
   const [draftLng, setDraftLng] = useState(initialCenter[0]);
@@ -181,7 +207,7 @@ function FieldReportMapModal({ visible, initialCenter, onConfirm, onClose }: Map
       <Modal visible={visible} animationType="slide" onRequestClose={onClose}>
         <View style={[styles.modalRoot, { paddingTop: insets.top + 16 }]}>
           <Text style={styles.fallbackText}>{t('map.missingToken')}</Text>
-          <Button label={t('fieldReport.cancelPicker')} variant="secondary" onPress={onClose} />
+          <Button label={copy.cancelPicker} variant="secondary" onPress={onClose} />
         </View>
       </Modal>
     );
@@ -194,7 +220,7 @@ function FieldReportMapModal({ visible, initialCenter, onConfirm, onClose }: Map
           <Pressable onPress={onClose} hitSlop={12} style={styles.modalClose}>
             <Text style={styles.modalCloseText}>✕</Text>
           </Pressable>
-          <Text style={styles.modalTitle}>{t('fieldReport.mapPickerTitle')}</Text>
+          <Text style={styles.modalTitle}>{copy.mapPickerTitle}</Text>
         </View>
 
         <View style={styles.modalMapWrap}>
@@ -231,7 +257,7 @@ function FieldReportMapModal({ visible, initialCenter, onConfirm, onClose }: Map
           <CrosshairPin />
 
           <View style={styles.modalMapHint} pointerEvents="none">
-            <Text style={styles.modalMapHintText}>{t('fieldReport.mapPickerHint')}</Text>
+            <Text style={styles.modalMapHintText}>{copy.mapPickerHint}</Text>
           </View>
         </View>
 
@@ -241,13 +267,13 @@ function FieldReportMapModal({ visible, initialCenter, onConfirm, onClose }: Map
           </Text>
           <View style={styles.modalActions}>
             <Button
-              label={t('fieldReport.cancelPicker')}
+              label={copy.cancelPicker}
               variant="secondary"
               onPress={onClose}
               style={styles.modalActionBtn}
             />
             <Button
-              label={t('fieldReport.confirmLocation')}
+              label={copy.confirmLocation}
               onPress={handleConfirm}
               style={styles.modalActionBtn}
             />
@@ -258,9 +284,10 @@ function FieldReportMapModal({ visible, initialCenter, onConfirm, onClose }: Map
   );
 }
 
-export function FieldReportLocationPicker({ value, onChange }: Props) {
+export function FieldReportLocationPicker({ value, onChange, copy: copyOverride }: Props) {
   const { coords } = useUserLocation();
   const [modalOpen, setModalOpen] = useState(false);
+  const copy = resolveCopy(copyOverride);
 
   const defaultCenter: LngLat = value
     ? [value.lng, value.lat]
@@ -277,16 +304,16 @@ export function FieldReportLocationPicker({ value, onChange }: Props) {
         <View style={styles.previewMain}>
           {value ? (
             <>
-              <Text style={styles.previewTitle}>{t('fieldReport.locationSelected')}</Text>
+              <Text style={styles.previewTitle}>{copy.locationSelected}</Text>
               <Text style={styles.previewCoords}>
                 {value.lat.toFixed(5)}, {value.lng.toFixed(5)}
               </Text>
-              <Text style={styles.previewAction}>{t('fieldReport.changeLocation')} ›</Text>
+              <Text style={styles.previewAction}>{copy.changeLocation} ›</Text>
             </>
           ) : (
             <>
-              <Text style={styles.previewTitle}>{t('fieldReport.openMapPicker')}</Text>
-              <Text style={styles.previewHint}>{t('fieldReport.openMapPickerHint')}</Text>
+              <Text style={styles.previewTitle}>{copy.openMapPicker}</Text>
+              <Text style={styles.previewHint}>{copy.openMapPickerHint}</Text>
             </>
           )}
         </View>
@@ -295,6 +322,7 @@ export function FieldReportLocationPicker({ value, onChange }: Props) {
       <FieldReportMapModal
         visible={modalOpen}
         initialCenter={defaultCenter}
+        copy={copy}
         onConfirm={onChange}
         onClose={() => setModalOpen(false)}
       />
