@@ -98,6 +98,7 @@ begin
     null, now() + interval '10 days', null, null, null, null, null, null,
     4, 2, 5, 0, false, 3, 1, 0, true, array['Grupa A']
   );
+  if v_status <> 'ok' or v_id is null then raise exception 'FAIL draft create, got %', v_status; end if;
   perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
   if exists (select 1 from public.get_tournament_detail(v_id)) then
     raise exception 'FAIL non-admin can see draft tournament';
