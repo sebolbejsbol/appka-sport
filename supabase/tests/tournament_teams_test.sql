@@ -163,6 +163,7 @@ begin
   returning id into v_third_team_id;
   insert into public.team_members (team_id, user_id, role) values (v_third_team_id, v_outsider, 'owner');
 
+  perform set_config('request.jwt.claims', json_build_object('sub', v_outsider, 'role', 'authenticated')::text, true);
   select public.register_team_for_tournament(v_tournament_id, v_third_team_id) into v_status;
   if v_status <> 'tournament_full' then raise exception 'FAIL tournament_full not enforced, got %', v_status; end if;
   insert into _t values ('tournament_full enforced at registration (2/2 approved) OK');
@@ -173,6 +174,7 @@ begin
   insert into _t values ('withdraw of never-registered team returns not_registered OK');
 
   -- 17) Teraz zamykamy zapisy i przechodzimy do ready — 2/2 approved spełnia min_teams=2
+  perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
   select public.admin_set_tournament_status(v_tournament_id, 'registration_closed') into v_status;
   if v_status <> 'ok' then raise exception 'FAIL close registration (2), got %', v_status; end if;
   select public.admin_set_tournament_status(v_tournament_id, 'ready') into v_status;
