@@ -239,10 +239,14 @@ export async function createTournament(input: NewTournament): Promise<CreateTour
 
   const row = (data as Record<string, unknown>[] | null)?.[0];
   const status = row?.status as CreateTournamentResult['status'] | undefined;
-  if (status === 'ok' && typeof row?.tournament_id === 'string') {
-    return { status: 'ok', tournamentId: row.tournament_id };
+  if (status === 'ok') {
+    if (typeof row?.tournament_id === 'string') {
+      return { status: 'ok', tournamentId: row.tournament_id };
+    }
+    // Malformed response: status 'ok' without valid tournament_id
+    return { status: 'error', tournamentId: null };
   }
-  return { status: (status as Exclude<CreateTournamentResult['status'], 'ok'> | undefined) ?? 'error', tournamentId: null };
+  return { status: status ?? 'error', tournamentId: null };
 }
 
 export async function updateTournament(
