@@ -4,23 +4,27 @@ import Mapbox, {
   Images,
   LocationPuck,
   MapView,
+  MarkerView,
   ShapeSource,
   SymbolLayer,
 } from '@/lib/map-kit-web';
 import { useMemo, useRef } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Brand } from '@/constants/theme';
 import { categoryMeta, eventMarkerIcon, markerEmoji } from '@/lib/event-categories';
 import type { DiscoverEvent } from '@/lib/discover-events';
 import { POLAND_CENTER } from '@/lib/map-bbox';
 import { mapEventIcons } from '@/lib/map-event-icons';
+import type { TournamentListItem } from '@/lib/tournaments';
 import type { LngLat } from '@/hooks/use-user-location';
 
 type Props = {
   events: DiscoverEvent[];
+  tournaments: TournamentListItem[];
   userCoords: LngLat | null;
   onSelectEvent: (event: DiscoverEvent) => void;
+  onSelectTournament: (tournament: TournamentListItem) => void;
 };
 
 function toGeoJSON(events: DiscoverEvent[]) {
@@ -46,7 +50,7 @@ function toGeoJSON(events: DiscoverEvent[]) {
   };
 }
 
-export function EventsMap({ events, userCoords, onSelectEvent }: Props) {
+export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSelectTournament }: Props) {
   const cameraRef = useRef<unknown>(null);
   const shape = useMemo(() => toGeoJSON(events), [events]);
 
@@ -102,6 +106,20 @@ export function EventsMap({ events, userCoords, onSelectEvent }: Props) {
           />
         </ShapeSource>
 
+        {tournaments
+          .filter((tItem) => tItem.latitude != null && tItem.longitude != null)
+          .map((tItem) => (
+            <MarkerView
+              key={tItem.id}
+              coordinate={[tItem.longitude as number, tItem.latitude as number]}
+              anchor={{ x: 0.5, y: 1 }}
+              allowOverlap>
+              <Pressable onPress={() => onSelectTournament(tItem)} hitSlop={8}>
+                <Text style={styles.tournamentPin}>🏆</Text>
+              </Pressable>
+            </MarkerView>
+          ))}
+
         {userCoords ? <LocationPuck pulsing="default" /> : null}
       </MapView>
 
@@ -115,6 +133,9 @@ export function EventsMap({ events, userCoords, onSelectEvent }: Props) {
 }
 
 const styles = StyleSheet.create({
+  tournamentPin: {
+    fontSize: 30,
+  },
   container: {
     flex: 1,
     overflow: 'hidden',
