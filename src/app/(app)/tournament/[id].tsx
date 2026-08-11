@@ -47,6 +47,7 @@ export default function TournamentDetailScreen() {
   const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
   const [regBusy, setRegBusy] = useState(false);
   const [regError, setRegError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
     if (!tournamentId) return;
@@ -59,6 +60,7 @@ export default function TournamentDetailScreen() {
     setTournament(data);
     setNotFound(!data);
     setRegistrations(regsResult.data);
+    setLoadError(Boolean(regsResult.error || teamsResult.error));
 
     if (data) {
       const eligible = teamsResult.data.filter(
@@ -191,7 +193,10 @@ export default function TournamentDetailScreen() {
           <View style={styles.registerBlock}>
             <Text style={styles.sectionHeading}>{t('tournamentTeams.registerSectionTitle')}</Text>
             {(() => {
-              const unregistered = myTeams.filter((team) => myStatuses[team.team_id] === 'none');
+              const unregistered = myTeams.filter((team) => {
+                const s = myStatuses[team.team_id];
+                return s === 'none' || s === 'rejected' || s === 'withdrawn';
+              });
               const registeredTeam = myTeams.find((team) => {
                 const s = myStatuses[team.team_id];
                 return s === 'pending' || s === 'approved';
@@ -250,6 +255,7 @@ export default function TournamentDetailScreen() {
 
         <View style={styles.teamsBlock}>
           <Text style={styles.sectionHeading}>{t('tournamentTeams.sectionTitle')}</Text>
+          {loadError ? <Text style={styles.regErrorText}>{t('tournamentTeams.loadError')}</Text> : null}
           {registrations.length === 0 ? (
             <Text style={styles.emptyText}>{t('tournamentTeams.empty')}</Text>
           ) : (
