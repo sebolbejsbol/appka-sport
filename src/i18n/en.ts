@@ -1443,6 +1443,7 @@ export const en: DeepPartialWide<Translations> = {
     filterPending: 'Pending',
     filterApproved: 'Approved',
     filterRejected: 'Rejected',
+    statusWithdrawnShort: 'Withdrawn',
     empty404: 'No registrations for this filter.',
     approveAction: 'Approve',
     rejectAction: 'Reject',

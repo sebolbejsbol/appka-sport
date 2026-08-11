@@ -30,6 +30,15 @@ function filterLabel(filter: StatusFilter): string {
   }
 }
 
+function rowStatusLabel(status: TournamentTeamRegistration['status']): string {
+  switch (status) {
+    case 'pending': return t('tournamentTeams.filterPending');
+    case 'approved': return t('tournamentTeams.filterApproved');
+    case 'rejected': return t('tournamentTeams.filterRejected');
+    case 'withdrawn': return t('tournamentTeams.statusWithdrawnShort');
+  }
+}
+
 export default function ManageTournamentTeamsScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ id?: string }>();
@@ -47,13 +56,13 @@ export default function ManageTournamentTeamsScreen() {
   const load = useCallback(async () => {
     if (!tournamentId || !isAdmin) return;
     setLoading(true);
-    const [{ data: detail }, regsResult] = await Promise.all([
+    const [{ data: detail, error: detailError }, regsResult] = await Promise.all([
       getTournamentDetail(tournamentId),
       listTournamentTeamRegistrations(tournamentId, true),
     ]);
     setTournament(detail);
     setRegistrations(regsResult.data);
-    setLoadError(Boolean(regsResult.error));
+    setLoadError(Boolean(detailError || regsResult.error));
     setLoading(false);
   }, [tournamentId, isAdmin]);
 
@@ -166,7 +175,7 @@ export default function ManageTournamentTeamsScreen() {
             <View key={reg.id} style={styles.row}>
               <View style={styles.rowHeader}>
                 <Text style={styles.rowTitle}>{reg.team_name}</Text>
-                <Text style={styles.rowStatus}>{reg.status}</Text>
+                <Text style={styles.rowStatus}>{rowStatusLabel(reg.status)}</Text>
               </View>
 
               {reg.status === 'pending' ? (

@@ -1450,6 +1450,7 @@ export const pl = {
     filterPending: 'Oczekujące',
     filterApproved: 'Zaakceptowane',
     filterRejected: 'Odrzucone',
+    statusWithdrawnShort: 'Wycofano',
     empty404: 'Brak zgłoszeń dla tego filtra.',
     approveAction: 'Akceptuj',
     rejectAction: 'Odrzuć',
