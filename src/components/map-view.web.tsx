@@ -3,6 +3,7 @@ import Mapbox, {
   CircleLayer,
   FillLayer,
   Images,
+  LineLayer,
   LocationPuck,
   MapView,
   MarkerView,
@@ -833,13 +834,36 @@ export function AppMap() {
           />
         </ShapeSource>
 
+        {/* Poza Trójmiastem: stała, niewygasająca z zoomem szara blokada —
+            boiska i tak nigdy stamtąd nie ładują się (fields_in_bbox jest
+            ograniczone do woj. pomorskiego), to tylko sygnalizuje dlaczego. */}
         <ShapeSource id="locked-regions" shape={lockedRegions} onPress={onLockedRegionPress}>
           <FillLayer
             id="locked-regions-fill"
-            maxZoomLevel={FADE_END}
             style={{
               fillColor: '#94a3b8',
-              fillOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0.32, FADE_END, 0],
+              fillOpacity: 0.6,
+            }}
+          />
+          <LineLayer
+            id="locked-regions-outline"
+            style={{
+              lineColor: '#475569',
+              lineWidth: 1.5,
+              lineDasharray: [2, 2],
+            }}
+          />
+          <SymbolLayer
+            id="locked-regions-repeat-lock"
+            style={{
+              symbolPlacement: 'line',
+              symbolSpacing: 120,
+              textField: '🔒',
+              textSize: 16,
+              textAllowOverlap: true,
+              textIgnorePlacement: true,
+              textPitchAlignment: 'viewport',
+              textRotationAlignment: 'viewport',
             }}
           />
         </ShapeSource>
@@ -847,14 +871,12 @@ export function AppMap() {
         <ShapeSource id="locked-region-labels" shape={lockedLabels}>
           <SymbolLayer
             id="locked-region-labels-text"
-            maxZoomLevel={FADE_END}
             style={{
               textField: ['concat', '🔒 ', t('map.comingSoon')],
-              textSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 10, FADE_END, 12],
-              textColor: '#475569',
+              textSize: 13,
+              textColor: '#334155',
               textHaloColor: '#f1f5f9',
-              textHaloWidth: 1.2,
-              textOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0.85, FADE_END, 0],
+              textHaloWidth: 1.4,
               textAllowOverlap: true,
               textIgnorePlacement: true,
               textPitchAlignment: 'viewport',
