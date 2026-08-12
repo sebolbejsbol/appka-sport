@@ -19,7 +19,28 @@ import {
   type TournamentTeamRegistration,
   type TournamentTeamStatus,
 } from '@/lib/tournament-teams';
+import {
+  getTournamentStandings,
+  listTournamentMatches,
+  type TournamentMatch,
+  type TournamentStanding,
+} from '@/lib/tournament-matches';
 import { getTournamentDetail, type Tournament, type TournamentStatus } from '@/lib/tournaments';
+
+function groupById<T extends { group_id: string; group_name: string }>(
+  items: T[],
+): { group_id: string; group_name: string; items: T[] }[] {
+  const order: string[] = [];
+  const map: Record<string, { group_id: string; group_name: string; items: T[] }> = {};
+  for (const item of items) {
+    if (!map[item.group_id]) {
+      map[item.group_id] = { group_id: item.group_id, group_name: item.group_name, items: [] };
+      order.push(item.group_id);
+    }
+    map[item.group_id].items.push(item);
+  }
+  return order.map((id) => map[id]);
+}
 
 function statusLabel(status: TournamentStatus): string {
   switch (status) {
@@ -48,19 +69,25 @@ export default function TournamentDetailScreen() {
   const [regBusy, setRegBusy] = useState(false);
   const [regError, setRegError] = useState<string | null>(null);
   const [loadError, setLoadError] = useState(false);
+  const [matches, setMatches] = useState<TournamentMatch[]>([]);
+  const [standings, setStandings] = useState<TournamentStanding[]>([]);
 
   const load = useCallback(async () => {
     if (!tournamentId) return;
     setLoading(true);
-    const [{ data }, regsResult, teamsResult] = await Promise.all([
+    const [{ data }, regsResult, teamsResult, matchesResult, standingsResult] = await Promise.all([
       getTournamentDetail(tournamentId),
       listTournamentTeamRegistrations(tournamentId, false),
       listMyTeams(),
+      listTournamentMatches(tournamentId),
+      getTournamentStandings(tournamentId),
     ]);
     setTournament(data);
     setNotFound(!data);
     setRegistrations(regsResult.data);
-    setLoadError(Boolean(regsResult.error || teamsResult.error));
+    setMatches(matchesResult.data);
+    setStandings(standingsResult.data);
+    setLoadError(Boolean(regsResult.error || teamsResult.error || matchesResult.error || standingsResult.error));
 
     if (data) {
       const eligible = teamsResult.data.filter(
@@ -272,6 +299,60 @@ export default function TournamentDetailScreen() {
             ))
           )}
         </View>
+
+        {standings.length > 0 || matches.length > 0 ? (
+          <View style={styles.groupsBlock}>
+            {groupById(standings).map((group) => {
+              const groupMatches = matches.filter((m) => m.group_id === group.group_id);
+              return (
+                <View key={group.group_id} style={styles.groupSection}>
+                  <Text style={styles.sectionHeading}>
+                    {group.group_name} · {t('tournamentMatches.standingsTitle')}
+                  </Text>
+                  <View style={styles.standingsHeaderRow}>
+                    <Text style={[styles.standingsCell, styles.standingsCellTeam, styles.standingsHeaderText]}>
+                      {t('tournamentMatches.colTeam')}
+                    </Text>
+                    <Text style={[styles.standingsCell, styles.standingsHeaderText]}>{t('tournamentMatches.colPlayed')}</Text>
+                    <Text style={[styles.standingsCell, styles.standingsHeaderText]}>{t('tournamentMatches.colWins')}</Text>
+                    <Text style={[styles.standingsCell, styles.standingsHeaderText]}>{t('tournamentMatches.colDraws')}</Text>
+                    <Text style={[styles.standingsCell, styles.standingsHeaderText]}>{t('tournamentMatches.colLosses')}</Text>
+                    <Text style={[styles.standingsCell, styles.standingsHeaderText]}>{t('tournamentMatches.colDiff')}</Text>
+                    <Text style={[styles.standingsCell, styles.standingsHeaderText]}>{t('tournamentMatches.colPoints')}</Text>
+                  </View>
+                  {group.items.map((row) => (
+                    <View key={row.team_id} style={styles.standingsRow}>
+                      <Text style={[styles.standingsCell, styles.standingsCellTeam]} numberOfLines={1}>
+                        {row.rank}. {row.team_name}
+                      </Text>
+                      <Text style={styles.standingsCell}>{row.played}</Text>
+                      <Text style={styles.standingsCell}>{row.wins}</Text>
+                      <Text style={styles.standingsCell}>{row.draws}</Text>
+                      <Text style={styles.standingsCell}>{row.losses}</Text>
+                      <Text style={styles.standingsCell}>{row.point_diff}</Text>
+                      <Text style={styles.standingsCell}>{row.points}</Text>
+                    </View>
+                  ))}
+
+                  <Text style={[styles.sectionHeading, styles.fixturesHeading]}>{t('tournamentMatches.fixturesTitle')}</Text>
+                  {groupMatches.length === 0 ? (
+                    <Text style={styles.emptyText}>{t('tournamentMatches.noMatchesYet')}</Text>
+                  ) : (
+                    groupMatches.map((m) => (
+                      <View key={m.id} style={styles.matchRow}>
+                        <Text style={styles.matchTeamText} numberOfLines={1}>{m.team_a_name}</Text>
+                        <Text style={styles.matchScoreText}>
+                          {m.status === 'completed' ? `${m.score_a} – ${m.score_b}` : t('tournamentMatches.vsLabel')}
+                        </Text>
+                        <Text style={[styles.matchTeamText, styles.matchTeamTextRight]} numberOfLines={1}>{m.team_b_name}</Text>
+                      </View>
+                    ))
+                  )}
+                </View>
+              );
+            })}
+          </View>
+        ) : null}
       </ScrollView>
     </View>
   );
@@ -316,4 +397,16 @@ const styles = StyleSheet.create({
   teamLogoFallback: { width: 32, height: 32, borderRadius: 8, backgroundColor: Brand.surfaceMuted },
   teamRowName: { flex: 1, fontSize: 14, color: Brand.textPrimary, fontWeight: '600' },
   teamRowGroup: { fontSize: 12, color: Brand.textMuted },
+  groupsBlock: { marginTop: 24 },
+  groupSection: { marginBottom: 24 },
+  standingsHeaderRow: { flexDirection: 'row', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: Brand.border },
+  standingsRow: { flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: Brand.border },
+  standingsCell: { flex: 1, fontSize: 13, color: Brand.textPrimary, textAlign: 'center' },
+  standingsCellTeam: { flex: 3, textAlign: 'left' },
+  standingsHeaderText: { fontWeight: '700', color: Brand.textSecondary, fontSize: 12 },
+  fixturesHeading: { marginTop: 16 },
+  matchRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 8 },
+  matchTeamText: { flex: 1, fontSize: 13, color: Brand.textPrimary },
+  matchTeamTextRight: { textAlign: 'right' },
+  matchScoreText: { fontSize: 13, fontWeight: '700', color: Brand.textSecondary, minWidth: 48, textAlign: 'center' },
 });
