@@ -14,6 +14,8 @@ export type FieldPoint = {
   /** Uczestnicy najbliższego zaplanowanego eventu na tym boisku (dociągane po stronie mapy). */
   players_current?: number;
   players_max?: number | null;
+  /** Dostępność policzona po stronie bazy (event_counts_in_bbox) — nadpisuje wyliczenie z players_current/max. */
+  availability?: CourtAvailability;
 };
 
 export type FieldSort = 'default' | 'rating';
@@ -75,10 +77,18 @@ export async function getFieldsInBbox(
   };
 }
 
+export type FieldEventStats = { event_count: number; availability: CourtAvailability };
+
+/**
+ * Dostępność liczona tu, po stronie bazy, w tym samym zapytaniu co event_count —
+ * dawniej liczona osobno po stronie klienta z globalnie ograniczonej (500 wierszy)
+ * listy discover_events, więc dla wielu boisk widocznych na mapie nigdy nie
+ * trafiała żadnego eventu i zostawała 'empty' mimo realnego event_count > 0.
+ */
 export async function getEventCountsInBbox(
   bbox: Bbox,
   sport: string | null = 'basketball',
-): Promise<{ data: Map<string, number>; error: { message: string } | null }> {
+): Promise<{ data: Map<string, FieldEventStats>; error: { message: string } | null }> {
   const { data, error } = await supabase.rpc('event_counts_in_bbox', {
     min_lng: bbox.minLng,
     min_lat: bbox.minLat,
@@ -87,9 +97,13 @@ export async function getEventCountsInBbox(
     sport_filter: sport,
   });
 
-  const map = new Map<string, number>();
-  for (const row of (data as { field_id: string; event_count: number }[] | null) ?? []) {
-    map.set(row.field_id, Number(row.event_count) || 0);
+  const map = new Map<string, FieldEventStats>();
+  for (const row of (data as { field_id: string; event_count: number; availability: string }[] | null) ?? []) {
+    const availability: CourtAvailability =
+      row.availability === 'open' || row.availability === 'filling' || row.availability === 'full'
+        ? row.availability
+        : 'empty';
+    map.set(row.field_id, { event_count: Number(row.event_count) || 0, availability });
   }
   return { data: map, error };
 }
@@ -227,7 +241,7 @@ export function fieldsToGeoJSON(fields: FieldPoint[]) {
       const badge_icon = `badge-${Math.min(Math.max(event_count, 0), 20)}`;
       const playersCurrent = f.players_current ?? 0;
       const playersMax = f.players_max ?? null;
-      const availability = courtAvailability(playersCurrent, playersMax);
+      const availability = f.availability ?? courtAvailability(playersCurrent, playersMax);
       return {
         type: 'Feature' as const,
         id: f.id,

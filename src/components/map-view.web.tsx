@@ -41,6 +41,7 @@ import {
   lockedVoivodeshipsToGeoJSON,
   voivodeshipsToGeoJSON,
   type Bbox,
+  type FieldEventStats,
   type FieldPoint,
   type FieldSort,
 } from '@/lib/fields';
@@ -125,10 +126,10 @@ const CLUSTER_AVAILABILITY_PROPERTIES = {
 
 /** Stałe pozycje mini-ikonek sportu w rzędzie pod środkiem klastra. */
 const CLUSTER_SPORT_ICON_OFFSETS: Record<(typeof CLUSTER_ICON_SPORTS)[number], [number, number]> = {
-  basketball: [-11, 8],
-  football: [-4, 8],
-  tennis: [4, 8],
-  volleyball: [11, 8],
+  basketball: [-13, 9],
+  football: [-4.5, 9],
+  tennis: [4.5, 9],
+  volleyball: [13, 9],
 };
 
 type FieldSelection = { rpc: string | null; showFields: boolean };
@@ -446,11 +447,11 @@ export function AppMap() {
         return;
       }
 
-      const counts = countsRes.error ? new Map<string, number>() : countsRes.data;
-      const merged = fieldsRes.data.map((field) => ({
-        ...field,
-        event_count: counts.get(field.id) ?? 0,
-      }));
+      const counts = countsRes.error ? new Map<string, FieldEventStats>() : countsRes.data;
+      const merged = fieldsRes.data.map((field) => {
+        const stats = counts.get(field.id);
+        return { ...field, event_count: stats?.event_count ?? 0, availability: stats?.availability };
+      });
       applyFields(merged, mapZoom);
       setFieldsLoading(false);
     },
@@ -760,9 +761,9 @@ export function AppMap() {
                 'interpolate',
                 ['linear'],
                 ['zoom'],
-                FADE_START, 14,
-                10, 20,
-                13, 26,
+                FADE_START, 17,
+                10, 24,
+                13, 31,
               ],
               circleColor: [
                 'case',
@@ -771,8 +772,16 @@ export function AppMap() {
                 ['>', ['get', 'full_count'], 0], Brand.danger,
                 '#94a3b8',
               ],
-              circleBlur: 0.8,
-              circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 0.35],
+              circleBlur: 1.1,
+              circleOpacity: [
+                'interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END,
+                [
+                  'case',
+                  ['all', ['==', ['get', 'open_count'], 0], ['==', ['get', 'filling_count'], 0], ['==', ['get', 'full_count'], 0]],
+                  0.18,
+                  0.6,
+                ],
+              ],
             }}
           />
           <CircleLayer
@@ -784,20 +793,26 @@ export function AppMap() {
                 'interpolate',
                 ['linear'],
                 ['zoom'],
-                FADE_START, 10,
-                10, 15,
-                13, 19,
+                FADE_START, 11,
+                10, 16,
+                13, 21,
               ],
-              circleColor: [
+              circleColor: 'rgba(4,6,14,0.94)',
+              circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
+              circleStrokeWidth: [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                FADE_START, 3,
+                13, 5,
+              ],
+              circleStrokeColor: [
                 'case',
                 ['>', ['get', 'open_count'], 0], Brand.success,
                 ['>', ['get', 'filling_count'], 0], Brand.warning,
                 ['>', ['get', 'full_count'], 0], Brand.danger,
                 '#94a3b8',
               ],
-              circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 0.94],
-              circleStrokeWidth: 2,
-              circleStrokeColor: '#ffffff',
               circleStrokeOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
             }}
           />
@@ -807,12 +822,10 @@ export function AppMap() {
             minZoomLevel={FADE_START}
             style={{
               textField: ['get', 'total_events'],
-              textSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 11, 10, 13, 13, 15],
+              textSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 13, 10, 16, 13, 19],
               textColor: '#ffffff',
               textOffset: [0, -0.55],
               textOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
-              textHaloColor: 'rgba(15,23,42,0.6)',
-              textHaloWidth: 1.4,
               textAllowOverlap: true,
               textIgnorePlacement: true,
               textPitchAlignment: 'viewport',
@@ -826,7 +839,7 @@ export function AppMap() {
               minZoomLevel={FADE_START}
               style={{
                 iconImage: sport,
-                iconSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 0.3, 10, 0.42, 13, 0.58],
+                iconSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 0.36, 10, 0.5, 13, 0.68],
                 iconOffset: CLUSTER_SPORT_ICON_OFFSETS[sport],
                 iconOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
                 iconAllowOverlap: true,
@@ -860,15 +873,15 @@ export function AppMap() {
                 'open', Brand.success,
                 '#94a3b8',
               ],
-              circleBlur: 0.9,
+              circleBlur: 1.1,
               circleOpacity: [
                 'case',
-                ['==', ['get', 'availability'], 'empty'], 0.12,
-                0.4,
+                ['==', ['get', 'availability'], 'empty'], 0.1,
+                0.55,
               ],
             }}
           />
-          {/* Gruby, mocno widoczny pierścień dostępności + przyciemniony środek —
+          {/* Gruby, mocno widoczny pierścień dostępności + niemal czarny środek —
               ten sam język co klaster: ciemny środek, gruba kolorowa obwódka. */}
           <CircleLayer
             id="fields-ring"
@@ -879,13 +892,13 @@ export function AppMap() {
                 'interpolate',
                 ['linear'],
                 ['zoom'],
-                7, 11,
-                12, 17,
-                14, 21,
-                16, 25,
-                18, 29,
+                7, 12,
+                12, 18,
+                14, 22,
+                16, 26,
+                18, 30,
               ],
-              circleColor: 'rgba(15,23,42,0.8)',
+              circleColor: 'rgba(4,6,14,0.94)',
               circleOpacity: [
                 'case',
                 ['==', ['get', 'availability'], 'empty'], 0.55,
@@ -895,9 +908,9 @@ export function AppMap() {
                 'interpolate',
                 ['linear'],
                 ['zoom'],
-                7, 2.5,
-                14, 3.5,
-                18, 4.5,
+                7, 3,
+                14, 4,
+                18, 5,
               ],
               circleStrokeColor: [
                 'match',
@@ -922,11 +935,11 @@ export function AppMap() {
                 'interpolate',
                 ['linear'],
                 ['zoom'],
-                7, 0.32,
-                12, 0.46,
-                14, 0.56,
-                16, 0.68,
-                18, 0.8,
+                7, 0.38,
+                12, 0.52,
+                14, 0.62,
+                16, 0.74,
+                18, 0.86,
               ],
               iconOffset: [0, -9],
               iconOpacity: [
@@ -950,11 +963,11 @@ export function AppMap() {
                 'interpolate',
                 ['linear'],
                 ['zoom'],
-                7, 10,
-                12, 13,
-                14, 15,
-                16, 17,
-                18, 19,
+                7, 12,
+                12, 15,
+                14, 17,
+                16, 19,
+                18, 21,
               ],
               textColor: '#ffffff',
               textOffset: [0, 0.9],
