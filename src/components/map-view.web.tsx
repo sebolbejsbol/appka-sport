@@ -285,6 +285,7 @@ export function AppMap() {
   }>(null);
   const fieldsSourceRef = useRef<ShapeSourceImperative>(null);
   const [features, setFeatures] = useState(EMPTY_FEATURES);
+  const [emptyFeatures, setEmptyFeatures] = useState(EMPTY_FEATURES);
   const [voivodeships, setVoivodeships] = useState(EMPTY_VOIVODESHIPS);
   const [lockedRegions, setLockedRegions] = useState(EMPTY_LOCKED_REGIONS);
   const [lockedLabels, setLockedLabels] = useState(EMPTY_VOIVODESHIPS);
@@ -386,25 +387,32 @@ export function AppMap() {
 
   const publishFeatures = useCallback(
     (cache: Map<string, FieldPoint>) => {
-      // Warstwa eventów ma pokazywać AKTYWNE eventy, nie każde istniejące boisko —
-      // boiska bez żadnego eventu odsiewamy tutaj, więc nigdy nie trafiają do
+      // Warstwa eventów (klastrowana) ma pokazywać AKTYWNE eventy, nie każde
+      // istniejące boisko — boiska bez żadnego eventu nigdy nie trafiają do
       // klastrowania ani nie zaśmiecają mapy dziesiątkami pustych "0" bąbli.
-      // Ulubione boiska są wyjątkiem — zostają widoczne niezależnie od
-      // event_count, bo to świadoma decyzja użytkownika, nie stan eventu.
+      // Ulubione boiska są wyjątkiem — zostają w warstwie eventów niezależnie
+      // od event_count, bo to świadoma decyzja użytkownika, nie stan eventu.
+      // Reszta boisk bez eventów NIE znika z mapy całkowicie — trafia do osobnej,
+      // nieklastrowanej warstwy jako małe, wyraźnie przygaszone kropki (wciąż
+      // klikalne), żeby dało się odkryć obiekt nawet bez aktywnych eventów.
       const merged = new Map<string, FieldPoint>();
+      const empty = new Map<string, FieldPoint>();
       if (showFields) {
         for (const [id, field] of cache) {
           if ((field.event_count ?? 0) > 0) merged.set(id, field);
+          else empty.set(id, field);
         }
       }
       for (const [id, field] of favoriteFieldsRef.current) {
         merged.set(id, field);
+        empty.delete(id);
       }
-      const enriched = [...merged.values()].map((field) => {
+      const enrich = (field: FieldPoint) => {
         const players = fieldPlayersMap.get(field.id);
         return { ...field, players_current: players?.current ?? 0, players_max: players?.max ?? null };
-      });
-      setFeatures(fieldsToGeoJSON(enriched));
+      };
+      setFeatures(fieldsToGeoJSON([...merged.values()].map(enrich)));
+      setEmptyFeatures(fieldsToGeoJSON([...empty.values()].map(enrich)));
     },
     [showFields, fieldPlayersMap],
   );
@@ -988,6 +996,25 @@ export function AppMap() {
               textAllowOverlap: true,
               textIgnorePlacement: true,
               textPitchAlignment: 'viewport',
+            }}
+          />
+        </ShapeSource>
+
+        {/* Boiska bez aktywnych eventów — NIE klastrowane i NIE pełny "bąbel"
+            eventowy (żeby nie zaśmiecać mapy dziesiątkami "0"), tylko małe,
+            wyraźnie przygaszone, wciąż klikalne kropki, żeby dało się odkryć
+            obiekt nawet bez eventów. */}
+        <ShapeSource id="fields-empty" shape={emptyFeatures} onPress={onFieldPress}>
+          <CircleLayer
+            id="fields-empty-dot"
+            minZoomLevel={FADE_START}
+            style={{
+              circleRadius: ['interpolate', ['linear'], ['zoom'], 7, 4, 12, 5, 16, 6.5],
+              circleColor: '#64748b',
+              circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 0.55],
+              circleStrokeWidth: 1.5,
+              circleStrokeColor: 'rgba(15,23,42,0.6)',
+              circleStrokeOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 0.55],
             }}
           />
         </ShapeSource>
