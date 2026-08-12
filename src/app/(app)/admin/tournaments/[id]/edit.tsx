@@ -67,6 +67,8 @@ export default function EditTournamentScreen() {
     if (data) {
       setTournament(data);
       setValue(tournamentToFormValue(data));
+      setNotFound(false);
+      setLoadFailed(false);
     } else {
       setNotFound(true);
       setLoadFailed(Boolean(fetchError));

@@ -99,7 +99,11 @@ export default function TournamentDetailScreen() {
   const [bracket, setBracket] = useState<TournamentPlayoffMatch[]>([]);
 
   const load = useCallback(async () => {
-    if (!tournamentId) return;
+    if (!tournamentId) {
+      setLoading(false);
+      setNotFound(true);
+      return;
+    }
     setLoading(true);
     const [{ data }, regsResult, teamsResult, matchesResult, standingsResult, bracketResult] = await Promise.all([
       getTournamentDetail(tournamentId),
