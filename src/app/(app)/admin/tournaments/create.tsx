@@ -48,8 +48,9 @@ export default function CreateTournamentScreen() {
       return;
     }
 
+    let logoFailed = false;
     if (value.logoUri) {
-      const { publicUrl } = await uploadTournamentLogo(
+      const { publicUrl, error: uploadError } = await uploadTournamentLogo(
         result.tournamentId,
         value.logoUri,
         value.logoMime,
@@ -57,13 +58,15 @@ export default function CreateTournamentScreen() {
       );
       if (publicUrl) {
         await updateTournament(result.tournamentId, { ...input, logoUrl: publicUrl });
+      } else {
+        logoFailed = Boolean(uploadError);
       }
     }
 
     setBusy(false);
     router.replace({
       pathname: '/admin/tournaments/[id]/edit',
-      params: { id: result.tournamentId },
+      params: { id: result.tournamentId, ...(logoFailed ? { logoFailed: '1' } : {}) },
     } as Href);
   }
 

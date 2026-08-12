@@ -45,7 +45,7 @@ function transitionLabel(current: TournamentStatus, target: TournamentStatus): s
 
 export default function EditTournamentScreen() {
   const insets = useSafeAreaInsets();
-  const params = useLocalSearchParams<{ id?: string }>();
+  const params = useLocalSearchParams<{ id?: string; logoFailed?: string }>();
   const tournamentId = params.id;
   const { isAdmin, loading: roleLoading } = useUserRole();
 
@@ -209,6 +209,7 @@ export default function EditTournamentScreen() {
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
           {!editable ? <Text style={styles.notice}>{t('tournamentForm.lockedNotice')}</Text> : null}
+          {params.logoFailed ? <Text style={styles.notice}>{t('tournamentForm.logoUploadFailedNotice')}</Text> : null}
 
           <TournamentForm value={value} onChange={onChange} disabled={busy || !editable} />
           {error ? <Text style={styles.errorText}>{error}</Text> : null}

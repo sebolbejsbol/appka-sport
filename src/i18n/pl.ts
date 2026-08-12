@@ -1406,6 +1406,7 @@ export const pl = {
     createError: 'Nie udało się utworzyć turnieju. Spróbuj ponownie.',
     saveError: 'Nie udało się zapisać zmian. Spróbuj ponownie.',
     lockedNotice: 'Ten turniej się rozpoczął lub zakończył — struktury nie można już edytować.',
+    logoUploadFailedNotice: 'Turniej został utworzony, ale przesłanie logo się nie powiodło. Możesz spróbować przesłać je ponownie poniżej.',
     statusTransitions: 'Zmień status',
     transitionOpenRegistration: 'Otwórz zapisy',
     transitionCloseRegistration: 'Zamknij zapisy',

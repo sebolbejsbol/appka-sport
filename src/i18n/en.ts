@@ -1399,6 +1399,7 @@ export const en: DeepPartialWide<Translations> = {
     createError: 'Could not create the tournament. Try again.',
     saveError: 'Could not save changes. Try again.',
     lockedNotice: 'This tournament has started or finished — structure can no longer be edited.',
+    logoUploadFailedNotice: 'The tournament was created, but the logo failed to upload. You can try uploading it again below.',
     statusTransitions: 'Change status',
     transitionOpenRegistration: 'Open registration',
     transitionCloseRegistration: 'Close registration',
