@@ -1007,14 +1007,13 @@ export function AppMap() {
         <ShapeSource id="fields-empty" shape={emptyFeatures} onPress={onFieldPress}>
           <CircleLayer
             id="fields-empty-dot"
-            minZoomLevel={FADE_START}
             style={{
-              circleRadius: ['interpolate', ['linear'], ['zoom'], 7, 4, 12, 5, 16, 6.5],
-              circleColor: '#64748b',
-              circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 0.55],
-              circleStrokeWidth: 1.5,
-              circleStrokeColor: 'rgba(15,23,42,0.6)',
-              circleStrokeOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 0.55],
+              circleRadius: ['interpolate', ['linear'], ['zoom'], 7, 7, 12, 9, 16, 11],
+              circleColor: '#94a3b8',
+              circleOpacity: 0.85,
+              circleStrokeWidth: 2,
+              circleStrokeColor: '#ffffff',
+              circleStrokeOpacity: 0.9,
             }}
           />
         </ShapeSource>
