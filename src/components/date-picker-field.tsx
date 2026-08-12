@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { SlideInDown, SlideOutDown } from 'react-native-reanimated';
 
 import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
@@ -72,7 +73,10 @@ export function DatePickerField({ label, required, value, onChange, disabled }: 
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <View style={styles.backdrop}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setOpen(false)} />
-          <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
+          <Animated.View
+            entering={SlideInDown.springify().damping(22).stiffness(260)}
+            exiting={SlideOutDown.duration(180)}
+            style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
             <Text style={styles.sheetTitle}>
               {label}
               {required ? ' *' : ''}
@@ -99,7 +103,7 @@ export function DatePickerField({ label, required, value, onChange, disabled }: 
                 );
               }}
             />
-          </View>
+          </Animated.View>
         </View>
       </Modal>
     </>

@@ -15,6 +15,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withTiming,
+  ZoomIn,
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -365,9 +366,9 @@ function NavRow({
       <View style={[styles.navIconWrap, active && styles.navIconWrapActive]}>
         <Text style={styles.navIcon}>{item.icon}</Text>
         {item.badge ? (
-          <View style={styles.navBadge}>
+          <Animated.View key={item.badge} entering={ZoomIn.springify().damping(10).stiffness(300)} style={styles.navBadge}>
             <Text style={styles.navBadgeText}>{item.badge > 9 ? '9+' : item.badge}</Text>
-          </View>
+          </Animated.View>
         ) : null}
       </View>
       <View style={styles.navItemMain}>

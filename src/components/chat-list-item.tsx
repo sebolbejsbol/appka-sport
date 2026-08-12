@@ -1,4 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 
 import { ConversationAvatar } from '@/components/conversation-avatar';
 import { Brand } from '@/constants/theme';
@@ -23,6 +24,7 @@ export function ChatListItem({ row, myUserId, onPress, onLongPress }: Props) {
   const timeLabel = row.last_at ? formatRelativeShortTime(row.last_at) : '';
 
   return (
+    <Animated.View entering={FadeIn.duration(220)} layout={LinearTransition.springify().damping(24).stiffness(220)}>
     <Pressable
       onPress={onPress}
       onLongPress={onLongPress}
@@ -59,6 +61,7 @@ export function ChatListItem({ row, myUserId, onPress, onLongPress }: Props) {
         <View style={styles.dotSpacer} />
       )}
     </Pressable>
+    </Animated.View>
   );
 }
 

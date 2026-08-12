@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
 
 import { EventMetaBadges } from '@/components/event-meta-badges';
 import { FieldOpinionsSheet } from '@/components/field-opinions-sheet';
@@ -59,6 +60,8 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
   const [geoAddress, setGeoAddress] = useState<string | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
   const [favoriteBusy, setFavoriteBusy] = useState(false);
+  const heartScale = useSharedValue(1);
+  const heartStyle = useAnimatedStyle(() => ({ transform: [{ scale: heartScale.value }] }));
 
   const fieldId = field?.id;
 
@@ -81,6 +84,10 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
     setFavoriteBusy(true);
     const previous = isFavorited;
     setIsFavorited(!previous);
+    heartScale.value = withSequence(
+      withSpring(1.35, { damping: 8, stiffness: 300 }),
+      withSpring(1, { damping: 10, stiffness: 260 }),
+    );
     const { isFavorited: result, error } = await toggleFieldFavorite(fieldId);
     setFavoriteBusy(false);
     if (error || result === null) {
@@ -232,7 +239,9 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
             accessibilityRole="button"
             accessibilityLabel={isFavorited ? t('favorites.removeAction') : t('favorites.addAction')}
             style={({ pressed }) => [styles.favoriteBtn, pressed && styles.favoriteBtnPressed]}>
-            <Text style={styles.favoriteIcon}>{isFavorited ? '❤️' : '🤍'}</Text>
+            <Animated.Text style={[styles.favoriteIcon, heartStyle]}>
+              {isFavorited ? '❤️' : '🤍'}
+            </Animated.Text>
           </Pressable>
         </View>
         {addressText ? <Text style={styles.subtitle}>{addressText}</Text> : null}

@@ -12,6 +12,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { EventBlockedCoPlayerBanner } from '@/components/event-blocked-co-player-banner';
 import { FieldRatingPromptModal } from '@/components/field-rating-prompt-modal';
@@ -695,7 +696,12 @@ export default function EventDetailScreen() {
                   p.user_id !== userId;
 
                 return (
-                  <View key={p.user_id} style={styles.participantRow}>
+                  <Animated.View
+                    key={p.user_id}
+                    entering={FadeIn.duration(220)}
+                    exiting={FadeOut.duration(160)}
+                    layout={LinearTransition.springify().damping(24).stiffness(220)}
+                    style={styles.participantRow}>
                     <View style={styles.participantMain}>
                       <Text style={styles.participantName}>
                         {p.is_blocked_by_me && p.user_id !== userId
@@ -736,7 +742,7 @@ export default function EventDetailScreen() {
                         </Pressable>
                       ) : null}
                     </View>
-                  </View>
+                  </Animated.View>
                 );
               })}
             </View>

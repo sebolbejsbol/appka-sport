@@ -10,6 +10,7 @@ import {
   type NativeScrollEvent,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { SlideInDown, SlideOutDown } from 'react-native-reanimated';
 
 import { Button } from '@/components/button';
 import { Brand, Radius } from '@/constants/theme';
@@ -138,7 +139,10 @@ export function TimePickerField({ label, required, value, onChange, placeholder,
       <Modal visible={open} transparent animationType="fade" onRequestClose={() => setOpen(false)}>
         <View style={styles.backdrop}>
           <Pressable style={StyleSheet.absoluteFill} onPress={() => setOpen(false)} />
-          <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
+          <Animated.View
+            entering={SlideInDown.springify().damping(22).stiffness(260)}
+            exiting={SlideOutDown.duration(180)}
+            style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
             <Text style={styles.sheetTitle}>
               {label}
               {required ? ' *' : ''}
@@ -154,7 +158,7 @@ export function TimePickerField({ label, required, value, onChange, placeholder,
               <Button label={t('common.cancel')} variant="secondary" onPress={() => setOpen(false)} style={styles.sheetBtn} />
               <Button label={t('timePicker.confirm')} onPress={confirm} style={styles.sheetBtn} />
             </View>
-          </View>
+          </Animated.View>
         </View>
       </Modal>
     </>

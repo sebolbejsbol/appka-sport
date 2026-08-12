@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 
 import { ScreenHeader } from '@/components/screen-header';
 import { UserAvatar } from '@/components/user-avatar';
@@ -46,18 +47,20 @@ function UserRow({
   trailing?: ReactNode;
 }) {
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
-      <UserAvatar nick={nick} avatarUrl={avatarUrl} size={48} showOnline isOnline={isOnline} />
-      <View style={styles.rowMain}>
-        <Text style={styles.rowName}>{nick?.trim() || t('common.nick')}</Text>
-        {isOnline != null ? (
-          <Text style={styles.rowMeta}>
-            {isOnline ? t('social.online') : t('social.offline')}
-          </Text>
-        ) : null}
-      </View>
-      {trailing}
-    </Pressable>
+    <Animated.View entering={FadeIn.duration(220)} layout={LinearTransition.springify().damping(24).stiffness(220)}>
+      <Pressable onPress={onPress} style={({ pressed }) => [styles.row, pressed && styles.pressed]}>
+        <UserAvatar nick={nick} avatarUrl={avatarUrl} size={48} showOnline isOnline={isOnline} />
+        <View style={styles.rowMain}>
+          <Text style={styles.rowName}>{nick?.trim() || t('common.nick')}</Text>
+          {isOnline != null ? (
+            <Text style={styles.rowMeta}>
+              {isOnline ? t('social.online') : t('social.offline')}
+            </Text>
+          ) : null}
+        </View>
+        {trailing}
+      </Pressable>
+    </Animated.View>
   );
 }
 

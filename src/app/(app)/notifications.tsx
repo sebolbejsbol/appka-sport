@@ -9,6 +9,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Animated, { FadeInDown, LinearTransition } from 'react-native-reanimated';
 
 import { ScreenHeader } from '@/components/screen-header';
 import { Brand, Radius } from '@/constants/theme';
@@ -109,16 +110,18 @@ export default function NotificationsScreen() {
             const { title, body } = notificationDisplayText(item, t);
             const unread = !item.read_at;
             return (
-              <Pressable
-                onPress={() => void handlePress(item)}
-                style={({ pressed }) => [styles.row, unread && styles.rowUnread, pressed && styles.pressed]}>
-                {unread ? <View style={styles.dot} /> : <View style={styles.dotSpacer} />}
-                <View style={styles.rowMain}>
-                  <Text style={styles.title} numberOfLines={1}>{title}</Text>
-                  {body ? <Text style={styles.body} numberOfLines={2}>{body}</Text> : null}
-                  <Text style={styles.time}>{formatRelativeShortTime(item.created_at)}</Text>
-                </View>
-              </Pressable>
+              <Animated.View entering={FadeInDown.duration(220)} layout={LinearTransition.springify().damping(24).stiffness(220)}>
+                <Pressable
+                  onPress={() => void handlePress(item)}
+                  style={({ pressed }) => [styles.row, unread && styles.rowUnread, pressed && styles.pressed]}>
+                  {unread ? <View style={styles.dot} /> : <View style={styles.dotSpacer} />}
+                  <View style={styles.rowMain}>
+                    <Text style={styles.title} numberOfLines={1}>{title}</Text>
+                    {body ? <Text style={styles.body} numberOfLines={2}>{body}</Text> : null}
+                    <Text style={styles.time}>{formatRelativeShortTime(item.created_at)}</Text>
+                  </View>
+                </Pressable>
+              </Animated.View>
             );
           }}
         />
