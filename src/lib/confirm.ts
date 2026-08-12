@@ -1,5 +1,7 @@
 import { Alert, Platform } from 'react-native';
 
+import { requestConfirm } from '@/lib/confirm-navigation';
+
 export function confirmAction(
   title: string,
   message: string,
@@ -9,9 +11,10 @@ export function confirmAction(
   destructive = false,
 ): void {
   if (Platform.OS === 'web') {
-    if (typeof window !== 'undefined' && window.confirm(`${title}\n\n${message}`)) {
-      onConfirm();
-    }
+    // window.confirm() only shows generic OK/Cancel and can't display the
+    // real confirmLabel/cancelLabel, so route through the custom modal host
+    // (<ConfirmModalHost />, mounted in the root layout) instead.
+    requestConfirm({ title, message, confirmLabel, cancelLabel, destructive, onConfirm });
     return;
   }
   Alert.alert(title, message, [
