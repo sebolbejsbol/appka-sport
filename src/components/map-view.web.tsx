@@ -386,7 +386,17 @@ export function AppMap() {
 
   const publishFeatures = useCallback(
     (cache: Map<string, FieldPoint>) => {
-      const merged = new Map(showFields ? cache : new Map<string, FieldPoint>());
+      // Warstwa eventów ma pokazywać AKTYWNE eventy, nie każde istniejące boisko —
+      // boiska bez żadnego eventu odsiewamy tutaj, więc nigdy nie trafiają do
+      // klastrowania ani nie zaśmiecają mapy dziesiątkami pustych "0" bąbli.
+      // Ulubione boiska są wyjątkiem — zostają widoczne niezależnie od
+      // event_count, bo to świadoma decyzja użytkownika, nie stan eventu.
+      const merged = new Map<string, FieldPoint>();
+      if (showFields) {
+        for (const [id, field] of cache) {
+          if ((field.event_count ?? 0) > 0) merged.set(id, field);
+        }
+      }
       for (const [id, field] of favoriteFieldsRef.current) {
         merged.set(id, field);
       }
