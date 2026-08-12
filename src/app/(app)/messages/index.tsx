@@ -2,7 +2,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   RefreshControl,
@@ -19,6 +18,7 @@ import { ScreenHeader } from '@/components/screen-header';
 import { Brand } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
+import { showActionSheet } from '@/lib/action-sheet-navigation';
 import {
   listConversationsV2,
   searchConversations,
@@ -76,23 +76,28 @@ export default function MessagesListScreen() {
   }
 
   function showActions(row: ConversationListV2) {
-    Alert.alert(row.title?.trim() || t('chat.actionsTitle'), undefined, [
-      {
-        text: row.pinned ? t('chat.unpin') : t('chat.pin'),
-        onPress: async () => {
-          await setConversationPinned(row.conversation_id, !row.pinned);
-          void refresh(true);
+    showActionSheet({
+      title: row.title?.trim() || t('chat.actionsTitle'),
+      cancelLabel: t('chat.cancel'),
+      options: [
+        {
+          label: row.pinned ? t('chat.unpin') : t('chat.pin'),
+          onPress: () =>
+            void (async () => {
+              await setConversationPinned(row.conversation_id, !row.pinned);
+              void refresh(true);
+            })(),
         },
-      },
-      {
-        text: row.muted ? t('chat.unmute') : t('chat.mute'),
-        onPress: async () => {
-          await setConversationMuted(row.conversation_id, !row.muted);
-          void refresh(true);
+        {
+          label: row.muted ? t('chat.unmute') : t('chat.mute'),
+          onPress: () =>
+            void (async () => {
+              await setConversationMuted(row.conversation_id, !row.muted);
+              void refresh(true);
+            })(),
         },
-      },
-      { text: t('chat.cancel'), style: 'cancel' },
-    ]);
+      ],
+    });
   }
 
   const isSearchMode = query.trim().length > 0;

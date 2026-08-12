@@ -2,7 +2,6 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -35,6 +34,7 @@ import { applyEventFilters } from '@/lib/event-filters';
 import type { FieldPoint } from '@/lib/fields';
 import { cancelEventReminders, scheduleEventReminders } from '@/lib/push-notifications';
 import { distanceMeters, formatDistance } from '@/lib/geo';
+import { notifyError } from '@/lib/toast';
 
 type Props = {
   field: FieldPoint | null;
@@ -120,20 +120,14 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
   async function handleLeave(event: EventSummary) {
     if (!userId) return;
     if (event.creator_id === userId) {
-      Alert.alert(
-        t('event.errors.organizerCannotLeaveTitle'),
-        t('event.errors.organizerCannotLeave'),
-      );
+      notifyError(t('event.errors.organizerCannotLeave'));
       return;
     }
     setBusyId(event.id);
     const result = await leaveEvent(event.id);
     setBusyId(null);
     if (result === 'organizer_cannot_leave') {
-      Alert.alert(
-        t('event.errors.organizerCannotLeaveTitle'),
-        t('event.errors.organizerCannotLeave'),
-      );
+      notifyError(t('event.errors.organizerCannotLeave'));
       return;
     }
     await cancelEventReminders(event.id);

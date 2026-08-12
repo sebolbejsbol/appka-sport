@@ -2,7 +2,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -20,6 +19,7 @@ import { ScreenHeader } from '@/components/screen-header';
 import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
+import { confirmAction } from '@/lib/confirm';
 import type { PickedMedia } from '@/lib/pick-image';
 import { uploadPostMedia } from '@/lib/post-media-storage';
 import { sharePost } from '@/lib/post-share';
@@ -31,6 +31,7 @@ import {
   togglePostLike,
   type FeedPost,
 } from '@/lib/posts';
+import { notifyError } from '@/lib/toast';
 
 export default function FeedScreen() {
   const insets = useSafeAreaInsets();
@@ -107,21 +108,22 @@ export default function FeedScreen() {
   }
 
   function handleDeletePost(post: FeedPost) {
-    Alert.alert(t('feed.deletePostTitle'), t('feed.deletePostBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('feed.deletePostAction'),
-        style: 'destructive',
-        onPress: async () => {
+    confirmAction(
+      t('feed.deletePostTitle'),
+      t('feed.deletePostBody'),
+      t('feed.deletePostAction'),
+      t('common.cancel'),
+      () =>
+        void (async () => {
           const result = await deletePost(post.post_id);
           if (result !== 'deleted') {
-            Alert.alert(t('feed.deletePostFailed'));
+            notifyError(t('feed.deletePostFailed'));
             return;
           }
           setPosts((prev) => prev.filter((p) => p.post_id !== post.post_id));
-        },
-      },
-    ]);
+        })(),
+      true,
+    );
   }
 
   function openDiscover() {

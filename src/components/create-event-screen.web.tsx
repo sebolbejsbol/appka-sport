@@ -13,7 +13,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   KeyboardAvoidingView,
   Modal,
@@ -29,6 +28,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Brand, Layout, Radius } from '@/constants/theme';
+import { notifyError } from '@/lib/toast';
 import { shadow, Typography } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { useUserLocation } from '@/hooks/use-user-location';
@@ -523,7 +523,7 @@ export default function CreateEventScreen() {
 
   async function handleSubmit() {
     if (!userId) {
-      Alert.alert(t('createEvent.errorTitle'), t('createEvent.mustLogin'));
+      notifyError(t('createEvent.mustLogin'));
       return;
     }
     // Pełna walidacja wszystkich kroków przed publikacją.
@@ -563,7 +563,7 @@ export default function CreateEventScreen() {
       const upload = await uploadEventImage(userId, img.uri, img.mimeType, img.base64);
       if (upload.error) {
         setSubmitting(false);
-        Alert.alert(t('createEvent.errorTitle'), t('createEvent.errImage'));
+        notifyError(t('createEvent.errImage'));
         return;
       }
       if (upload.publicUrl) uploadedUrls.push(upload.publicUrl);
@@ -600,7 +600,7 @@ export default function CreateEventScreen() {
     if (error || !data) {
       const msg = error?.message ?? '';
       if (msg.includes('DAILY_EVENT_LIMIT')) {
-        Alert.alert(t('createEvent.errDailyLimitTitle'), t('createEvent.errDailyLimitBody'));
+        notifyError(t('createEvent.errDailyLimitBody'));
         return;
       }
       if (msg.includes('EVENT_SUBCATEGORY_REQUIRED')) {
@@ -623,7 +623,7 @@ export default function CreateEventScreen() {
         setStepError(t('createEvent.errLocation'));
         return;
       }
-      Alert.alert(t('createEvent.errorTitle'), msg || t('createEvent.errGeneric'));
+      notifyError(msg || t('createEvent.errGeneric'));
       return;
     }
 

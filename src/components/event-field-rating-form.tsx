@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  Alert,
   Pressable,
   StyleSheet,
   Text,
@@ -21,6 +20,7 @@ import {
   type FieldRatingScores,
 } from '@/lib/field-ratings';
 import { requestMapFieldsRefresh } from '@/lib/map-field-sync';
+import { notifyError } from '@/lib/toast';
 
 type Props = {
   eventId: string;
@@ -61,7 +61,7 @@ export function EventFieldRatingForm({
 
   async function handleSubmit() {
     if (!isFieldRatingComplete(draft)) {
-      Alert.alert(t('fieldRatings.errors.incompleteTitle'), t('fieldRatings.errors.incomplete'));
+      notifyError(t('fieldRatings.errors.incomplete'));
       return;
     }
 
@@ -76,7 +76,7 @@ export function EventFieldRatingForm({
           : result.error === 'invalid_comment'
             ? t('fieldRatings.errors.invalidComment')
             : t('fieldRatings.errors.submitFailed');
-      Alert.alert(t('fieldRatings.errors.title'), message);
+      notifyError(message);
       return;
     }
 

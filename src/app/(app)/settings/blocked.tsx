@@ -2,7 +2,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   StyleSheet,
@@ -17,6 +16,7 @@ import { Brand } from '@/constants/theme';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
 import { listBlockedUsers, unblockUser, type BlockedUserRow } from '@/lib/moderation';
+import { notifyError } from '@/lib/toast';
 
 export default function BlockedUsersScreen() {
   const insets = useSafeAreaInsets();
@@ -46,7 +46,7 @@ export default function BlockedUsersScreen() {
     const result = await unblockUser(row.user_id);
     setBusyId(null);
     if (result !== 'unblocked') {
-      Alert.alert(t('moderation.unblockFailed'));
+      notifyError(t('moderation.unblockFailed'));
       return;
     }
     setRows((prev) => prev.filter((item) => item.user_id !== row.user_id));

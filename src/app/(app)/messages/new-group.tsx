@@ -2,7 +2,6 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   StyleSheet,
@@ -19,6 +18,7 @@ import { t } from '@/i18n';
 import { createGroup } from '@/lib/groups';
 import { goBack } from '@/lib/navigation';
 import { listFriends, type SocialUserRow } from '@/lib/social';
+import { notifyError } from '@/lib/toast';
 
 export default function NewGroupScreen() {
   const insets = useSafeAreaInsets();
@@ -53,7 +53,7 @@ export default function NewGroupScreen() {
     const { data, error } = await createGroup(title, Array.from(selected));
     setCreating(false);
     if (error || !data) {
-      Alert.alert(t('messages.loadError'));
+      notifyError(t('messages.loadError'));
       return;
     }
     router.replace({ pathname: '/messages/[id]', params: { id: data } });

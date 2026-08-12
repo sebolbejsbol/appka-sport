@@ -2,7 +2,6 @@ import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Linking,
   Platform,
   Pressable,
@@ -23,6 +22,7 @@ import { useLocale } from '@/context/locale';
 import { useSession } from '@/context/session';
 import { t, SUPPORTED_LOCALES } from '@/i18n';
 import { deleteMyAccount } from '@/lib/account';
+import { confirmAction } from '@/lib/confirm';
 import { getNotificationsEnabled, setNotificationsEnabled } from '@/lib/notification-preferences';
 import { getUpcomingEvents } from '@/lib/events';
 import {
@@ -109,28 +109,24 @@ export default function SettingsScreen() {
   }
 
   function handleSignOut() {
-    Alert.alert(t('settings.signOutConfirmTitle'), t('settings.signOutConfirmBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('settings.signOut'),
-        style: 'destructive',
-        onPress: () => void signOut(),
-      },
-    ]);
+    confirmAction(
+      t('settings.signOutConfirmTitle'),
+      t('settings.signOutConfirmBody'),
+      t('settings.signOut'),
+      t('common.cancel'),
+      () => void signOut(),
+      true,
+    );
   }
 
   function handleDeleteAccount() {
-    Alert.alert(
+    confirmAction(
       t('settings.deleteAccountConfirmTitle'),
       t('settings.deleteAccountConfirmBody'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('settings.deleteAccountConfirmAction'),
-          style: 'destructive',
-          onPress: () => void confirmDeleteAccount(),
-        },
-      ],
+      t('settings.deleteAccountConfirmAction'),
+      t('common.cancel'),
+      () => void confirmDeleteAccount(),
+      true,
     );
   }
 

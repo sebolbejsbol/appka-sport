@@ -1,9 +1,10 @@
 import * as Location from 'expo-location';
 import { router } from 'expo-router';
-import { Alert, Linking, Platform } from 'react-native';
+import { Linking, Platform } from 'react-native';
 
 import { t } from '@/i18n';
 import { distanceMeters, formatDistance, type LngLat } from '@/lib/geo';
+import { notifyError } from '@/lib/toast';
 
 export type FieldDestination = {
   lat: number;
@@ -185,7 +186,7 @@ export function showNavigationError(result: Exclude<StartNavigationResult, 'goog
       : result === 'invalid_destination'
         ? t('fieldNavigation.invalidDestination')
         : t('fieldNavigation.locationError');
-  Alert.alert(t('fieldNavigation.errorTitle'), message);
+  notifyError(message);
 }
 
 export function formatRouteSummary(route: FieldRoute): { distance: string; duration: string } {

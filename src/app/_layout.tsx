@@ -9,8 +9,10 @@ import {
   View,
 } from 'react-native';
 
+import { ActionSheetHost } from '@/components/action-sheet-host';
 import { ConfirmModalHost } from '@/components/confirm-modal-host';
 import { LegalDocumentHost } from '@/components/legal-document-host';
+import { ToastHost } from '@/components/toast-host';
 import { WebAppShell } from '@/components/web-app-shell';
 import { Brand } from '@/constants/theme';
 import { LocaleProvider, useLocale } from '@/context/locale';
@@ -89,6 +91,8 @@ function RootNavigator() {
       {/* Regulamin / polityka jako modal (nie trasa) — działa wszędzie, „wstecz" zamyka. */}
       <LegalDocumentHost />
       <ConfirmModalHost />
+      <ActionSheetHost />
+      <ToastHost />
 
       {!splashGone ? (
         <Animated.View

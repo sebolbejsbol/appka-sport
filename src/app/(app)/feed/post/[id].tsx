@@ -2,7 +2,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -18,6 +17,7 @@ import { PostCard } from '@/components/post-card';
 import { UserAvatar } from '@/components/user-avatar';
 import { Brand } from '@/constants/theme';
 import { t } from '@/i18n';
+import { confirmAction } from '@/lib/confirm';
 import { formatRelativeShortTime } from '@/lib/datetime';
 import { goBack } from '@/lib/navigation';
 import { sharePost } from '@/lib/post-share';
@@ -32,6 +32,7 @@ import {
   type PostComment,
   type PostDetail,
 } from '@/lib/posts';
+import { notifyError } from '@/lib/toast';
 
 const MAX_COMMENT_LENGTH = 500;
 
@@ -114,33 +115,35 @@ export default function PostDetailScreen() {
 
   function handleDeletePost() {
     if (!post) return;
-    Alert.alert(t('feed.deletePostTitle'), t('feed.deletePostBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('feed.deletePostAction'),
-        style: 'destructive',
-        onPress: async () => {
+    confirmAction(
+      t('feed.deletePostTitle'),
+      t('feed.deletePostBody'),
+      t('feed.deletePostAction'),
+      t('common.cancel'),
+      () =>
+        void (async () => {
           const result = await deletePost(post.post_id);
           if (result !== 'deleted') {
-            Alert.alert(t('feed.deletePostFailed'));
+            notifyError(t('feed.deletePostFailed'));
             return;
           }
           goBack('/feed');
-        },
-      },
-    ]);
+        })(),
+      true,
+    );
   }
 
   function handleDeleteComment(comment: PostComment) {
-    Alert.alert(t('feed.deleteCommentTitle'), t('feed.deleteCommentBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('feed.deleteCommentAction'),
-        style: 'destructive',
-        onPress: async () => {
+    confirmAction(
+      t('feed.deleteCommentTitle'),
+      t('feed.deleteCommentBody'),
+      t('feed.deleteCommentAction'),
+      t('common.cancel'),
+      () =>
+        void (async () => {
           const result = await deletePostComment(comment.comment_id);
           if (result !== 'deleted') {
-            Alert.alert(t('feed.deleteCommentFailed'));
+            notifyError(t('feed.deleteCommentFailed'));
             return;
           }
           setComments((prev) => prev.filter((c) => c.comment_id !== comment.comment_id));
@@ -149,9 +152,9 @@ export default function PostDetailScreen() {
               ? { ...prev, comment_count: Math.max(0, prev.comment_count - 1) }
               : prev,
           );
-        },
-      },
-    ]);
+        })(),
+      true,
+    );
   }
 
   function openUser(userId: string) {
