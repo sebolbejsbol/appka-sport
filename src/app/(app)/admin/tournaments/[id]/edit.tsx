@@ -224,6 +224,17 @@ export default function EditTournamentScreen() {
             style={styles.manageTeamsBtn}
           />
 
+          {tournament && (tournament.status === 'ready' || tournament.status === 'in_progress' || tournament.status === 'completed') ? (
+            <Button
+              label={t('tournamentMatches.manageTitle')}
+              variant="secondary"
+              onPress={() =>
+                router.push({ pathname: '/admin/tournaments/[id]/matches', params: { id: tournamentId ?? '' } })
+              }
+              style={styles.manageTeamsBtn}
+            />
+          ) : null}
+
           {legalTransitions.length > 0 ? (
             <View style={styles.transitions}>
               <Text style={styles.sectionTitle}>{t('tournamentForm.statusTransitions')}</Text>
