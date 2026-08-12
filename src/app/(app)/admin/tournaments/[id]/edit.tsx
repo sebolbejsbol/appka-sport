@@ -235,6 +235,17 @@ export default function EditTournamentScreen() {
             />
           ) : null}
 
+          {tournament && (tournament.status === 'in_progress' || tournament.status === 'completed') ? (
+            <Button
+              label={t('tournamentPlayoffs.bracketTitle')}
+              variant="secondary"
+              onPress={() =>
+                router.push({ pathname: '/admin/tournaments/[id]/bracket', params: { id: tournamentId ?? '' } })
+              }
+              style={styles.manageTeamsBtn}
+            />
+          ) : null}
+
           {legalTransitions.length > 0 ? (
             <View style={styles.transitions}>
               <Text style={styles.sectionTitle}>{t('tournamentForm.statusTransitions')}</Text>
