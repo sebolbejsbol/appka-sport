@@ -32,9 +32,10 @@ import { previewEventNotes, previewEventTitle } from '@/lib/event-display';
 import { formatPlayersCount, formatRatingCount } from '@/lib/plural-pl';
 import { applyEventFilters } from '@/lib/event-filters';
 import type { FieldPoint } from '@/lib/fields';
+import { listMyFavoriteFieldIds, toggleFieldFavorite } from '@/lib/favorites';
 import { cancelEventReminders, scheduleEventReminders } from '@/lib/push-notifications';
 import { distanceMeters, formatDistance } from '@/lib/geo';
-import { notifyError } from '@/lib/toast';
+import { notifyError, notifySuccess } from '@/lib/toast';
 
 type Props = {
   field: FieldPoint | null;
@@ -55,8 +56,40 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [opinionsOpen, setOpinionsOpen] = useState(false);
   const [geoAddress, setGeoAddress] = useState<string | null>(null);
+  const [isFavorited, setIsFavorited] = useState(false);
+  const [favoriteBusy, setFavoriteBusy] = useState(false);
 
   const fieldId = field?.id;
+
+  useEffect(() => {
+    if (!fieldId) {
+      setIsFavorited(false);
+      return;
+    }
+    let active = true;
+    void listMyFavoriteFieldIds().then(({ data }) => {
+      if (active) setIsFavorited(data.includes(fieldId));
+    });
+    return () => {
+      active = false;
+    };
+  }, [fieldId]);
+
+  async function handleToggleFavorite() {
+    if (!fieldId || favoriteBusy) return;
+    setFavoriteBusy(true);
+    const previous = isFavorited;
+    setIsFavorited(!previous);
+    const { isFavorited: result, error } = await toggleFieldFavorite(fieldId);
+    setFavoriteBusy(false);
+    if (error || result === null) {
+      setIsFavorited(previous);
+      notifyError(t('favorites.error'));
+      return;
+    }
+    setIsFavorited(result);
+    notifySuccess(result ? t('favorites.added') : t('favorites.removed'));
+  }
 
   const loadEvents = useCallback(async () => {
     if (!fieldId) return;
@@ -186,7 +219,18 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
       <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
         <View style={styles.handle} />
 
-        <Text style={styles.title}>{placeName}</Text>
+        <View style={styles.titleRow}>
+          <Text style={[styles.title, styles.titleFlex]} numberOfLines={1}>{placeName}</Text>
+          <Pressable
+            onPress={() => void handleToggleFavorite()}
+            disabled={favoriteBusy}
+            hitSlop={10}
+            accessibilityRole="button"
+            accessibilityLabel={isFavorited ? t('favorites.removeAction') : t('favorites.addAction')}
+            style={({ pressed }) => [styles.favoriteBtn, pressed && styles.favoriteBtnPressed]}>
+            <Text style={styles.favoriteIcon}>{isFavorited ? '❤️' : '🤍'}</Text>
+          </Pressable>
+        </View>
         {addressText ? <Text style={styles.subtitle}>{addressText}</Text> : null}
 
         <View style={styles.metaRow}>
@@ -315,6 +359,28 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: Brand.textPrimary,
+  },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  titleFlex: {
+    flex: 1,
+  },
+  favoriteBtn: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Brand.surfaceMuted,
+  },
+  favoriteBtnPressed: {
+    opacity: 0.7,
+  },
+  favoriteIcon: {
+    fontSize: 18,
   },
   subtitle: {
     fontSize: 14,
