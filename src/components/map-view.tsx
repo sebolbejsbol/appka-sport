@@ -282,6 +282,16 @@ function featureToNearbyItem(feature: GeoJSON.Feature, coords: LngLat | null): N
   };
 }
 
+/** Panel "W pobliżu": tylko boiska do 5 km z otwartymi (dołączalnymi) eventami. */
+const NEARBY_MAX_DISTANCE_M = 5000;
+function isNearbyListEligible(item: NearbyFieldItem): boolean {
+  return (
+    item.distanceMeters != null &&
+    item.distanceMeters <= NEARBY_MAX_DISTANCE_M &&
+    (item.availability === 'open' || item.availability === 'filling')
+  );
+}
+
 export function AppMap() {
   const insets = useSafeAreaInsets();
   const { status, coords } = useUserLocation();
@@ -338,12 +348,12 @@ export function AppMap() {
     [filters],
   );
 
-  // Panel "W pobliżu": ta sama lista boisk co na mapie (features), tylko
-  // posortowana wg odległości od użytkownika, do przewijalnej listy pod mapą.
+  // Panel "W pobliżu": ta sama lista boisk co na mapie (features), tylko do 5 km
+  // i tylko z otwartymi (dołączalnymi) eventami, posortowana wg odległości.
   const nearbyFields = useMemo<NearbyFieldItem[]>(() => {
     const items = features.features.flatMap((feature) => {
       const item = featureToNearbyItem(feature, coords);
-      return item ? [item] : [];
+      return item && isNearbyListEligible(item) ? [item] : [];
     });
     items.sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity));
     return items.slice(0, 40);
@@ -649,7 +659,7 @@ export function AppMap() {
             const leaves = extractLeafFeatures(collection);
             const items = leaves.flatMap((leaf) => {
               const item = featureToNearbyItem(leaf, coords);
-              return item ? [item] : [];
+              return item && isNearbyListEligible(item) ? [item] : [];
             });
             items.sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity));
             setClusterVenues(items);
