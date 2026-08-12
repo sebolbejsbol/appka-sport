@@ -238,13 +238,13 @@ begin
 
   return query
   with match_legs as (
-    select group_id, team_a_id as tid, team_b_id as oid, score_a as pf, score_b as pa
-      from public.tournament_matches
-      where tournament_id = p_tournament_id and status = 'completed'
+    select m.group_id, m.team_a_id as tid, m.team_b_id as oid, m.score_a as pf, m.score_b as pa
+      from public.tournament_matches m
+      where m.tournament_id = p_tournament_id and m.status = 'completed'
     union all
-    select group_id, team_b_id as tid, team_a_id as oid, score_b as pf, score_a as pa
-      from public.tournament_matches
-      where tournament_id = p_tournament_id and status = 'completed'
+    select m.group_id, m.team_b_id as tid, m.team_a_id as oid, m.score_b as pf, m.score_a as pa
+      from public.tournament_matches m
+      where m.tournament_id = p_tournament_id and m.status = 'completed'
   ),
   per_team as (
     select
@@ -258,7 +258,7 @@ begin
       coalesce(sum(ml.pf) - sum(ml.pa), 0)::integer as point_diff,
       (count(*) filter (where ml.pf > ml.pa) * v_pts_win
         + count(*) filter (where ml.pf = ml.pa) * v_pts_draw
-        + count(*) filter (where ml.pf < ml.pa) * v_pts_loss)::integer as pts
+        + count(*) filter (where ml.pf < ml.pa) * v_pts_loss)::integer as points_total
     from public.tournament_teams tt
     join public.teams tm on tm.id = tt.team_id
     left join match_legs ml on ml.group_id = tt.group_id and ml.tid = tt.team_id
@@ -268,7 +268,7 @@ begin
     group by tt.group_id, tt.team_id, tm.name
   ),
   tie_sized as (
-    select pt.*, count(*) over (partition by pt.group_id, pt.points, pt.point_diff) as tie_group_size
+    select pt.*, count(*) over (partition by pt.group_id, pt.points_total, pt.point_diff) as tie_group_size
     from per_team pt
   ),
   h2h as (
@@ -280,7 +280,7 @@ begin
         from public.tournament_matches m
         join tie_sized other
           on other.group_id = ts.group_id
-          and other.points = ts.points
+          and other.points_total = ts.points_total
           and other.point_diff = ts.point_diff
           and other.team_id <> ts.team_id
         where m.tournament_id = p_tournament_id
@@ -295,10 +295,10 @@ begin
   select
     ts.group_id, g.name as group_name, ts.team_id, ts.team_name,
     ts.played, ts.wins, ts.draws, ts.losses,
-    ts.points_for, ts.points_against, ts.point_diff, ts.pts as points,
+    ts.points_for, ts.points_against, ts.point_diff, ts.points_total as points,
     row_number() over (
       partition by ts.group_id
-      order by ts.points desc, ts.point_diff desc, h2h.h2h_score desc, ts.team_name asc
+      order by ts.points_total desc, ts.point_diff desc, h2h.h2h_score desc, ts.team_name asc
     )::integer as rank
   from tie_sized ts
   join h2h on h2h.group_id = ts.group_id and h2h.team_id = ts.team_id
