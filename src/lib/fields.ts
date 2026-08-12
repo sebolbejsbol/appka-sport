@@ -126,6 +126,49 @@ export async function getVoivodeshipStats(sport: string | null = null): Promise<
   };
 }
 
+/** Granica zablokowanego (jeszcze niedostępnego) województwa — prawdziwy poligon. */
+export type LockedVoivodeship = {
+  voivodeship: string;
+  geometry: GeoJSON.Geometry;
+};
+
+/**
+ * Granice województw poza aktywnym obszarem (domyślnie poza Trójmiastem /
+ * pomorskie) — do narysowania szarej nakładki "Coming soon" na mapie.
+ * Apka rusza tylko w Trójmieście na razie (patrz PLAN.md); reszta kraju
+ * zostaje w kodzie/bazie gotowa, tylko wizualnie zablokowana.
+ */
+export async function getLockedVoivodeshipBoundaries(
+  activeVoivodeship = 'pomorskie',
+): Promise<{ data: LockedVoivodeship[]; error: { message: string } | null }> {
+  const { data, error } = await supabase.rpc('locked_voivodeship_boundaries', {
+    p_active_voivodeship: activeVoivodeship,
+  });
+  const rows = (data as { voivodeship: string; geojson: string }[] | null) ?? [];
+  return {
+    data: rows.flatMap((r) => {
+      try {
+        return [{ voivodeship: r.voivodeship, geometry: JSON.parse(r.geojson) as GeoJSON.Geometry }];
+      } catch {
+        return [];
+      }
+    }),
+    error,
+  };
+}
+
+/** GeoJSON FeatureCollection z zablokowanych województw, do FillLayer/LineLayer. */
+export function lockedVoivodeshipsToGeoJSON(rows: LockedVoivodeship[]): GeoJSON.FeatureCollection {
+  return {
+    type: 'FeatureCollection',
+    features: rows.map((r) => ({
+      type: 'Feature',
+      properties: { voivodeship: r.voivodeship },
+      geometry: r.geometry,
+    })),
+  };
+}
+
 const VOIVODESHIP_COUNT_CAP = 2000;
 
 /** Skraca duże liczby na bąblu, np. 5421 → „2000+", żeby było czytelnie. */

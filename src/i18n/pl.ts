@@ -503,6 +503,7 @@ export const pl = {
       'Brak dostępu do lokalizacji — pokazujemy widok domyślny. Włącz lokalizację w ustawieniach, aby zobaczyć okolicę.',
     longPressHint: 'Przytrzymaj mapę, aby zgłosić brakujące boisko.',
     playSearchPlaceholder: 'Co chcesz dziś zagrać?',
+    comingSoon: 'Wkrótce',
     sortDefault: 'Domyślnie',
     sortByRating: 'Najwyżej oceniane',
     locationSearchTitle: 'Gdzie szukasz boiska?',

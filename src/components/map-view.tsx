@@ -1,6 +1,7 @@
 import Mapbox, {
   Camera,
   CircleLayer,
+  FillLayer,
   Images,
   LocationPuck,
   MapView,
@@ -28,13 +29,16 @@ import {
   getEventCountsInBbox,
   getFieldsByIds,
   getFieldsInBbox,
+  getLockedVoivodeshipBoundaries,
   getVoivodeshipStats,
+  lockedVoivodeshipsToGeoJSON,
   voivodeshipsToGeoJSON,
   type Bbox,
   type FieldPoint,
   type FieldSort,
 } from '@/lib/fields';
 import { listMyFavoriteFieldIds } from '@/lib/favorites';
+import { notifyInfo } from '@/lib/toast';
 import {
   applyDiscoverFilters,
   countActiveDiscoverFilters,
@@ -91,6 +95,8 @@ const FIELD_SORT: FieldSort = 'default';
 
 const EMPTY_FEATURES = fieldsToGeoJSON([]);
 const EMPTY_VOIVODESHIPS = voivodeshipsToGeoJSON([]);
+const EMPTY_LOCKED_REGIONS = lockedVoivodeshipsToGeoJSON([]);
+const ACTIVE_VOIVODESHIP = 'pomorskie';
 /**
  * Pasmo płynnego przejścia (cross-fade) między bąblami województw a boiskami.
  * Zamiast twardego cięcia na jednym zoomie warstwy nakładają się i wzajemnie
@@ -215,6 +221,8 @@ export function AppMap() {
   const cameraRef = useRef<Camera>(null);
   const [features, setFeatures] = useState(EMPTY_FEATURES);
   const [voivodeships, setVoivodeships] = useState(EMPTY_VOIVODESHIPS);
+  const [lockedRegions, setLockedRegions] = useState(EMPTY_LOCKED_REGIONS);
+  const [lockedLabels, setLockedLabels] = useState(EMPTY_VOIVODESHIPS);
   const [selectedField, setSelectedField] = useState<FieldPoint | null>(null);
   const [discoverEvents, setDiscoverEvents] = useState<DiscoverEvent[]>([]);
   const [filters, setFilters] = useState<DiscoverFilters>(DEFAULT_DISCOVER_FILTERS);
@@ -407,14 +415,29 @@ export function AppMap() {
   useEffect(() => {
     let active = true;
     void getVoivodeshipStats(sportFilter).then(({ data, error }) => {
+      // Bąbel z liczbą boisk pokazujemy tylko dla aktywnego województwa
+      // (Trójmiasto) — reszta ma zamiast tego szarą nakładkę "Coming soon".
       if (active && !error && data.length > 0) {
-        setVoivodeships(voivodeshipsToGeoJSON(data));
+        setVoivodeships(voivodeshipsToGeoJSON(data.filter((r) => r.voivodeship === ACTIVE_VOIVODESHIP)));
+        setLockedLabels(voivodeshipsToGeoJSON(data.filter((r) => r.voivodeship !== ACTIVE_VOIVODESHIP)));
       }
     });
     return () => {
       active = false;
     };
   }, [sportFilter]);
+
+  useEffect(() => {
+    let active = true;
+    void getLockedVoivodeshipBoundaries(ACTIVE_VOIVODESHIP).then(({ data, error }) => {
+      if (active && !error && data.length > 0) {
+        setLockedRegions(lockedVoivodeshipsToGeoJSON(data));
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     void loadDiscover();
@@ -556,6 +579,10 @@ export function AppMap() {
   const onMapPress = useCallback(() => {
     if (fieldTapLockRef.current) return;
     setSelectedField(null);
+  }, []);
+
+  const onLockedRegionPress = useCallback(() => {
+    notifyInfo(`🔒 ${t('map.comingSoon')}`);
   }, []);
 
   const onVoivodeshipPress = useCallback((event: { features?: GeoJSON.Feature[] }) => {
@@ -841,6 +868,35 @@ export function AppMap() {
         </ShapeSource>
 
         {/* Bąble województw — tylko przy pełnym oddaleniu (cała Polska) */}
+        <ShapeSource id="locked-regions" shape={lockedRegions} onPress={onLockedRegionPress}>
+          <FillLayer
+            id="locked-regions-fill"
+            maxZoomLevel={FADE_END}
+            style={{
+              fillColor: '#94a3b8',
+              fillOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0.32, FADE_END, 0],
+            }}
+          />
+        </ShapeSource>
+
+        <ShapeSource id="locked-region-labels" shape={lockedLabels}>
+          <SymbolLayer
+            id="locked-region-labels-text"
+            maxZoomLevel={FADE_END}
+            style={{
+              textField: ['concat', '🔒 ', t('map.comingSoon')],
+              textSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 10, FADE_END, 12],
+              textColor: '#475569',
+              textHaloColor: '#f1f5f9',
+              textHaloWidth: 1.2,
+              textOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0.85, FADE_END, 0],
+              textAllowOverlap: true,
+              textIgnorePlacement: true,
+              textPitchAlignment: 'viewport',
+            }}
+          />
+        </ShapeSource>
+
         <ShapeSource id="voivodeships" shape={voivodeships} onPress={onVoivodeshipPress}>
           {/* Tęczowa poświata — kolor wg liczby obiektów (heatmapa) */}
           <CircleLayer

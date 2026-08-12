@@ -340,6 +340,7 @@ const SYMBOL_LAYOUT = new Set([
   'visibility',
 ]);
 const LINE_LAYOUT = new Set(['lineCap', 'lineJoin', 'lineMiterLimit', 'lineRoundLimit', 'lineSortKey', 'visibility']);
+const FILL_LAYOUT = new Set(['fillSortKey', 'visibility']);
 
 function toKebab(key: string): string {
   return key.replace(/([A-Z])/g, '-$1').toLowerCase();
@@ -357,7 +358,7 @@ function splitStyle(style: Record<string, unknown>, layoutKeys: Set<string>) {
 
 type LayerSpec = {
   id: string;
-  kind: 'circle' | 'symbol' | 'line';
+  kind: 'circle' | 'symbol' | 'line' | 'fill';
   filter?: unknown;
   minZoomLevel?: number;
   maxZoomLevel?: number;
@@ -402,6 +403,11 @@ export function SymbolLayer(props: LayerProps) {
 
 export function LineLayer(props: LayerProps) {
   useLayerRegistration({ ...props, kind: 'line' });
+  return null;
+}
+
+export function FillLayer(props: LayerProps) {
+  useLayerRegistration({ ...props, kind: 'fill' });
   return null;
 }
 
@@ -488,7 +494,14 @@ export function ShapeSource({
     for (const layerId of layerOrderRef.current) {
       const spec = layerSpecsRef.current.get(layerId);
       if (!spec) continue;
-      const layoutKeys = spec.kind === 'circle' ? CIRCLE_LAYOUT : spec.kind === 'symbol' ? SYMBOL_LAYOUT : LINE_LAYOUT;
+      const layoutKeys =
+        spec.kind === 'circle'
+          ? CIRCLE_LAYOUT
+          : spec.kind === 'symbol'
+            ? SYMBOL_LAYOUT
+            : spec.kind === 'fill'
+              ? FILL_LAYOUT
+              : LINE_LAYOUT;
       const { paint, layout } = splitStyle(spec.style ?? {}, layoutKeys);
       if (!map.getLayer(layerId)) {
         const layerDef: Record<string, unknown> = {
