@@ -3,7 +3,6 @@ import type { Href } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   StyleSheet,
@@ -17,6 +16,7 @@ import { Brand } from '@/constants/theme';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { getAdminUserList, setUserRole, type AdminUserRow } from '@/lib/admin-users';
+import { confirmAction } from '@/lib/confirm';
 import { goBack } from '@/lib/navigation';
 import type { AppRole } from '@/lib/profiles';
 
@@ -111,21 +111,24 @@ export default function AdminUsersScreen() {
   }
 
   function confirmGrant(user: AdminUserRow) {
-    Alert.alert(t('adminUsers.grantConfirmTitle'), t('adminUsers.grantConfirmMessage'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('adminUsers.grantAdmin'), onPress: () => void handleSetRole(user.id, 'admin') },
-    ]);
+    confirmAction(
+      t('adminUsers.grantConfirmTitle'),
+      t('adminUsers.grantConfirmMessage'),
+      t('adminUsers.grantAdmin'),
+      t('common.cancel'),
+      () => void handleSetRole(user.id, 'admin'),
+    );
   }
 
   function confirmRemove(user: AdminUserRow) {
-    Alert.alert(t('adminUsers.removeConfirmTitle'), t('adminUsers.removeConfirmMessage'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('adminUsers.removeAdmin'),
-        style: 'destructive',
-        onPress: () => void handleSetRole(user.id, 'user'),
-      },
-    ]);
+    confirmAction(
+      t('adminUsers.removeConfirmTitle'),
+      t('adminUsers.removeConfirmMessage'),
+      t('adminUsers.removeAdmin'),
+      t('common.cancel'),
+      () => void handleSetRole(user.id, 'user'),
+      true,
+    );
   }
 
   async function handleSetRole(userId: string, role: 'user' | 'admin') {
