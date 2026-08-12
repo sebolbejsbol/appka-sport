@@ -423,16 +423,18 @@ type ShapeSourceProps = {
   children?: ReactNode;
 };
 
-export function ShapeSource({
-  id,
-  shape,
-  onPress,
-  cluster,
-  clusterRadius,
-  clusterMaxZoomLevel,
-  clusterProperties,
-  children,
-}: ShapeSourceProps) {
+export type ShapeSourceImperative = {
+  getClusterLeaves: (
+    feature: GeoJSON.Feature,
+    limit: number,
+    offset: number,
+  ) => Promise<GeoJSON.FeatureCollection>;
+};
+
+export const ShapeSource = forwardRef<ShapeSourceImperative, ShapeSourceProps>(function ShapeSource(
+  { id, shape, onPress, cluster, clusterRadius, clusterMaxZoomLevel, clusterProperties, children },
+  ref,
+) {
   const { map, loaded, registerSource } = useMapContext();
   const layerOrderRef = useRef<string[]>([]);
   const layerSpecsRef = useRef<Map<string, LayerSpec>>(new Map());
@@ -531,8 +533,24 @@ export function ShapeSource({
 
   const layerCtx = useMemo(() => ({ addLayer, removeLayer }), [addLayer, removeLayer]);
 
+  useImperativeHandle(
+    ref,
+    () => ({
+      getClusterLeaves: async (feature, limit, offset) => {
+        const src = map?.getSource(id) as maplibregl.GeoJSONSource | undefined;
+        const clusterId = feature.properties?.cluster_id;
+        if (!src || clusterId == null) {
+          return { type: 'FeatureCollection', features: [] };
+        }
+        const features = await src.getClusterLeaves(clusterId, limit, offset);
+        return { type: 'FeatureCollection', features } as GeoJSON.FeatureCollection;
+      },
+    }),
+    [map, id],
+  );
+
   return <ShapeSourceLayerCtx.Provider value={layerCtx}>{children}</ShapeSourceLayerCtx.Provider>;
-}
+});
 
 /** Wyciąga URI z tego, co pod webowym Metro zwraca `require('*.png')` (string, {uri}, lub {default: ...}). */
 function resolveImageUri(source: unknown): string | undefined {

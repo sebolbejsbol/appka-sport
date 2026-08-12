@@ -7,6 +7,7 @@ import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import type { CourtAvailability } from '@/lib/fields';
 import { formatDistance } from '@/lib/geo';
+import { formatCountEvent } from '@/lib/plural-pl';
 
 export type NearbyFieldItem = {
   id: string;
@@ -14,7 +15,8 @@ export type NearbyFieldItem = {
   sport: string | null;
   emoji: string;
   distanceMeters: number | null;
-  countLabel: string;
+  /** Liczba AKTYWNYCH eventów na tym boisku (nie liczba graczy jednego eventu). */
+  eventCount: number;
   availability: CourtAvailability;
 };
 
@@ -97,7 +99,7 @@ export function MapNearbySheet({ fields, onSelect, expanded, onToggleExpanded, b
               </Text>
               <Text style={styles.rowMeta} numberOfLines={1}>
                 {availabilityLabel(item.availability)}
-                {item.countLabel ? ` · ${item.countLabel}` : ''}
+                {` · ${formatCountEvent(item.eventCount)}`}
                 {item.distanceMeters != null ? ` · ${formatDistance(item.distanceMeters)}` : ''}
               </Text>
             </View>
