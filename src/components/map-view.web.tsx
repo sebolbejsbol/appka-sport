@@ -121,10 +121,10 @@ const CLUSTER_AVAILABILITY_PROPERTIES = {
 
 /** Stałe pozycje mini-ikonek sportu w rzędzie pod środkiem klastra. */
 const CLUSTER_SPORT_ICON_OFFSETS: Record<(typeof CLUSTER_ICON_SPORTS)[number], [number, number]> = {
-  basketball: [-15, 11],
-  football: [-5, 11],
-  tennis: [5, 11],
-  volleyball: [15, 11],
+  basketball: [-21, 15],
+  football: [-7, 15],
+  tennis: [7, 15],
+  volleyball: [21, 15],
 };
 
 type FieldSelection = { rpc: string | null; showFields: boolean };
@@ -719,10 +719,10 @@ export function AppMap() {
                 'interpolate',
                 ['linear'],
                 ['get', 'point_count'],
-                1, 20,
-                25, 25,
-                100, 31,
-                500, 38,
+                1, 32,
+                25, 38,
+                100, 46,
+                500, 54,
               ],
               circleColor: [
                 'case',
@@ -744,10 +744,10 @@ export function AppMap() {
                 'interpolate',
                 ['linear'],
                 ['get', 'point_count'],
-                1, 13,
-                25, 17,
-                100, 21,
-                500, 27,
+                1, 22,
+                25, 28,
+                100, 34,
+                500, 42,
               ],
               circleColor: [
                 'case',
@@ -757,7 +757,7 @@ export function AppMap() {
                 '#94a3b8',
               ],
               circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 0.94],
-              circleStrokeWidth: 2,
+              circleStrokeWidth: 2.5,
               circleStrokeColor: '#ffffff',
               circleStrokeOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
             }}
@@ -768,9 +768,9 @@ export function AppMap() {
             minZoomLevel={FADE_START}
             style={{
               textField: ['get', 'point_count_abbreviated'],
-              textSize: ['step', ['get', 'point_count'], 12, 100, 14, 500, 16],
+              textSize: ['step', ['get', 'point_count'], 16, 100, 18, 500, 22],
               textColor: '#ffffff',
-              textOffset: [0, -0.5],
+              textOffset: [0, -0.6],
               textOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
               textHaloColor: 'rgba(15,23,42,0.6)',
               textHaloWidth: 1.4,
@@ -787,7 +787,7 @@ export function AppMap() {
               minZoomLevel={FADE_START}
               style={{
                 iconImage: sport,
-                iconSize: 0.32,
+                iconSize: 0.55,
                 iconOffset: CLUSTER_SPORT_ICON_OFFSETS[sport],
                 iconOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
                 iconAllowOverlap: true,
