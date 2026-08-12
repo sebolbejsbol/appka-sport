@@ -1,4 +1,4 @@
-import { useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -142,6 +142,10 @@ export default function EditTournamentScreen() {
     setError(null);
     const result = await setTournamentStatus(tournamentId, target);
     setBusy(false);
+    if (result === 'not_enough_teams') {
+      setError(t('tournamentForm.transitionNotEnoughTeams'));
+      return;
+    }
     if (result !== 'ok') {
       setError(t('tournamentForm.transitionError'));
       return;
@@ -211,6 +215,15 @@ export default function EditTournamentScreen() {
             <Button label={t('tournamentForm.saveAction')} onPress={handleSave} disabled={busy} style={styles.submit} />
           ) : null}
 
+          <Button
+            label={t('tournamentTeams.manageTitle')}
+            variant="secondary"
+            onPress={() =>
+              router.push({ pathname: '/admin/tournaments/[id]/teams', params: { id: tournamentId ?? '' } })
+            }
+            style={styles.manageTeamsBtn}
+          />
+
           {legalTransitions.length > 0 ? (
             <View style={styles.transitions}>
               <Text style={styles.sectionTitle}>{t('tournamentForm.statusTransitions')}</Text>
@@ -247,6 +260,7 @@ const styles = StyleSheet.create({
   },
   errorText: { fontSize: 14, color: Brand.danger, marginTop: 12 },
   submit: { marginTop: 20 },
+  manageTeamsBtn: { marginTop: 12 },
   sectionTitle: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 8 },
   transitions: { marginTop: 28, gap: 10 },
   transitionBtn: { marginTop: 0 },
