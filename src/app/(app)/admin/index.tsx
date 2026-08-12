@@ -12,7 +12,7 @@ type AdminTool = {
   key: string;
   title: string;
   hint: string;
-  path: '/admin/fields' | '/admin/reports' | '/admin/users' | '/admin/tournaments';
+  path: '/admin/fields' | '/admin/reports' | '/admin/users' | '/admin/tournaments' | '/admin/audit-log';
 };
 
 // Funkcja, nie stała modułowa — inaczej etykiety zamrażałyby się w języku
@@ -45,6 +45,12 @@ function buildAdminTools(isSuperAdmin: boolean): AdminTool[] {
       title: t('admin.usersTitle'),
       hint: t('admin.usersHint'),
       path: '/admin/users',
+    });
+    tools.push({
+      key: 'audit-log',
+      title: t('admin.auditLogTitle'),
+      hint: t('admin.auditLogHint'),
+      path: '/admin/audit-log',
     });
   }
 
