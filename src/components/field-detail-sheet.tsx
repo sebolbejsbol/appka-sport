@@ -33,6 +33,7 @@ import { formatPlayersCount, formatRatingCount } from '@/lib/plural-pl';
 import { applyEventFilters } from '@/lib/event-filters';
 import type { FieldPoint } from '@/lib/fields';
 import { listMyFavoriteFieldIds, toggleFieldFavorite } from '@/lib/favorites';
+import { requestMapFieldsRefresh } from '@/lib/map-field-sync';
 import { cancelEventReminders, scheduleEventReminders } from '@/lib/push-notifications';
 import { distanceMeters, formatDistance } from '@/lib/geo';
 import { notifyError, notifySuccess } from '@/lib/toast';
@@ -89,6 +90,9 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
     }
     setIsFavorited(result);
     notifySuccess(result ? t('favorites.added') : t('favorites.removed'));
+    // Odśwież mapę od razu, żeby ulubione boisko natychmiast pojawiło się
+    // (lub zniknęło) z wymuszonej widoczności, bez czekania na focus ekranu.
+    requestMapFieldsRefresh();
   }
 
   const loadEvents = useCallback(async () => {

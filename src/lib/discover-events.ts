@@ -64,12 +64,16 @@ export type DiscoverFilters = {
   date: DateFilter;
   distanceKm: number | null;
   onlyFreeSpots: boolean;
+  minFreeSpots: number | null;
   search: string;
   sort: DiscoverSort;
 };
 
+// Na razie apka skupia się wyłącznie na Sporcie (patrz PLAN.md) — pozostałe
+// kategorie (hobby, rekreacja, kultura, muzyka, edukacja, biznes) zostają
+// w kodzie/bazie na później, ale domyślny widok mapy/eventów je ukrywa.
 export const DEFAULT_DISCOVER_FILTERS: DiscoverFilters = {
-  category: 'all',
+  category: 'sport',
   subcategory: null,
   contentType: 'all',
   skill: 'all',
@@ -78,6 +82,7 @@ export const DEFAULT_DISCOVER_FILTERS: DiscoverFilters = {
   date: 'all',
   distanceKm: null,
   onlyFreeSpots: false,
+  minFreeSpots: null,
   search: '',
   sort: 'date',
 };
@@ -200,6 +205,12 @@ export function applyDiscoverFilters(
     )
       return false;
     if (filters.onlyFreeSpots && !eventHasFreeSpots(event)) return false;
+    if (
+      filters.minFreeSpots != null &&
+      event.max_players != null &&
+      event.max_players - event.participant_count < filters.minFreeSpots
+    )
+      return false;
     if (!matchesSearch(event, filters.search)) return false;
     return true;
   });
@@ -229,7 +240,8 @@ export function sortDiscoverEvents(
 
 export function countActiveDiscoverFilters(filters: DiscoverFilters): number {
   let n = 0;
-  if (filters.category !== 'all') n += 1;
+  // Kategoria zawsze zablokowana na 'sport' (patrz DEFAULT_DISCOVER_FILTERS) —
+  // to nie jest aktywny wybór użytkownika, nie liczymy jej do odznaki filtrów.
   if (filters.subcategory) n += 1;
   if (filters.contentType !== 'all') n += 1;
   if (filters.skill !== 'all') n += 1;
@@ -238,6 +250,7 @@ export function countActiveDiscoverFilters(filters: DiscoverFilters): number {
   if (filters.date !== 'all') n += 1;
   if (filters.distanceKm != null) n += 1;
   if (filters.onlyFreeSpots) n += 1;
+  if (filters.minFreeSpots != null) n += 1;
   if (filters.search.trim()) n += 1;
   return n;
 }

@@ -26,6 +26,24 @@ export type Bbox = {
  * Pobiera boiska widoczne w danym prostokącie mapy (viewport).
  * Domyślnie koszykówka: boiska z koszem, orliki (multi) i place zabaw.
  */
+/** Pobiera konkretne boiska po id, niezależnie od bbox/filtra sportu (np. ulubione). */
+export async function getFieldsByIds(
+  ids: string[],
+): Promise<{ data: FieldPoint[]; error: { message: string } | null }> {
+  if (ids.length === 0) return { data: [], error: null };
+  const { data, error } = await supabase.rpc('fields_by_ids', { p_ids: ids });
+  const rows = (data as Omit<FieldPoint, 'event_count'>[] | null) ?? [];
+  return {
+    data: rows.map((row) => ({
+      ...row,
+      event_count: 0,
+      avg_rating: row.avg_rating != null ? Number(row.avg_rating) : null,
+      rating_count: Number(row.rating_count) || 0,
+    })),
+    error,
+  };
+}
+
 export async function getFieldsInBbox(
   bbox: Bbox,
   maxRows?: number,

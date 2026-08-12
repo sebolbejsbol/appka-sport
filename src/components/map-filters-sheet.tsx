@@ -5,13 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Brand, Layout, Radius } from '@/constants/theme';
 import { shadow, Typography } from '@/constants/ui';
 import { t } from '@/i18n';
-import {
-  EVENT_CATEGORIES,
-  CATEGORY_META,
-  categoryLabel,
-  subcategoryLabel,
-  subcategoriesFor,
-} from '@/lib/event-categories';
+import { subcategoryLabel, subcategoriesFor } from '@/lib/event-categories';
 import type { DiscoverFilters } from '@/lib/discover-events';
 import type { DateFilter, SkillLevel } from '@/lib/event-filters';
 
@@ -33,7 +27,9 @@ export function MapFiltersSheet({
   resultCount,
 }: Props) {
   const insets = useSafeAreaInsets();
-  const subcats = filters.category !== 'all' ? subcategoriesFor(filters.category) : [];
+  // Kategoria jest zawsze zablokowana na 'sport' (patrz DEFAULT_DISCOVER_FILTERS) —
+  // apka skupia się na sporcie na razie, więc od razu pokazujemy dyscypliny.
+  const subcats = subcategoriesFor('sport');
 
   // Etykiety budujemy przy renderze, aby od razu reagowały na zmianę języka.
   const SKILLS: { id: SkillLevel | 'all'; label: string }[] = [
@@ -60,9 +56,18 @@ export function MapFiltersSheet({
     { id: 25, label: '25 km' },
     { id: 50, label: '50 km' },
   ];
+  const MIN_SPOTS: { id: number | null; label: string }[] = [
+    { id: null, label: t('eventFilters.distanceAny') },
+    { id: 2, label: '2+' },
+    { id: 4, label: '4+' },
+    { id: 8, label: '8+' },
+  ];
   const [advancedOpen, setAdvancedOpen] = useState(false);
   const advancedActive =
-    filters.skill !== 'all' || filters.payment !== 'all' || filters.distanceKm != null;
+    filters.skill !== 'all' ||
+    filters.payment !== 'all' ||
+    filters.distanceKm != null ||
+    filters.minFreeSpots != null;
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
@@ -80,26 +85,8 @@ export function MapFiltersSheet({
         <ScrollView
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.scroll}>
-          <Group label={t('eventFilters.categoryLabel')}>
-            <Chip
-              label={`✦ ${t('eventCategories.all')}`}
-              active={filters.category === 'all'}
-              color={Brand.primary}
-              onPress={() => onChange({ category: 'all', subcategory: null, eventType: 'all' })}
-            />
-            {EVENT_CATEGORIES.map((cat) => (
-              <Chip
-                key={cat}
-                label={`${CATEGORY_META[cat].emoji} ${categoryLabel(cat)}`}
-                active={filters.category === cat}
-                color={CATEGORY_META[cat].color}
-                onPress={() => onChange({ category: cat, subcategory: null, eventType: 'all' })}
-              />
-            ))}
-          </Group>
-
           {subcats.length > 0 ? (
-            <Group label={t('eventFilters.subcategoryLabel')}>
+            <Group label={t('eventFilters.sportTypeLabel')}>
               <Chip
                 label={t('eventCategories.all')}
                 active={filters.subcategory === null}
@@ -178,6 +165,17 @@ export function MapFiltersSheet({
                     label={d.label}
                     active={filters.distanceKm === d.id}
                     onPress={() => onChange({ distanceKm: d.id })}
+                  />
+                ))}
+              </Group>
+
+              <Group label={t('eventFilters.minSpotsLabel')}>
+                {MIN_SPOTS.map((m) => (
+                  <Chip
+                    key={String(m.id)}
+                    label={m.label}
+                    active={filters.minFreeSpots === m.id}
+                    onPress={() => onChange({ minFreeSpots: m.id })}
                   />
                 ))}
               </Group>

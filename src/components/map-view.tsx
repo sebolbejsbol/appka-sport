@@ -15,7 +15,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FieldDetailSheet } from '@/components/field-detail-sheet';
-import { MapCategoryFilterBar } from '@/components/map-category-filter-bar';
+import { MapPlaySearchBar } from '@/components/map-play-search-bar';
 import { MapFiltersSheet } from '@/components/map-filters-sheet';
 import { MapLocationSearch } from '@/components/map-location-search';
 import { SzukajTerazSheet } from '@/components/szukaj-teraz-sheet';
@@ -26,6 +26,7 @@ import { t } from '@/i18n';
 import {
   fieldsToGeoJSON,
   getEventCountsInBbox,
+  getFieldsByIds,
   getFieldsInBbox,
   getVoivodeshipStats,
   voivodeshipsToGeoJSON,
@@ -33,6 +34,7 @@ import {
   type FieldPoint,
   type FieldSort,
 } from '@/lib/fields';
+import { listMyFavoriteFieldIds } from '@/lib/favorites';
 import {
   applyDiscoverFilters,
   countActiveDiscoverFilters,
@@ -260,9 +262,28 @@ export function AppMap() {
     [],
   );
 
+  // Ulubione boiska mają zostać widoczne na mapie zawsze, niezależnie od
+  // aktywnych filtrów dyscypliny/widoczności — łączymy je z każdym publikowanym
+  // zestawem punktów, także gdy showFields=false (np. kategoria bez boisk).
+  const favoriteFieldsRef = useRef<Map<string, FieldPoint>>(new Map());
+
+  const loadFavoriteFields = useCallback(async () => {
+    const { data: ids } = await listMyFavoriteFieldIds();
+    if (ids.length === 0) {
+      favoriteFieldsRef.current = new Map();
+      return;
+    }
+    const { data: fields } = await getFieldsByIds(ids);
+    favoriteFieldsRef.current = new Map(fields.map((f) => [f.id, f]));
+  }, []);
+
   const publishFeatures = useCallback(
     (cache: Map<string, FieldPoint>) => {
-      setFeatures(fieldsToGeoJSON(showFields ? [...cache.values()] : []));
+      const merged = new Map(showFields ? cache : new Map<string, FieldPoint>());
+      for (const [id, field] of favoriteFieldsRef.current) {
+        merged.set(id, field);
+      }
+      setFeatures(fieldsToGeoJSON([...merged.values()]));
     },
     [showFields],
   );
@@ -290,7 +311,7 @@ export function AppMap() {
     async (bbox: Bbox, mapZoom: number) => {
       if (!showFields) {
         fieldsCacheRef.current.clear();
-        setFeatures(EMPTY_FEATURES);
+        publishFeatures(fieldsCacheRef.current);
         return;
       }
 
@@ -298,7 +319,7 @@ export function AppMap() {
       if (mapZoom < FIELD_LOAD_MIN_ZOOM) {
         if (fieldsCacheRef.current.size > 0) {
           fieldsCacheRef.current.clear();
-          setFeatures(EMPTY_FEATURES);
+          publishFeatures(fieldsCacheRef.current);
         }
         return;
       }
@@ -318,7 +339,7 @@ export function AppMap() {
       }));
       applyFields(merged, mapZoom);
     },
-    [applyFields, showFields, sportFilter],
+    [applyFields, publishFeatures, showFields, sportFilter],
   );
 
   const loadVisibleFields = useCallback(
@@ -390,16 +411,21 @@ export function AppMap() {
   }, [coords]);
 
   useEffect(() => {
+    void loadFavoriteFields().then(() => publishFeatures(fieldsCacheRef.current));
+  }, [loadFavoriteFields, publishFeatures]);
+
+  useEffect(() => {
     const unsubCount = onFieldEventCountChange(bumpFieldEventCount);
     const unsubRefresh = onMapFieldsRefresh(() => {
       void loadDiscover();
       void loadVisibleFields(latestStateRef.current);
+      void loadFavoriteFields().then(() => publishFeatures(fieldsCacheRef.current));
     });
     return () => {
       unsubCount();
       unsubRefresh();
     };
-  }, [bumpFieldEventCount, loadDiscover, loadVisibleFields]);
+  }, [bumpFieldEventCount, loadDiscover, loadFavoriteFields, loadVisibleFields, publishFeatures]);
 
   const scheduleLoad = useCallback(() => {
     if (loadTimerRef.current) clearTimeout(loadTimerRef.current);
@@ -962,16 +988,10 @@ export function AppMap() {
       ) : null}
 
       {!selectedField ? (
-        <MapCategoryFilterBar
+        <MapPlaySearchBar
           topOffset={insets.top + 64}
-          category={filters.category}
-          subcategory={filters.subcategory}
           activeCount={activeFilterCount}
-          onSelectCategory={(next) =>
-            patchFilters({ category: next, subcategory: null, eventType: 'all' })
-          }
-          onSelectSubcategory={(sub) => patchFilters({ subcategory: sub })}
-          onOpenFilters={() => setFiltersOpen(true)}
+          onPress={() => setFiltersOpen(true)}
         />
       ) : null}
 
