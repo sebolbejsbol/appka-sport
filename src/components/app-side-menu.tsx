@@ -22,6 +22,7 @@ import { shadow } from '@/constants/ui';
 import { useLocale } from '@/context/locale';
 import { useIsAdmin } from '@/hooks/use-is-admin';
 import { t } from '@/i18n';
+import { getUnreadNotificationCount } from '@/lib/notifications';
 
 const DRAWER_WIDTH = 288;
 
@@ -37,6 +38,7 @@ type NavItem = {
   path: Href;
   icon: string;
   hint?: string;
+  badge?: number;
 };
 
 /**
@@ -52,17 +54,24 @@ function buildPrimaryItems(): NavItem[] {
   ];
 }
 
-function buildAdvancedItems(): NavItem[] {
+function buildAdvancedItems(unreadNotifications: number): NavItem[] {
   return [
     { key: 'feed', label: t('nav.feed'), path: '/feed' as Href, icon: '📣', hint: t('nav.feedHint') },
     { key: 'ranking', label: t('nav.ranking'), path: '/ranking' as Href, icon: '🏆', hint: t('nav.rankingHint') },
     { key: 'teams', label: t('nav.teams'), path: '/teams' as Href, icon: '🛡️', hint: t('nav.teamsHint') },
     { key: 'friends', label: t('nav.friends'), path: '/social', icon: '🤝' },
     { key: 'messages', label: t('nav.messages'), path: '/messages' as Href, icon: '💬' },
+    {
+      key: 'notifications',
+      label: t('nav.notifications'),
+      path: '/notifications' as Href,
+      icon: '🔔',
+      badge: unreadNotifications,
+    },
   ];
 }
 
-const ADVANCED_PATHS = ['/feed', '/ranking', '/teams', '/social', '/messages'];
+const ADVANCED_PATHS = ['/feed', '/ranking', '/teams', '/social', '/messages', '/notifications'];
 
 type AppMenuContextValue = {
   open: boolean;
@@ -96,6 +105,7 @@ function isMenuVisibleRoute(pathname: string): boolean {
     pathname === '/settings' ||
     pathname === '/social' ||
     pathname === '/messages' ||
+    pathname === '/notifications' ||
     pathname === '/admin'
   );
 }
@@ -136,8 +146,12 @@ function AppDrawer() {
   const translateX = useSharedValue(-DRAWER_WIDTH);
   const backdropOpacity = useSharedValue(0);
 
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
   const primaryItems = useMemo(() => buildPrimaryItems(), [locale]);
-  const advancedItems = useMemo(() => buildAdvancedItems(), [locale]);
+  const advancedItems = useMemo(
+    () => buildAdvancedItems(unreadNotifications),
+    [locale, unreadNotifications],
+  );
   const onAdvancedRoute = ADVANCED_PATHS.includes(pathname);
   const [advancedOpen, setAdvancedOpen] = useState(onAdvancedRoute);
 
@@ -145,6 +159,11 @@ function AppDrawer() {
   useEffect(() => {
     if (open && onAdvancedRoute) setAdvancedOpen(true);
   }, [open, onAdvancedRoute]);
+
+  useEffect(() => {
+    if (!open) return;
+    void getUnreadNotificationCount().then(setUnreadNotifications);
+  }, [open, pathname]);
 
   useEffect(() => {
     translateX.value = withTiming(open ? 0 : -DRAWER_WIDTH, {
@@ -319,6 +338,11 @@ function NavRow({
       ]}>
       <View style={[styles.navIconWrap, active && styles.navIconWrapActive]}>
         <Text style={styles.navIcon}>{item.icon}</Text>
+        {item.badge ? (
+          <View style={styles.navBadge}>
+            <Text style={styles.navBadgeText}>{item.badge > 9 ? '9+' : item.badge}</Text>
+          </View>
+        ) : null}
       </View>
       <View style={styles.navItemMain}>
         <Text style={[styles.navItemLabel, active && styles.navItemLabelActive]}>{item.label}</Text>
@@ -447,12 +471,32 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: Brand.screenBackground,
     marginRight: 12,
+    position: 'relative',
   },
   navIconWrapActive: {
     backgroundColor: Brand.surface,
   },
   navIcon: {
     fontSize: 18,
+  },
+  navBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    paddingHorizontal: 4,
+    backgroundColor: Brand.danger,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: Brand.surface,
+  },
+  navBadgeText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#ffffff',
   },
   navItem: {
     flexDirection: 'row',
