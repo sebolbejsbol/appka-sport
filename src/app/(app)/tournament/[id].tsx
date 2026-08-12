@@ -25,7 +25,32 @@ import {
   type TournamentMatch,
   type TournamentStanding,
 } from '@/lib/tournament-matches';
+import {
+  listTournamentPlayoffBracket,
+  type TournamentPlayoffMatch,
+} from '@/lib/tournament-playoffs';
 import { getTournamentDetail, type Tournament, type TournamentStatus } from '@/lib/tournaments';
+
+function roundLabel(round: number, totalRounds: number): string {
+  const fromEnd = totalRounds - round;
+  if (fromEnd === 0) return t('tournamentPlayoffs.roundLabelFinal');
+  if (fromEnd === 1) return t('tournamentPlayoffs.roundLabelSemifinal');
+  if (fromEnd === 2) return t('tournamentPlayoffs.roundLabelQuarterfinal');
+  return `${t('tournamentPlayoffs.roundLabelPrefix')} ${round}`;
+}
+
+function groupByRound(matches: TournamentPlayoffMatch[]): { round: number; items: TournamentPlayoffMatch[] }[] {
+  const order: number[] = [];
+  const map: Record<number, TournamentPlayoffMatch[]> = {};
+  for (const m of matches) {
+    if (!map[m.round]) {
+      map[m.round] = [];
+      order.push(m.round);
+    }
+    map[m.round].push(m);
+  }
+  return order.map((round) => ({ round, items: map[round] }));
+}
 
 function groupById<T extends { group_id: string; group_name: string }>(
   items: T[],
@@ -71,23 +96,28 @@ export default function TournamentDetailScreen() {
   const [loadError, setLoadError] = useState(false);
   const [matches, setMatches] = useState<TournamentMatch[]>([]);
   const [standings, setStandings] = useState<TournamentStanding[]>([]);
+  const [bracket, setBracket] = useState<TournamentPlayoffMatch[]>([]);
 
   const load = useCallback(async () => {
     if (!tournamentId) return;
     setLoading(true);
-    const [{ data }, regsResult, teamsResult, matchesResult, standingsResult] = await Promise.all([
+    const [{ data }, regsResult, teamsResult, matchesResult, standingsResult, bracketResult] = await Promise.all([
       getTournamentDetail(tournamentId),
       listTournamentTeamRegistrations(tournamentId, false),
       listMyTeams(),
       listTournamentMatches(tournamentId),
       getTournamentStandings(tournamentId),
+      listTournamentPlayoffBracket(tournamentId),
     ]);
     setTournament(data);
     setNotFound(!data);
     setRegistrations(regsResult.data);
     setMatches(matchesResult.data);
     setStandings(standingsResult.data);
-    setLoadError(Boolean(regsResult.error || teamsResult.error || matchesResult.error || standingsResult.error));
+    setBracket(bracketResult.data);
+    setLoadError(
+      Boolean(regsResult.error || teamsResult.error || matchesResult.error || standingsResult.error || bracketResult.error),
+    );
 
     if (data) {
       const eligible = teamsResult.data.filter(
@@ -351,6 +381,34 @@ export default function TournamentDetailScreen() {
                 </View>
               );
             })}
+          </View>
+        ) : null}
+
+        {bracket.length > 0 ? (
+          <View style={styles.groupsBlock}>
+            <Text style={styles.sectionHeading}>{t('tournamentPlayoffs.bracketTitle')}</Text>
+            {(() => {
+              const rounds = groupByRound(bracket);
+              const totalRounds = rounds.length > 0 ? rounds[rounds.length - 1].round : 0;
+              return rounds.map((r) => (
+                <View key={r.round} style={styles.groupSection}>
+                  <Text style={styles.fixturesHeading}>{roundLabel(r.round, totalRounds)}</Text>
+                  {r.items.map((m) => (
+                    <View key={m.id} style={styles.matchRow}>
+                      <Text style={styles.matchTeamText} numberOfLines={1}>
+                        {m.team_a_name ?? t('tournamentPlayoffs.tbdLabel')}
+                      </Text>
+                      <Text style={styles.matchScoreText}>
+                        {m.status === 'completed' ? `${m.score_a} – ${m.score_b}` : t('tournamentMatches.vsLabel')}
+                      </Text>
+                      <Text style={[styles.matchTeamText, styles.matchTeamTextRight]} numberOfLines={1}>
+                        {m.team_b_name ?? t('tournamentPlayoffs.tbdLabel')}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ));
+            })()}
           </View>
         ) : null}
       </ScrollView>
