@@ -38,6 +38,7 @@ import {
   type FieldSort,
 } from '@/lib/fields';
 import { listMyFavoriteFieldIds } from '@/lib/favorites';
+import { markInitialDiscoverReady, markInitialFieldsReady } from '@/lib/map-ready';
 import { notifyInfo } from '@/lib/toast';
 import {
   applyDiscoverFilters,
@@ -213,6 +214,7 @@ export function AppMap() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [playNowOpen, setPlayNowOpen] = useState(false);
   const [searchedPlace, setSearchedPlace] = useState<PlaceSearchResult | null>(null);
+  const [fieldsLoading, setFieldsLoading] = useState(false);
   const requestIdRef = useRef(0);
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestStateRef = useRef<MapState | undefined>(undefined);
@@ -220,6 +222,7 @@ export function AppMap() {
   const lastZoomRef = useRef<number | null>(null);
   const fieldTapLockRef = useRef(false);
   const didCenterOnUserRef = useRef(false);
+  const initialFieldsMarkedRef = useRef(false);
 
   const center = coords ?? POLAND_CENTER_COORD;
   const zoom = coords ? USER_ZOOM : DEFAULT_ZOOM;
@@ -326,6 +329,7 @@ export function AppMap() {
       if (!showFields) {
         fieldsCacheRef.current.clear();
         publishFeatures(fieldsCacheRef.current);
+        setFieldsLoading(false);
         return;
       }
 
@@ -334,16 +338,21 @@ export function AppMap() {
           fieldsCacheRef.current.clear();
           publishFeatures(fieldsCacheRef.current);
         }
+        setFieldsLoading(false);
         return;
       }
 
       const requestId = ++requestIdRef.current;
+      setFieldsLoading(true);
       const padded = expandBbox(bbox, BBOX_PADDING);
       const [fieldsRes, countsRes] = await Promise.all([
         getFieldsInBbox(padded, maxRowsForZoom(mapZoom), sportFilter, FIELD_SORT),
         getEventCountsInBbox(padded, sportFilter),
       ]);
-      if (fieldsRes.error || requestId !== requestIdRef.current) return;
+      if (fieldsRes.error || requestId !== requestIdRef.current) {
+        if (requestId === requestIdRef.current) setFieldsLoading(false);
+        return;
+      }
 
       const counts = countsRes.error ? new Map<string, number>() : countsRes.data;
       const merged = fieldsRes.data.map((field) => ({
@@ -351,6 +360,7 @@ export function AppMap() {
         event_count: counts.get(field.id) ?? 0,
       }));
       applyFields(merged, mapZoom);
+      setFieldsLoading(false);
     },
     [applyFields, publishFeatures, showFields, sportFilter],
   );
@@ -422,7 +432,7 @@ export function AppMap() {
   }, []);
 
   useEffect(() => {
-    void loadDiscover();
+    void loadDiscover().finally(markInitialDiscoverReady);
   }, [loadDiscover]);
 
   useEffect(() => {
@@ -488,10 +498,14 @@ export function AppMap() {
       ? expandBbox(bboxAroundCenter(center, USER_ZOOM), 1.4)
       : POLAND_BBOX;
 
-    const timer = setTimeout(
-      () => loadFields(wideBbox, coords ? USER_ZOOM : DEFAULT_ZOOM),
-      800,
-    );
+    const timer = setTimeout(() => {
+      void loadFields(wideBbox, coords ? USER_ZOOM : DEFAULT_ZOOM).finally(() => {
+        if (!initialFieldsMarkedRef.current) {
+          initialFieldsMarkedRef.current = true;
+          markInitialFieldsReady();
+        }
+      });
+    }, 800);
     return () => {
       clearTimeout(timer);
       if (loadTimerRef.current) clearTimeout(loadTimerRef.current);
@@ -1019,6 +1033,7 @@ export function AppMap() {
         <MapPlaySearchBar
           topOffset={insets.top + 64}
           activeCount={activeFilterCount}
+          loading={fieldsLoading}
           onPress={() => setFiltersOpen(true)}
         />
       ) : null}

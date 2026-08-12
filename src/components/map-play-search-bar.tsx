@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
@@ -7,6 +7,7 @@ import { t } from '@/i18n';
 type Props = {
   topOffset: number;
   activeCount: number;
+  loading?: boolean;
   onPress: () => void;
 };
 
@@ -16,7 +17,7 @@ type Props = {
  * wyraźny pasek wyszukiwania otwierający pełny arkusz filtrów (dyscyplina,
  * lokalizacja, promień, data, liczba graczy, poziom).
  */
-export function MapPlaySearchBar({ topOffset, activeCount, onPress }: Props) {
+export function MapPlaySearchBar({ topOffset, activeCount, loading, onPress }: Props) {
   return (
     <View style={[styles.anchor, { top: topOffset }]} pointerEvents="box-none">
       <Pressable
@@ -28,6 +29,7 @@ export function MapPlaySearchBar({ topOffset, activeCount, onPress }: Props) {
         <Text style={styles.placeholder} numberOfLines={1}>
           {t('map.playSearchPlaceholder')}
         </Text>
+        {loading ? <ActivityIndicator size="small" color={Brand.primary} /> : null}
         {activeCount > 0 ? (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{activeCount}</Text>

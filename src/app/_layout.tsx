@@ -17,6 +17,12 @@ import { WebAppShell } from '@/components/web-app-shell';
 import { Brand } from '@/constants/theme';
 import { LocaleProvider, useLocale } from '@/context/locale';
 import { SessionProvider, useSession } from '@/context/session';
+import { onInitialMapDataReady } from '@/lib/map-ready';
+
+/** Maksymalny dodatkowy czas na starcie, żeby splash poczekał na pierwsze
+ * boiska/eventy z mapy — zabezpieczenie na wypadek wolnej/zerwanej sieci,
+ * żeby ekran startowy nigdy nie wisiał w nieskończoność. */
+const MAP_READY_TIMEOUT_MS = 4000;
 
 const LOGO = require('../../assets/images/splash-logo.png');
 
@@ -60,17 +66,46 @@ function RootNavigator() {
 
   useEffect(() => {
     if (isLoading) return;
-    // React jest gotowy — chowamy natywny splash (nasz ciemny overlay już go zastępuje).
-    SplashScreen.hideAsync().catch(() => {});
-    const id = setTimeout(() => {
-      Animated.timing(splashOpacity, {
-        toValue: 0,
-        duration: 480,
-        useNativeDriver: true,
-      }).start(() => setSplashGone(true));
-    }, 180);
-    return () => clearTimeout(id);
-  }, [isLoading, splashOpacity]);
+
+    let settled = false;
+    let fadeTimer: ReturnType<typeof setTimeout> | null = null;
+    let readyTimeout: ReturnType<typeof setTimeout> | null = null;
+    let unsubscribeMapReady: (() => void) | null = null;
+
+    function startFade() {
+      if (settled) return;
+      settled = true;
+      if (readyTimeout) clearTimeout(readyTimeout);
+      if (unsubscribeMapReady) unsubscribeMapReady();
+      // React jest gotowy — chowamy natywny splash (nasz ciemny overlay już go zastępuje).
+      SplashScreen.hideAsync().catch(() => {});
+      fadeTimer = setTimeout(() => {
+        Animated.timing(splashOpacity, {
+          toValue: 0,
+          duration: 480,
+          useNativeDriver: true,
+        }).start(() => setSplashGone(true));
+      }, 180);
+    }
+
+    const willShowMap = !!session && !isPasswordRecovery && !needsProfileSetup;
+    if (willShowMap) {
+      // Trzymamy splash, dopóki mapa nie skończy pierwszego ładowania boisk/eventów —
+      // inaczej użytkownik przez chwilę widzi pustą mapę i myśli, że coś nie działa.
+      // Limit czasu na wypadek wolnej/zerwanej sieci.
+      readyTimeout = setTimeout(startFade, MAP_READY_TIMEOUT_MS);
+      unsubscribeMapReady = onInitialMapDataReady(startFade);
+    } else {
+      startFade();
+    }
+
+    return () => {
+      settled = true;
+      if (fadeTimer) clearTimeout(fadeTimer);
+      if (readyTimeout) clearTimeout(readyTimeout);
+      if (unsubscribeMapReady) unsubscribeMapReady();
+    };
+  }, [isLoading, session, isPasswordRecovery, needsProfileSetup, splashOpacity]);
 
   return (
     <View style={styles.root}>
