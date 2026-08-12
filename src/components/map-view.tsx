@@ -310,7 +310,6 @@ export function AppMap() {
   const cameraRef = useRef<Camera>(null);
   const fieldsSourceRef = useRef<ShapeSource>(null);
   const [features, setFeatures] = useState(EMPTY_FEATURES);
-  const [emptyFeatures, setEmptyFeatures] = useState(EMPTY_FEATURES);
   const [voivodeships, setVoivodeships] = useState(EMPTY_VOIVODESHIPS);
   const [lockedRegions, setLockedRegions] = useState(EMPTY_LOCKED_REGIONS);
   const [lockedLabels, setLockedLabels] = useState(EMPTY_VOIVODESHIPS);
@@ -412,32 +411,20 @@ export function AppMap() {
 
   const publishFeatures = useCallback(
     (cache: Map<string, FieldPoint>) => {
-      // Warstwa eventów (klastrowana) ma pokazywać AKTYWNE eventy, nie każde
-      // istniejące boisko — boiska bez żadnego eventu nigdy nie trafiają do
-      // klastrowania ani nie zaśmiecają mapy dziesiątkami pustych "0" bąbli.
-      // Ulubione boiska są wyjątkiem — zostają w warstwie eventów niezależnie
-      // od event_count, bo to świadoma decyzja użytkownika, nie stan eventu.
-      // Reszta boisk bez eventów NIE znika z mapy całkowicie — trafia do osobnej,
-      // nieklastrowanej warstwy jako małe, wyraźnie przygaszone kropki (wciąż
-      // klikalne), żeby dało się odkryć obiekt nawet bez aktywnych eventów.
-      const merged = new Map<string, FieldPoint>();
-      const empty = new Map<string, FieldPoint>();
-      if (showFields) {
-        for (const [id, field] of cache) {
-          if ((field.event_count ?? 0) > 0) merged.set(id, field);
-          else empty.set(id, field);
-        }
-      }
+      // Wszystkie boiska (z eventami i bez) trafiają do JEDNEJ, wspólnie
+      // klastrowanej warstwy — ten sam bąbel dla każdego, obwódka po prostu
+      // pokazuje stan: zielona/pomarańczowa/czerwona = dostępność, szara =
+      // brak aktywnych eventów. Dzięki temu pobliskie boiska zawsze łączą się
+      // w jeden klaster razem, niezależnie od tego, czy akurat mają eventy.
+      const merged = new Map(showFields ? cache : new Map<string, FieldPoint>());
       for (const [id, field] of favoriteFieldsRef.current) {
         merged.set(id, field);
-        empty.delete(id);
       }
-      const enrich = (field: FieldPoint) => {
+      const enriched = [...merged.values()].map((field) => {
         const players = fieldPlayersMap.get(field.id);
         return { ...field, players_current: players?.current ?? 0, players_max: players?.max ?? null };
-      };
-      setFeatures(fieldsToGeoJSON([...merged.values()].map(enrich)));
-      setEmptyFeatures(fieldsToGeoJSON([...empty.values()].map(enrich)));
+      });
+      setFeatures(fieldsToGeoJSON(enriched));
     },
     [showFields, fieldPlayersMap],
   );
@@ -848,15 +835,7 @@ export function AppMap() {
                 '#94a3b8',
               ],
               circleBlur: 1.1,
-              circleOpacity: [
-                'interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END,
-                [
-                  'case',
-                  ['all', ['==', ['get', 'open_count'], 0], ['==', ['get', 'filling_count'], 0], ['==', ['get', 'full_count'], 0]],
-                  0.18,
-                  0.6,
-                ],
-              ],
+              circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 0.6],
             }}
           />
           {/* Ciemny/niemal czarny środek klastra — jak w referencji, NIE wypełniony
@@ -959,15 +938,13 @@ export function AppMap() {
                 '#94a3b8',
               ],
               circleBlur: 1.1,
-              circleOpacity: [
-                'case',
-                ['==', ['get', 'availability'], 'empty'], 0.1,
-                0.55,
-              ],
+              circleOpacity: 0.55,
             }}
           />
           {/* Gruby, mocno widoczny pierścień dostępności + niemal czarny środek —
-              ten sam język co klaster: ciemny środek, gruba kolorowa obwódka. */}
+              ten sam język co klaster: ciemny środek, gruba kolorowa obwódka.
+              Ten sam wygląd dla każdego stanu (włącznie z szarym "brak eventów") —
+              obwódka po prostu komunikuje inny kolor, nie inny poziom istnienia. */}
           <CircleLayer
             id="fields-ring"
             filter={['!', ['has', 'point_count']]}
@@ -984,11 +961,7 @@ export function AppMap() {
                 18, 30,
               ],
               circleColor: 'rgba(4,6,14,0.94)',
-              circleOpacity: [
-                'case',
-                ['==', ['get', 'availability'], 'empty'], 0.55,
-                1,
-              ],
+              circleOpacity: 1,
               circleStrokeWidth: [
                 'interpolate',
                 ['linear'],
@@ -1027,10 +1000,7 @@ export function AppMap() {
                 18, 0.86,
               ],
               iconOffset: [0, -9],
-              iconOpacity: [
-                'interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END,
-                ['case', ['==', ['get', 'availability'], 'empty'], 0.55, 1],
-              ],
+              iconOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
               iconAllowOverlap: true,
               iconIgnorePlacement: true,
               iconPitchAlignment: 'viewport',
@@ -1056,31 +1026,10 @@ export function AppMap() {
               ],
               textColor: '#ffffff',
               textOffset: [0, 0.9],
-              textOpacity: [
-                'interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END,
-                ['case', ['==', ['get', 'availability'], 'empty'], 0.55, 1],
-              ],
+              textOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
               textAllowOverlap: true,
               textIgnorePlacement: true,
               textPitchAlignment: 'viewport',
-            }}
-          />
-        </ShapeSource>
-
-        {/* Boiska bez aktywnych eventów — NIE klastrowane i NIE pełny "bąbel"
-            eventowy (żeby nie zaśmiecać mapy dziesiątkami "0"), tylko małe,
-            wyraźnie przygaszone, wciąż klikalne kropki, żeby dało się odkryć
-            obiekt nawet bez eventów. */}
-        <ShapeSource id="fields-empty" shape={emptyFeatures} onPress={onFieldPress}>
-          <CircleLayer
-            id="fields-empty-dot"
-            style={{
-              circleRadius: ['interpolate', ['linear'], ['zoom'], 7, 7, 12, 9, 16, 11],
-              circleColor: '#94a3b8',
-              circleOpacity: 0.85,
-              circleStrokeWidth: 2,
-              circleStrokeColor: '#ffffff',
-              circleStrokeOpacity: 0.9,
             }}
           />
         </ShapeSource>
