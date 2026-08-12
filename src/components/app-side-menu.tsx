@@ -9,7 +9,7 @@ import {
   useState,
   type PropsWithChildren,
 } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -19,6 +19,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { DESKTOP_NAV_BREAKPOINT } from '@/components/web-app-shell';
 import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useLocale } from '@/context/locale';
@@ -32,6 +33,7 @@ import {
 import { notifyInfo } from '@/lib/toast';
 
 const DRAWER_WIDTH = 288;
+const SIDEBAR_WIDTH = 264;
 
 const HIDDEN_EXACT = ['/event/new', '/event/edit'];
 const HIDDEN_PREFIXES = ['/field'];
@@ -123,6 +125,8 @@ function isNavActive(pathname: string, path: Href): boolean {
 
 export function AppMenuProvider({ children }: PropsWithChildren) {
   const [open, setOpen] = useState(false);
+  const { width } = useWindowDimensions();
+  const isDesktopNav = Platform.OS === 'web' && width >= DESKTOP_NAV_BREAKPOINT;
 
   const value = useMemo(
     () => ({
@@ -133,12 +137,150 @@ export function AppMenuProvider({ children }: PropsWithChildren) {
     [open],
   );
 
+  if (isDesktopNav) {
+    return (
+      <AppMenuContext.Provider value={value}>
+        <View style={styles.desktopRoot}>
+          <DesktopSidebar />
+          <View style={styles.desktopContent}>{children}</View>
+        </View>
+      </AppMenuContext.Provider>
+    );
+  }
+
   return (
     <AppMenuContext.Provider value={value}>
       {children}
       <AppDrawer />
       <AppMenuButton />
     </AppMenuContext.Provider>
+  );
+}
+
+/** Stały pasek boczny dla szerokich ekranów — zastępuje hamburger + wysuwany drawer. */
+function DesktopSidebar() {
+  const pathname = usePathname();
+  const { isAdmin } = useIsAdmin();
+  const { locale } = useLocale();
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const pathnameRef = useRef(pathname);
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
+
+  const primaryItems = useMemo(() => buildPrimaryItems(), [locale]);
+  const advancedItems = useMemo(
+    () => buildAdvancedItems(unreadNotifications),
+    [locale, unreadNotifications],
+  );
+
+  useEffect(() => {
+    void getUnreadNotificationCount().then(setUnreadNotifications);
+    const unsubscribe = subscribeToMyNotifications((n) => {
+      setUnreadNotifications((prev) => prev + 1);
+      if (pathnameRef.current !== '/notifications') {
+        const { title, body } = notificationDisplayText(n, t);
+        notifyInfo(body ? `${title} — ${body}` : title);
+      }
+    });
+    return unsubscribe;
+  }, []);
+
+  const navigate = useCallback(
+    (path: Href) => {
+      if (pathname === path) return;
+      router.replace(path);
+    },
+    [pathname],
+  );
+
+  // Subskrypcja powiadomień wyżej zostaje żywa niezależnie od trasy (stąd
+  // wcześniejszy return, a nie warunkowy montaż całego komponentu) — inaczej
+  // badge/toast przestawałby działać na ekranach pełnoekranowych (czat,
+  // admin, drużyny…), gdzie chowamy tylko widoczny pasek.
+  if (!isMenuVisibleRoute(pathname)) return null;
+
+  return (
+    <View style={styles.sidebar}>
+      <Text style={styles.sidebarBrand}>{t('nav.menu')}</Text>
+
+      <ScrollView
+        style={styles.panelBody}
+        contentContainerStyle={styles.panelScroll}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.navList}>
+          <View style={styles.navSection}>
+            <Text style={styles.navSectionTitle}>{t('nav.sectionDiscover')}</Text>
+            {primaryItems.map((item) => (
+              <NavRow
+                key={item.key}
+                item={item}
+                active={isNavActive(pathname, item.path)}
+                onPress={() => navigate(item.path)}
+              />
+            ))}
+          </View>
+
+          <View style={styles.navSection}>
+            <Text style={styles.navSectionTitle}>{t('nav.advanced')}</Text>
+            {advancedItems.map((item) => (
+              <NavRow
+                key={item.key}
+                item={item}
+                active={isNavActive(pathname, item.path)}
+                onPress={() => navigate(item.path)}
+              />
+            ))}
+          </View>
+        </View>
+      </ScrollView>
+
+      <View style={styles.footer}>
+        {isAdmin ? (
+          <Pressable
+            onPress={() => navigate('/admin' as Href)}
+            style={({ pressed }) => [
+              styles.settingsItem,
+              isNavActive(pathname, '/admin' as Href) && styles.settingsItemActive,
+              pressed && styles.navItemPressed,
+            ]}>
+            <Text style={styles.settingsIcon}>🛡</Text>
+            <View style={styles.navItemMain}>
+              <Text
+                style={[
+                  styles.settingsLabel,
+                  isNavActive(pathname, '/admin' as Href) && styles.navItemLabelActive,
+                ]}>
+                {t('nav.admin')}
+              </Text>
+              <Text style={styles.navItemHint}>{t('nav.adminHint')}</Text>
+            </View>
+            <Text style={styles.navItemChevron}>›</Text>
+          </Pressable>
+        ) : null}
+
+        <Pressable
+          onPress={() => navigate('/settings')}
+          style={({ pressed }) => [
+            styles.settingsItem,
+            isNavActive(pathname, '/settings') && styles.settingsItemActive,
+            pressed && styles.navItemPressed,
+          ]}>
+          <Text style={styles.settingsIcon}>⚙</Text>
+          <View style={styles.navItemMain}>
+            <Text
+              style={[
+                styles.settingsLabel,
+                isNavActive(pathname, '/settings') && styles.navItemLabelActive,
+              ]}>
+              {t('nav.settings')}
+            </Text>
+            <Text style={styles.navItemHint}>{t('nav.settingsHint')}</Text>
+          </View>
+          <Text style={styles.navItemChevron}>›</Text>
+        </Pressable>
+      </View>
+    </View>
   );
 }
 
@@ -410,6 +552,30 @@ function AppMenuButton() {
 const styles = StyleSheet.create({
   root: {
     flex: 1,
+  },
+  desktopRoot: {
+    flex: 1,
+    flexDirection: 'row',
+  },
+  desktopContent: {
+    flex: 1,
+    minWidth: 0,
+  },
+  sidebar: {
+    width: SIDEBAR_WIDTH,
+    backgroundColor: Brand.surface,
+    borderRightWidth: 1,
+    borderRightColor: Brand.border,
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 16,
+  },
+  sidebarBrand: {
+    fontSize: 20,
+    fontWeight: '800',
+    letterSpacing: -0.3,
+    color: Brand.textPrimary,
+    marginBottom: 16,
   },
   backdrop: {
     position: 'absolute',

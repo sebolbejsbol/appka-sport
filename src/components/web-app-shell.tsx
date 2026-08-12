@@ -4,20 +4,22 @@ import { Platform, StyleSheet, View, useWindowDimensions } from 'react-native';
 import { Brand } from '@/constants/theme';
 
 /**
- * Ta apka jest zaprojektowana mobile-first (natywny RN). Na szerokim ekranie
- * przeglądarki bez żadnych ograniczeń wygląda na rozciągniętą stronę mobilną
- * (pełna szerokość przycisków, ogromne puste przestrzenie). Zamiast przepisywać
- * dziesiątki ekranów, centrujemy całą aplikację w stałej, "telefonopodobnej"
- * kolumnie na szerokich ekranach — to samo demo co np. WhatsApp Web / X —
- * i zostawiamy layout bez zmian poniżej progu (telefon = identyczny UI co natywnie).
+ * Ta apka jest zaprojektowana mobile-first (natywny RN). Poniżej progu
+ * DESKTOP_NAV_BREAKPOINT layout zostaje bez zmian (telefon = identyczny UI co
+ * natywnie). Powyżej progu centrujemy aplikację w szerokiej, "desktopowej"
+ * ramce z widocznym paskiem bocznym (patrz <AppMenuProvider /> w
+ * app-side-menu.tsx, który dokłada tam stałe menu zamiast hamburgera) —
+ * podobnie jak WhatsApp Web / X pokazują pełny layout aplikacji, a nie
+ * rozciągnięty widok mobilny.
  */
-const MAX_WIDTH = 720;
-const BREAKPOINT = 760;
+const MAX_WIDTH = 1280;
+/** Współdzielony z app-side-menu.tsx — od tej szerokości pokazujemy stały sidebar zamiast hamburgera. */
+export const DESKTOP_NAV_BREAKPOINT = 760;
 
 export function WebAppShell({ children }: { children: ReactNode }) {
   const { width } = useWindowDimensions();
 
-  if (Platform.OS !== 'web' || width < BREAKPOINT) {
+  if (Platform.OS !== 'web' || width < DESKTOP_NAV_BREAKPOINT) {
     return <>{children}</>;
   }
 
