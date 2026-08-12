@@ -27,6 +27,8 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { DatePickerField } from '@/components/date-picker-field';
+import { TimePickerField } from '@/components/time-picker-field';
 import { Brand, Layout, Radius } from '@/constants/theme';
 import { notifyError } from '@/lib/toast';
 import { shadow, Typography } from '@/constants/ui';
@@ -896,33 +898,15 @@ export default function CreateEventScreen() {
 
             <View style={styles.row}>
               <Field label={t('createEvent.date')} required style={styles.flex1}>
-                <TextInput
-                  style={styles.input}
-                  value={date}
-                  onChangeText={setDate}
-                  placeholder={t('createEvent.datePlaceholder')}
-                  placeholderTextColor={Brand.textMuted}
-                />
+                <DatePickerField label={t('createEvent.date')} required value={date} onChange={setDate} />
               </Field>
             </View>
             <View style={styles.row}>
               <Field label={t('createEvent.start')} required style={styles.flex1}>
-                <TextInput
-                  style={styles.input}
-                  value={startTime}
-                  onChangeText={setStartTime}
-                  placeholder={t('createEvent.timePlaceholder')}
-                  placeholderTextColor={Brand.textMuted}
-                />
+                <TimePickerField label={t('createEvent.start')} required value={startTime} onChange={setStartTime} />
               </Field>
               <Field label={t('createEvent.end')} style={styles.flex1}>
-                <TextInput
-                  style={styles.input}
-                  value={endTime}
-                  onChangeText={setEndTime}
-                  placeholder={t('createEvent.timePlaceholder')}
-                  placeholderTextColor={Brand.textMuted}
-                />
+                <TimePickerField label={t('createEvent.end')} value={endTime} onChange={setEndTime} />
               </Field>
             </View>
 

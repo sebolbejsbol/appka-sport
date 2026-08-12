@@ -1523,6 +1523,11 @@ export const en: DeepPartialWide<Translations> = {
     invalidStatusError: 'The tournament must be in progress to generate a bracket.',
     generateError: 'Could not generate the bracket. Try again.',
   },
+  timePicker: {
+    select: 'Select time',
+    selectDate: 'Select date',
+    confirm: 'Confirm',
+  },
   favorites: {
     addAction: 'Add to favorites',
     removeAction: 'Remove from favorites',

@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, Image } from 'react-native';
 
+import { DatePickerField } from '@/components/date-picker-field';
 import { FieldReportLocationPicker, type LocationPickerCopy } from '@/components/field-report-map-picker';
 import { TextField } from '@/components/text-field';
+import { TimePickerField } from '@/components/time-picker-field';
 import { Brand, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
 import { parseLocalDateTime, toDateInput, toTimeInput } from '@/lib/datetime';
@@ -287,32 +289,30 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
         </Pressable>
       </View>
 
+      <Text style={styles.label}>{t('tournamentForm.eventDate')}</Text>
       <View style={styles.row}>
         <View style={styles.flex1}>
-          <TextField
+          <DatePickerField
             label={t('tournamentForm.eventDate')}
             value={value.eventDate}
-            onChangeText={(eventDate) => onChange({ eventDate })}
-            placeholder={t('tournamentForm.eventDatePlaceholder')}
-            editable={!disabled}
+            onChange={(eventDate) => onChange({ eventDate })}
+            disabled={disabled}
           />
         </View>
         <View style={styles.flex1}>
-          <TextField
+          <TimePickerField
             label={t('tournamentForm.startTime')}
             value={value.startTime}
-            onChangeText={(startTime) => onChange({ startTime })}
-            placeholder={t('tournamentForm.timePlaceholder')}
-            editable={!disabled}
+            onChange={(startTime) => onChange({ startTime })}
+            disabled={disabled}
           />
         </View>
         <View style={styles.flex1}>
-          <TextField
+          <TimePickerField
             label={t('tournamentForm.endTime')}
             value={value.endTime}
-            onChangeText={(endTime) => onChange({ endTime })}
-            placeholder={t('tournamentForm.timePlaceholder')}
-            editable={!disabled}
+            onChange={(endTime) => onChange({ endTime })}
+            disabled={disabled}
           />
         </View>
       </View>
@@ -320,21 +320,19 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
       <Text style={styles.label}>{t('tournamentForm.registrationOpens')}</Text>
       <View style={styles.row}>
         <View style={styles.flex1}>
-          <TextField
-            label={t('tournamentForm.dateLabel')}
+          <DatePickerField
+            label={t('tournamentForm.registrationOpens')}
             value={value.regOpenDate}
-            onChangeText={(regOpenDate) => onChange({ regOpenDate })}
-            placeholder={t('tournamentForm.eventDatePlaceholder')}
-            editable={!disabled}
+            onChange={(regOpenDate) => onChange({ regOpenDate })}
+            disabled={disabled}
           />
         </View>
         <View style={styles.flex1}>
-          <TextField
-            label={t('tournamentForm.timeLabel')}
+          <TimePickerField
+            label={t('tournamentForm.registrationOpens')}
             value={value.regOpenTime}
-            onChangeText={(regOpenTime) => onChange({ regOpenTime })}
-            placeholder={t('tournamentForm.timePlaceholder')}
-            editable={!disabled}
+            onChange={(regOpenTime) => onChange({ regOpenTime })}
+            disabled={disabled}
           />
         </View>
       </View>
@@ -342,21 +340,19 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
       <Text style={styles.label}>{t('tournamentForm.registrationCloses')}</Text>
       <View style={styles.row}>
         <View style={styles.flex1}>
-          <TextField
-            label={t('tournamentForm.dateLabel')}
+          <DatePickerField
+            label={t('tournamentForm.registrationCloses')}
             value={value.regCloseDate}
-            onChangeText={(regCloseDate) => onChange({ regCloseDate })}
-            placeholder={t('tournamentForm.eventDatePlaceholder')}
-            editable={!disabled}
+            onChange={(regCloseDate) => onChange({ regCloseDate })}
+            disabled={disabled}
           />
         </View>
         <View style={styles.flex1}>
-          <TextField
-            label={t('tournamentForm.timeLabel')}
+          <TimePickerField
+            label={t('tournamentForm.registrationCloses')}
             value={value.regCloseTime}
-            onChangeText={(regCloseTime) => onChange({ regCloseTime })}
-            placeholder={t('tournamentForm.timePlaceholder')}
-            editable={!disabled}
+            onChange={(regCloseTime) => onChange({ regCloseTime })}
+            disabled={disabled}
           />
         </View>
       </View>

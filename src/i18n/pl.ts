@@ -1530,6 +1530,11 @@ export const pl = {
     invalidStatusError: 'Turniej musi być w trakcie, żeby wygenerować drabinkę.',
     generateError: 'Nie udało się wygenerować drabinki. Spróbuj ponownie.',
   },
+  timePicker: {
+    select: 'Wybierz godzinę',
+    selectDate: 'Wybierz datę',
+    confirm: 'Potwierdź',
+  },
   favorites: {
     addAction: 'Dodaj do ulubionych',
     removeAction: 'Usuń z ulubionych',

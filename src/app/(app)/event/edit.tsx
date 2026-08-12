@@ -14,6 +14,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EventMetaFields } from '@/components/event-meta-fields';
 import { Button } from '@/components/button';
+import { DatePickerField } from '@/components/date-picker-field';
+import { TimePickerField } from '@/components/time-picker-field';
 import { TextField } from '@/components/text-field';
 import { Brand } from '@/constants/theme';
 import { t } from '@/i18n';
@@ -217,26 +219,12 @@ export default function EditEventScreen() {
         <View style={styles.form}>
           <View style={styles.rowFields}>
             <View style={styles.flexField}>
-              <TextField
-                label={t('event.dateLabel')}
-                value={date}
-                onChangeText={setDate}
-                placeholder={t('event.datePlaceholder')}
-                error={errors.date}
-                autoCapitalize="none"
-                editable={!submitting}
-              />
+              <Text style={styles.fieldLabel}>{t('event.dateLabel')}</Text>
+              <DatePickerField label={t('event.dateLabel')} value={date} onChange={setDate} />
             </View>
             <View style={styles.flexField}>
-              <TextField
-                label={t('event.timeLabel')}
-                value={time}
-                onChangeText={setTime}
-                placeholder={t('event.timePlaceholder')}
-                error={errors.time}
-                autoCapitalize="none"
-                editable={!submitting}
-              />
+              <Text style={styles.fieldLabel}>{t('event.timeLabel')}</Text>
+              <TimePickerField label={t('event.timeLabel')} value={time} onChange={setTime} />
             </View>
           </View>
 
