@@ -2,7 +2,6 @@ import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-ro
 import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,6 +17,8 @@ import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { getLocale, t } from '@/i18n';
+import { showActionSheet, type ActionSheetOption } from '@/lib/action-sheet-navigation';
+import { confirmAction } from '@/lib/confirm';
 import { goBack } from '@/lib/navigation';
 import { formatTeamSport } from '@/lib/sports';
 import {
@@ -121,43 +122,50 @@ export default function TeamDetailScreen() {
     void load();
   }
 
+  function confirmRemoveMember(member: TeamMember) {
+    confirmAction(
+      member.nick?.trim() || t('common.nick'),
+      t('teams.removeMember'),
+      t('teams.removeMember'),
+      t('common.cancel'),
+      () => void handleRemoveMember(member.user_id),
+      true,
+    );
+  }
+
   function openMemberMenu(member: TeamMember) {
-    const buttons: { text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }[] = [];
+    const options: ActionSheetOption[] = [];
     // Zmiana ról tylko dla właściciela; admin może jedynie usuwać zwykłych członków.
     if (team?.is_owner) {
       if (member.role === 'member') {
-        buttons.push({ text: t('teams.makeAdmin'), onPress: () => void handleSetRole(member, 'admin') });
+        options.push({ label: t('teams.makeAdmin'), onPress: () => void handleSetRole(member, 'admin') });
       } else if (member.role === 'admin') {
-        buttons.push({ text: t('teams.makeMember'), onPress: () => void handleSetRole(member, 'member') });
+        options.push({ label: t('teams.makeMember'), onPress: () => void handleSetRole(member, 'member') });
       }
     }
-    buttons.push({
-      text: t('teams.removeMember'),
-      style: 'destructive',
-      onPress: () =>
-        Alert.alert(member.nick?.trim() || t('common.nick'), t('teams.removeMember'), [
-          { text: t('common.cancel'), style: 'cancel' },
-          {
-            text: t('teams.removeMember'),
-            style: 'destructive',
-            onPress: () => void handleRemoveMember(member.user_id),
-          },
-        ]),
+    options.push({
+      label: t('teams.removeMember'),
+      destructive: true,
+      onPress: () => confirmRemoveMember(member),
     });
-    buttons.push({ text: t('common.cancel'), style: 'cancel' });
-    Alert.alert(member.nick?.trim() || t('common.nick'), t('teams.manageMember'), buttons);
+    showActionSheet({
+      title: member.nick?.trim() || t('common.nick'),
+      message: t('teams.manageMember'),
+      cancelLabel: t('common.cancel'),
+      options,
+    });
   }
 
   function confirmLeave() {
     if (!myUserId) return;
-    Alert.alert(t('teams.leaveTeam'), undefined, [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('teams.leaveTeam'),
-        style: 'destructive',
-        onPress: () => void handleRemoveMember(myUserId),
-      },
-    ]);
+    confirmAction(
+      t('teams.leaveTeam'),
+      '',
+      t('teams.leaveTeam'),
+      t('common.cancel'),
+      () => void handleRemoveMember(myUserId),
+      true,
+    );
   }
 
   if (!teamId) {

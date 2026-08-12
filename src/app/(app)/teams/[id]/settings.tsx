@@ -1,7 +1,6 @@
 import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
-  Alert,
   Image,
   KeyboardAvoidingView,
   Platform,
@@ -19,6 +18,7 @@ import { TextField } from '@/components/text-field';
 import { UserAvatar } from '@/components/user-avatar';
 import { Brand } from '@/constants/theme';
 import { t } from '@/i18n';
+import { confirmAction } from '@/lib/confirm';
 import { goBack } from '@/lib/navigation';
 import { pickImageFromLibrary } from '@/lib/pick-image';
 import { TEAM_SPORTS, formatTeamSport, type TeamSport } from '@/lib/sports';
@@ -120,33 +120,31 @@ export default function TeamSettingsScreen() {
   }
 
   function confirmTransfer(member: TeamMember) {
-    Alert.alert(
+    confirmAction(
       t('teams.transferOwnership'),
       t('teams.transferConfirm'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('teams.transferOwnership'),
-          onPress: async () => {
-            if (!teamId) return;
-            setBusy(true);
-            await transferTeamOwnership(teamId, member.user_id);
-            setBusy(false);
-            router.back();
-          },
-        },
-      ],
+      t('teams.transferOwnership'),
+      t('common.cancel'),
+      () =>
+        void (async () => {
+          if (!teamId) return;
+          setBusy(true);
+          await transferTeamOwnership(teamId, member.user_id);
+          setBusy(false);
+          router.back();
+        })(),
     );
   }
 
   function confirmDelete() {
     if (!teamId) return;
-    Alert.alert(t('teams.deleteTeam'), t('teams.deleteConfirm'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('teams.deleteTeam'),
-        style: 'destructive',
-        onPress: async () => {
+    confirmAction(
+      t('teams.deleteTeam'),
+      t('teams.deleteConfirm'),
+      t('teams.deleteTeam'),
+      t('common.cancel'),
+      () =>
+        void (async () => {
           setBusy(true);
           const result = await deleteTeam(teamId);
           setBusy(false);
@@ -155,9 +153,9 @@ export default function TeamSettingsScreen() {
           } else {
             setError(t('teams.saveError'));
           }
-        },
-      },
-    ]);
+        })(),
+      true,
+    );
   }
 
   if (!teamId) return null;

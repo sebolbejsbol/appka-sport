@@ -33,7 +33,7 @@ export function ConfirmModalHost() {
         <View style={styles.backdrop}>
           <View style={styles.card}>
             <Text style={styles.title}>{request.title}</Text>
-            <Text style={styles.message}>{request.message}</Text>
+            {request.message ? <Text style={styles.message}>{request.message}</Text> : null}
             <View style={styles.actions}>
               <Button label={request.cancelLabel} variant="secondary" onPress={close} style={styles.btn} />
               <Button

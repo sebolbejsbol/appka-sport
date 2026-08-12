@@ -2,7 +2,6 @@ import { router, useFocusEffect, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -18,6 +17,8 @@ import { RankCard } from '@/components/rank-card';
 import { getPlayerRank, type PlayerRank } from '@/lib/ranking';
 import { Brand } from '@/constants/theme';
 import { t } from '@/i18n';
+import { showActionSheet } from '@/lib/action-sheet-navigation';
+import { confirmAction } from '@/lib/confirm';
 import { formatPlayedTogether } from '@/lib/plural-pl';
 import { openDmConversation } from '@/lib/messages';
 import { blockUser, reportUser, unblockUser, type ReportReason } from '@/lib/moderation';
@@ -36,6 +37,7 @@ import {
   sendFriendRequest,
   type PublicProfile,
 } from '@/lib/social';
+import { notifyError, notifySuccess } from '@/lib/toast';
 
 type Props = {
   userId: string;
@@ -152,21 +154,22 @@ export function PublicProfileView({ userId, isRootTab = false }: Props) {
   }
 
   function handleDeletePost(post: ProfilePost) {
-    Alert.alert(t('feed.deletePostTitle'), t('feed.deletePostBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('feed.deletePostAction'),
-        style: 'destructive',
-        onPress: async () => {
+    confirmAction(
+      t('feed.deletePostTitle'),
+      t('feed.deletePostBody'),
+      t('feed.deletePostAction'),
+      t('common.cancel'),
+      () =>
+        void (async () => {
           const result = await deletePost(post.post_id);
           if (result !== 'deleted') {
-            Alert.alert(t('feed.deletePostFailed'));
+            notifyError(t('feed.deletePostFailed'));
             return;
           }
           setUserPosts((prev) => prev.filter((p) => p.post_id !== post.post_id));
-        },
-      },
-    ]);
+        })(),
+      true,
+    );
   }
 
   async function handleLike(post: ProfilePost) {
@@ -185,32 +188,32 @@ export function PublicProfileView({ userId, isRootTab = false }: Props) {
   }
 
   function handleBlock() {
-    Alert.alert(t('moderation.blockConfirmTitle'), t('moderation.blockConfirmBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('moderation.blockAction'),
-        style: 'destructive',
-        onPress: () =>
-          void runAction(async () => {
-            const result = await blockUser(userId);
-            if (result !== 'blocked') {
-              Alert.alert(t('moderation.blockFailed'));
-              return;
-            }
-            Alert.alert(t('moderation.blockDone'));
-          }),
-      },
-    ]);
+    confirmAction(
+      t('moderation.blockConfirmTitle'),
+      t('moderation.blockConfirmBody'),
+      t('moderation.blockAction'),
+      t('common.cancel'),
+      () =>
+        void runAction(async () => {
+          const result = await blockUser(userId);
+          if (result !== 'blocked') {
+            notifyError(t('moderation.blockFailed'));
+            return;
+          }
+          notifySuccess(t('moderation.blockDone'));
+        }),
+      true,
+    );
   }
 
   function handleUnblock() {
     void runAction(async () => {
       const result = await unblockUser(userId);
       if (result !== 'unblocked') {
-        Alert.alert(t('moderation.unblockFailed'));
+        notifyError(t('moderation.unblockFailed'));
         return;
       }
-      Alert.alert(t('moderation.unblockDone'));
+      notifySuccess(t('moderation.unblockDone'));
     });
   }
 
@@ -218,24 +221,28 @@ export function PublicProfileView({ userId, isRootTab = false }: Props) {
     void runAction(async () => {
       const result = await reportUser(userId, reason);
       if (result !== 'reported') {
-        Alert.alert(t('moderation.reportFailed'));
+        notifyError(t('moderation.reportFailed'));
         return;
       }
-      Alert.alert(t('moderation.reportSent'));
+      notifySuccess(t('moderation.reportSent'));
     });
   }
 
   function handleReport() {
-    Alert.alert(t('moderation.reportTitle'), t('moderation.reportPickReason'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('moderation.reasonSpam'), onPress: () => submitReport('spam') },
-      { text: t('moderation.reasonHarassment'), onPress: () => submitReport('harassment') },
-      {
-        text: t('moderation.reasonInappropriate'),
-        onPress: () => submitReport('inappropriate'),
-      },
-      { text: t('moderation.reasonOther'), onPress: () => submitReport('other') },
-    ]);
+    showActionSheet({
+      title: t('moderation.reportTitle'),
+      message: t('moderation.reportPickReason'),
+      cancelLabel: t('common.cancel'),
+      options: [
+        { label: t('moderation.reasonSpam'), onPress: () => submitReport('spam') },
+        { label: t('moderation.reasonHarassment'), onPress: () => submitReport('harassment') },
+        {
+          label: t('moderation.reasonInappropriate'),
+          onPress: () => submitReport('inappropriate'),
+        },
+        { label: t('moderation.reasonOther'), onPress: () => submitReport('other') },
+      ],
+    });
   }
 
   return (

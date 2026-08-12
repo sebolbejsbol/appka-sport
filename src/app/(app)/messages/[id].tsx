@@ -3,7 +3,6 @@ import * as WebBrowser from 'expo-web-browser';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   KeyboardAvoidingView,
   Platform,
@@ -20,10 +19,12 @@ import { ConversationAvatar } from '@/components/conversation-avatar';
 import { Brand } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
+import { showActionSheet, type ActionSheetOption } from '@/lib/action-sheet-navigation';
 import { chatMediaUrl, uploadChatMedia } from '@/lib/chat-media-storage';
 import { listGroupMembers, type GroupMember } from '@/lib/groups';
 import { goBack } from '@/lib/navigation';
 import { pickChatMedia } from '@/lib/pick-image';
+import { notifyError } from '@/lib/toast';
 import {
   deleteMessage,
   editMessage,
@@ -192,7 +193,7 @@ export default function ChatScreen() {
     setReplyTo(null);
     if (sendErr) {
       setDraft(text);
-      Alert.alert(t('messages.sendError'));
+      notifyError(t('messages.sendError'));
     } else {
       await reloadLatest();
     }
@@ -218,7 +219,7 @@ export default function ChatScreen() {
     );
     if (upErr || attachments.length === 0) {
       setSending(false);
-      Alert.alert(upErr === 'file_too_large' ? t('chat.actionFailed') : t('messages.sendError'));
+      notifyError(upErr === 'file_too_large' ? t('chat.actionFailed') : t('messages.sendError'));
       return;
     }
     const kind = attachments.some((a) => a.media_type === 'image') ? 'image' : attachments[0].media_type;
@@ -228,7 +229,7 @@ export default function ChatScreen() {
       replyToId: replyTo?.id ?? null,
     });
     setReplyTo(null);
-    if (sendErr) Alert.alert(t('messages.sendError'));
+    if (sendErr) notifyError(t('messages.sendError'));
     else await reloadLatest();
     setSending(false);
   }
@@ -245,15 +246,15 @@ export default function ChatScreen() {
 
   function onMessageLongPress(message: ChatMessageV2) {
     if (message.is_deleted || message.kind === 'system') return;
-    const buttons: { text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }[] = [
-      { text: t('chat.reply'), onPress: () => setReplyTo(message) },
-      { text: '👍', onPress: () => void reactAndReload(message.id, '👍') },
-      { text: '❤️', onPress: () => void reactAndReload(message.id, '❤️') },
-      { text: '😂', onPress: () => void reactAndReload(message.id, '😂') },
+    const options: ActionSheetOption[] = [
+      { label: t('chat.reply'), onPress: () => setReplyTo(message) },
+      { label: '👍', onPress: () => void reactAndReload(message.id, '👍') },
+      { label: '❤️', onPress: () => void reactAndReload(message.id, '❤️') },
+      { label: '😂', onPress: () => void reactAndReload(message.id, '😂') },
     ];
     if (message.is_mine && message.kind === 'text') {
-      buttons.push({
-        text: t('chat.edit'),
+      options.push({
+        label: t('chat.edit'),
         onPress: () => {
           setEditing(message);
           setReplyTo(null);
@@ -264,14 +265,13 @@ export default function ChatScreen() {
     const canDelete =
       message.is_mine || meta?.my_role === 'owner' || meta?.my_role === 'admin';
     if (canDelete) {
-      buttons.push({
-        text: t('chat.delete'),
-        style: 'destructive',
+      options.push({
+        label: t('chat.delete'),
+        destructive: true,
         onPress: () => void deleteAndReload(message.id),
       });
     }
-    buttons.push({ text: t('chat.cancel'), style: 'cancel' });
-    Alert.alert(t('chat.react'), undefined, buttons);
+    showActionSheet({ title: t('chat.react'), cancelLabel: t('chat.cancel'), options });
   }
 
   async function reactAndReload(messageId: string, emoji: string) {

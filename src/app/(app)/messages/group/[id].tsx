@@ -2,7 +2,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Pressable,
   StyleSheet,
@@ -18,6 +17,8 @@ import { UserAvatar } from '@/components/user-avatar';
 import { Brand } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
+import { showActionSheet, type ActionSheetOption } from '@/lib/action-sheet-navigation';
+import { confirmAction } from '@/lib/confirm';
 import {
   addGroupMembers,
   deleteGroup,
@@ -32,6 +33,7 @@ import {
 import { getConversationMeta, type ConversationMeta } from '@/lib/messages';
 import { goBack } from '@/lib/navigation';
 import { listFriends, type SocialUserRow } from '@/lib/social';
+import { notifyError } from '@/lib/toast';
 
 function roleLabel(role: GroupRole): string {
   if (role === 'owner') return t('chat.roleOwner');
@@ -81,7 +83,7 @@ export default function GroupInfoScreen() {
     if (!conversationId || !titleDraft.trim()) return;
     const { error } = await setGroupTitle(conversationId, titleDraft);
     setEditingTitle(false);
-    if (error) Alert.alert(t('chat.actionFailed'));
+    if (error) notifyError(t('chat.actionFailed'));
     else await load();
   }
 
@@ -94,72 +96,79 @@ export default function GroupInfoScreen() {
   async function addMember(userId: string) {
     if (!conversationId) return;
     const { error } = await addGroupMembers(conversationId, [userId]);
-    if (error) Alert.alert(t('chat.actionFailed'));
+    if (error) notifyError(t('chat.actionFailed'));
     setFriends((prev) => prev.filter((f) => f.user_id !== userId));
     await load();
   }
 
   function memberActions(member: GroupMember) {
     if (!conversationId || member.user_id === myUserId) return;
-    const buttons: { text: string; style?: 'cancel' | 'destructive'; onPress?: () => void }[] = [];
+    const options: ActionSheetOption[] = [];
 
     if (isOwner && member.role !== 'owner') {
-      buttons.push({
-        text: member.role === 'admin' ? t('chat.removeAdmin') : t('chat.makeAdmin'),
-        onPress: async () => {
-          const next: Exclude<GroupRole, 'owner'> = member.role === 'admin' ? 'member' : 'admin';
-          const { error } = await setGroupMemberRole(conversationId, member.user_id, next);
-          if (error) Alert.alert(t('chat.actionFailed'));
-          else await load();
-        },
+      options.push({
+        label: member.role === 'admin' ? t('chat.removeAdmin') : t('chat.makeAdmin'),
+        onPress: () =>
+          void (async () => {
+            const next: Exclude<GroupRole, 'owner'> = member.role === 'admin' ? 'member' : 'admin';
+            const { error } = await setGroupMemberRole(conversationId, member.user_id, next);
+            if (error) notifyError(t('chat.actionFailed'));
+            else await load();
+          })(),
       });
     }
     if (canManage && member.role !== 'owner') {
-      buttons.push({
-        text: t('chat.removeMember'),
-        style: 'destructive',
-        onPress: async () => {
-          const { error } = await removeGroupMember(conversationId, member.user_id);
-          if (error) Alert.alert(t('chat.actionFailed'));
-          else await load();
-        },
+      options.push({
+        label: t('chat.removeMember'),
+        destructive: true,
+        onPress: () =>
+          void (async () => {
+            const { error } = await removeGroupMember(conversationId, member.user_id);
+            if (error) notifyError(t('chat.actionFailed'));
+            else await load();
+          })(),
       });
     }
-    buttons.push({ text: t('chat.cancel'), style: 'cancel' });
-    if (buttons.length > 1) {
-      Alert.alert(member.nick?.trim() || t('common.nick'), undefined, buttons);
+    if (options.length > 0) {
+      showActionSheet({
+        title: member.nick?.trim() || t('common.nick'),
+        cancelLabel: t('chat.cancel'),
+        options,
+      });
     }
   }
 
   function confirmLeave() {
     if (!conversationId) return;
-    Alert.alert(t('chat.leaveGroup'), t('chat.confirmLeave'), [
-      { text: t('chat.cancel'), style: 'cancel' },
-      {
-        text: t('chat.leaveGroup'),
-        style: 'destructive',
-        onPress: async () => {
+    confirmAction(
+      t('chat.leaveGroup'),
+      t('chat.confirmLeave'),
+      t('chat.leaveGroup'),
+      t('chat.cancel'),
+      () =>
+        void (async () => {
           await leaveGroup(conversationId);
           router.replace('/messages');
-        },
-      },
-    ]);
+        })(),
+      true,
+    );
   }
 
   function confirmDelete() {
     if (!conversationId) return;
-    Alert.alert(t('chat.deleteGroup'), t('chat.confirmDelete'), [
-      { text: t('chat.cancel'), style: 'cancel' },
-      {
-        text: t('chat.deleteGroup'),
-        style: 'destructive',
-        onPress: async () => {
+    confirmAction(
+      t('chat.deleteGroup'),
+      t('chat.confirmDelete'),
+      t('chat.deleteGroup'),
+      t('chat.cancel'),
+      () =>
+        void (async () => {
           const { error } = await deleteGroup(conversationId);
-          if (error) Alert.alert(t('chat.actionFailed'));
+          if (error) notifyError(t('chat.actionFailed'));
           else router.replace('/messages');
-        },
-      },
-    ]);
+        })(),
+      true,
+    );
   }
 
   if (loading) {

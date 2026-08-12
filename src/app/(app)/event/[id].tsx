@@ -2,7 +2,6 @@ import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
-  Alert,
   Image,
   Linking,
   Pressable,
@@ -23,6 +22,9 @@ import { Brand } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { useWatchingLocation } from '@/hooks/use-watching-location';
 import { t } from '@/i18n';
+import { showActionSheet } from '@/lib/action-sheet-navigation';
+import { confirmAction } from '@/lib/confirm';
+import { notifyError } from '@/lib/toast';
 import {
   checkInEvent,
   CHECK_IN_RADIUS_M,
@@ -201,13 +203,13 @@ export default function EventDetailScreen() {
         starts_at: event.starts_at,
       });
     } else if (result === 'waitlisted' || result === 'already_waitlisted') {
-      Alert.alert(t('event.errors.joinWaitlisted'));
+      notifyError(t('event.errors.joinWaitlisted'));
     } else if (result === 'friends_only' || result === 'forbidden') {
-      Alert.alert(t('event.errors.joinFriendsOnly'));
+      notifyError(t('event.errors.joinFriendsOnly'));
     } else if (result === 'full') {
-      Alert.alert(t('event.errors.joinFull'));
+      notifyError(t('event.errors.joinFull'));
     } else if (result === 'error') {
-      Alert.alert(t('event.errors.joinFailed'));
+      notifyError(t('event.errors.joinFailed'));
     }
     void load();
   }
@@ -215,24 +217,18 @@ export default function EventDetailScreen() {
   async function handleLeave() {
     if (!event) return;
     if (userId && event.creator_id === userId) {
-      Alert.alert(
-        t('event.errors.organizerCannotLeaveTitle'),
-        t('event.errors.organizerCannotLeave'),
-      );
+      notifyError(t('event.errors.organizerCannotLeave'));
       return;
     }
     setBusy(true);
     const result = await leaveEvent(event.id);
     setBusy(false);
     if (result === 'organizer_cannot_leave') {
-      Alert.alert(
-        t('event.errors.organizerCannotLeaveTitle'),
-        t('event.errors.organizerCannotLeave'),
-      );
+      notifyError(t('event.errors.organizerCannotLeave'));
       return;
     }
     if (result === 'error') {
-      Alert.alert(t('event.errors.leaveFailed'));
+      notifyError(t('event.errors.leaveFailed'));
     } else {
       await cancelEventReminders(event.id);
     }
@@ -250,25 +246,22 @@ export default function EventDetailScreen() {
 
   function handleRemoveParticipant(userId: string, nick: string | null) {
     if (!event) return;
-    Alert.alert(
+    confirmAction(
       t('event.removeParticipantConfirmTitle'),
       t('event.removeParticipantConfirmBody'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('event.removeParticipantConfirmAction'),
-          style: 'destructive',
-          onPress: async () => {
-            setBusy(true);
-            const result = await removeEventParticipant(event.id, userId);
-            setBusy(false);
-            if (result !== 'removed') {
-              Alert.alert(t('event.errors.removeParticipantFailed'));
-            }
-            void load();
-          },
-        },
-      ],
+      t('event.removeParticipantConfirmAction'),
+      t('common.cancel'),
+      () =>
+        void (async () => {
+          setBusy(true);
+          const result = await removeEventParticipant(event.id, userId);
+          setBusy(false);
+          if (result !== 'removed') {
+            notifyError(t('event.errors.removeParticipantFailed'));
+          }
+          void load();
+        })(),
+      true,
     );
   }
 
@@ -282,24 +275,25 @@ export default function EventDetailScreen() {
 
   function handleDelete() {
     if (!event) return;
-    Alert.alert(t('event.deleteConfirmTitle'), t('event.deleteConfirmBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('event.deleteConfirmAction'),
-        style: 'destructive',
-        onPress: async () => {
+    confirmAction(
+      t('event.deleteConfirmTitle'),
+      t('event.deleteConfirmBody'),
+      t('event.deleteConfirmAction'),
+      t('common.cancel'),
+      () =>
+        void (async () => {
           setBusy(true);
           const { error } = await deleteEvent(event.id);
           setBusy(false);
           if (error) {
-            Alert.alert(t('event.errors.deleteFailed'));
+            notifyError(t('event.errors.deleteFailed'));
             return;
           }
           notifyFieldEventCountDelta(event.field_id, -1);
           goBack('/');
-        },
-      },
-    ]);
+        })(),
+      true,
+    );
   }
 
   async function handleCheckIn() {
@@ -308,7 +302,7 @@ export default function EventDetailScreen() {
     const freshCoords = (await getCheckInCoords()) ?? coords;
     if (!freshCoords) {
       setBusy(false);
-      Alert.alert(t('event.errors.checkInNoLocation'));
+      notifyError(t('event.errors.checkInNoLocation'));
       return;
     }
 
@@ -316,7 +310,7 @@ export default function EventDetailScreen() {
     setBusy(false);
 
     if (result !== 'checked_in') {
-      Alert.alert(checkInErrorMessage(result));
+      notifyError(checkInErrorMessage(result));
       return;
     }
 
@@ -330,7 +324,7 @@ export default function EventDetailScreen() {
     setBusy(false);
 
     if (result !== 'checked_in') {
-      Alert.alert(
+      notifyError(
         result === 'window_still_open'
           ? t('event.checkInWindowOpen')
           : t('event.errors.checkInManualFailed'),
@@ -343,23 +337,24 @@ export default function EventDetailScreen() {
 
   function handleFinish() {
     if (!event) return;
-    Alert.alert(t('event.finishConfirmTitle'), t('event.finishConfirmBody'), [
-      { text: t('common.cancel'), style: 'cancel' },
-      {
-        text: t('event.finishConfirmAction'),
-        onPress: async () => {
+    confirmAction(
+      t('event.finishConfirmTitle'),
+      t('event.finishConfirmBody'),
+      t('event.finishConfirmAction'),
+      t('common.cancel'),
+      () =>
+        void (async () => {
           setBusy(true);
           const result = await finishEvent(event.id);
           setBusy(false);
           if (result !== 'finished') {
-            Alert.alert(t('event.errors.finishFailed'));
+            notifyError(t('event.errors.finishFailed'));
             return;
           }
           notifyFieldEventCountDelta(event.field_id, -1);
           void load();
-        },
-      },
-    ]);
+        })(),
+    );
   }
 
   function handleStillGoingNo() {
@@ -372,7 +367,7 @@ export default function EventDetailScreen() {
     void extendEvent(event.id, extraMinutes).then((result) => {
       setBusy(false);
       if (result !== 'extended') {
-        Alert.alert(t('event.errors.extendFailed'));
+        notifyError(t('event.errors.extendFailed'));
         return;
       }
       void load();
@@ -380,12 +375,15 @@ export default function EventDetailScreen() {
   }
 
   function handleStillGoingYes() {
-    Alert.alert(t('event.extendBy'), undefined, [
-      { text: t('common.cancel'), style: 'cancel' },
-      { text: t('event.extend30'), onPress: () => handleExtend(30) },
-      { text: t('event.extend60'), onPress: () => handleExtend(60) },
-      { text: t('event.extend90'), onPress: () => handleExtend(90) },
-    ]);
+    showActionSheet({
+      title: t('event.extendBy'),
+      cancelLabel: t('common.cancel'),
+      options: [
+        { label: t('event.extend30'), onPress: () => handleExtend(30) },
+        { label: t('event.extend60'), onPress: () => handleExtend(60) },
+        { label: t('event.extend90'), onPress: () => handleExtend(90) },
+      ],
+    });
   }
 
   const fieldCoords: [number, number] | null =
