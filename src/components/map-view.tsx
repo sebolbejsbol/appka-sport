@@ -115,10 +115,27 @@ const FADE_END = 7.3;
  * zielony (jest gdzie grać); inaczej mało miejsc? -> pomarańczowy; inaczej
  * pełne? -> czerwony; inaczej brak eventów -> szary.
  */
+/** Sporty pokazywane jako mini-ikonki w klastrze — z ustalonymi pozycjami (patrz CLUSTER_SPORT_ICONS). */
+const CLUSTER_ICON_SPORTS = ['basketball', 'football', 'tennis', 'volleyball'] as const;
+
 const CLUSTER_AVAILABILITY_PROPERTIES = {
   open_count: ['+', ['case', ['==', ['get', 'availability'], 'open'], 1, 0]],
   filling_count: ['+', ['case', ['==', ['get', 'availability'], 'filling'], 1, 0]],
   full_count: ['+', ['case', ['==', ['get', 'availability'], 'full'], 1, 0]],
+  ...Object.fromEntries(
+    CLUSTER_ICON_SPORTS.map((sport) => [
+      `has_${sport}`,
+      ['max', ['case', ['==', ['get', 'sport'], sport], 1, 0]],
+    ]),
+  ),
+};
+
+/** Stałe pozycje mini-ikonek sportu w rzędzie pod środkiem klastra. */
+const CLUSTER_SPORT_ICON_OFFSETS: Record<(typeof CLUSTER_ICON_SPORTS)[number], [number, number]> = {
+  basketball: [-15, 11],
+  football: [-5, 11],
+  tennis: [5, 11],
+  volleyball: [15, 11],
 };
 
 type FieldSelection = { rpc: string | null; showFields: boolean };
@@ -758,6 +775,7 @@ export function AppMap() {
               textField: ['get', 'point_count_abbreviated'],
               textSize: ['step', ['get', 'point_count'], 12, 100, 14, 500, 16],
               textColor: '#ffffff',
+              textOffset: [0, -0.5],
               textOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
               textHaloColor: 'rgba(15,23,42,0.6)',
               textHaloWidth: 1.4,
@@ -766,6 +784,28 @@ export function AppMap() {
               textPitchAlignment: 'viewport',
             }}
           />
+          {/* Mini-ikonki sportów w klastrze — po jednej warstwie na sport, każda
+              na stałej pozycji, widoczna tylko gdy klaster zawiera ten sport
+              (patrz has_X w CLUSTER_AVAILABILITY_PROPERTIES). */}
+          <>
+            {CLUSTER_ICON_SPORTS.map((sport) => (
+              <SymbolLayer
+                key={`cluster-icon-${sport}`}
+                id={`cluster-icon-${sport}`}
+                filter={['all', ['has', 'point_count'], ['>', ['get', `has_${sport}`], 0]]}
+                minZoomLevel={FADE_START}
+                style={{
+                  iconImage: sport,
+                  iconSize: 0.32,
+                  iconOffset: CLUSTER_SPORT_ICON_OFFSETS[sport],
+                  iconOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
+                  iconAllowOverlap: true,
+                  iconIgnorePlacement: true,
+                  iconPitchAlignment: 'viewport',
+                }}
+              />
+            ))}
+          </>
           {/* Tęczowa poświata obiektu — kolor wg liczby eventów (heatmapa) */}
           <CircleLayer
             id="fields-halo"
