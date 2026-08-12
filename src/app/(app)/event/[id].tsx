@@ -25,6 +25,7 @@ import { t } from '@/i18n';
 import { showActionSheet } from '@/lib/action-sheet-navigation';
 import { confirmAction } from '@/lib/confirm';
 import { notifyError } from '@/lib/toast';
+import { debounce, subscribeToTable } from '@/lib/realtime';
 import {
   checkInEvent,
   CHECK_IN_RADIUS_M,
@@ -92,9 +93,9 @@ export default function EventDetailScreen() {
   const prevStatusRef = useRef<EventDetail['status'] | null>(null);
   const mountPromptCheckedRef = useRef(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (silent = false) => {
     if (!eventId) return;
-    setLoading(true);
+    if (!silent) setLoading(true);
     setLoadError(false);
     const [{ data, error }, teamInvRes, pendingRes] = await Promise.all([
       getEventDetail(eventId),
@@ -136,7 +137,7 @@ export default function EventDetailScreen() {
 
   const handleRatingSubmitted = useCallback(() => {
     setRatingModalOpen(false);
-    void load();
+    void load(true);
   }, [load]);
 
   useEffect(() => {
@@ -146,10 +147,23 @@ export default function EventDetailScreen() {
   useEffect(() => {
     if (!event || event.status !== 'planned') return;
     const timer = setInterval(() => {
-      void load();
+      void load(true);
     }, 30000);
     return () => clearInterval(timer);
   }, [event?.id, event?.status, load]);
+
+  useEffect(() => {
+    if (!eventId) return;
+    const reload = debounce(() => void load(true), 300);
+    const unsubParticipants = subscribeToTable('event_participants', reload, {
+      filter: `event_id=eq.${eventId}`,
+    });
+    const unsubEvent = subscribeToTable('events', reload, { filter: `id=eq.${eventId}` });
+    return () => {
+      unsubParticipants();
+      unsubEvent();
+    };
+  }, [eventId, load]);
 
   useEffect(() => {
     if (!event || loading) return;
@@ -211,7 +225,7 @@ export default function EventDetailScreen() {
     } else if (result === 'error') {
       notifyError(t('event.errors.joinFailed'));
     }
-    void load();
+    void load(true);
   }
 
   async function handleLeave() {
@@ -232,7 +246,7 @@ export default function EventDetailScreen() {
     } else {
       await cancelEventReminders(event.id);
     }
-    void load();
+    void load(true);
   }
 
   async function handleLeaveWaitlist() {
@@ -241,7 +255,7 @@ export default function EventDetailScreen() {
     await leaveEventWaitlist(event.id);
     setBusy(false);
     await cancelEventReminders(event.id);
-    void load();
+    void load(true);
   }
 
   function handleRemoveParticipant(userId: string, nick: string | null) {
@@ -259,7 +273,7 @@ export default function EventDetailScreen() {
           if (result !== 'removed') {
             notifyError(t('event.errors.removeParticipantFailed'));
           }
-          void load();
+          void load(true);
         })(),
       true,
     );
@@ -319,7 +333,7 @@ export default function EventDetailScreen() {
       return;
     }
 
-    void load();
+    void load(true);
   }
 
   async function handleManualCheckIn(targetUserId: string) {
@@ -337,7 +351,7 @@ export default function EventDetailScreen() {
       return;
     }
 
-    void load();
+    void load(true);
   }
 
   function handleFinish() {
@@ -357,7 +371,7 @@ export default function EventDetailScreen() {
             return;
           }
           notifyFieldEventCountDelta(event.field_id, -1);
-          void load();
+          void load(true);
         })(),
     );
   }
@@ -375,7 +389,7 @@ export default function EventDetailScreen() {
         notifyError(t('event.errors.extendFailed'));
         return;
       }
-      void load();
+      void load(true);
     });
   }
 
@@ -776,7 +790,7 @@ export default function EventDetailScreen() {
                     setBusy(true);
                     await respondTeamEventInvitation(myTeamInvite.invitation_id, true);
                     setBusy(false);
-                    void load();
+                    void load(true);
                   }}
                   disabled={busy}
                 />
@@ -787,7 +801,7 @@ export default function EventDetailScreen() {
                     setBusy(true);
                     await respondTeamEventInvitation(myTeamInvite.invitation_id, false);
                     setBusy(false);
-                    void load();
+                    void load(true);
                   }}
                   disabled={busy}
                 />

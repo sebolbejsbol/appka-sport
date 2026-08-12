@@ -5,6 +5,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
   type PropsWithChildren,
 } from 'react';
@@ -22,7 +23,12 @@ import { shadow } from '@/constants/ui';
 import { useLocale } from '@/context/locale';
 import { useIsAdmin } from '@/hooks/use-is-admin';
 import { t } from '@/i18n';
-import { getUnreadNotificationCount } from '@/lib/notifications';
+import {
+  getUnreadNotificationCount,
+  notificationDisplayText,
+  subscribeToMyNotifications,
+} from '@/lib/notifications';
+import { notifyInfo } from '@/lib/toast';
 
 const DRAWER_WIDTH = 288;
 
@@ -154,6 +160,10 @@ function AppDrawer() {
   );
   const onAdvancedRoute = ADVANCED_PATHS.includes(pathname);
   const [advancedOpen, setAdvancedOpen] = useState(onAdvancedRoute);
+  const pathnameRef = useRef(pathname);
+  useEffect(() => {
+    pathnameRef.current = pathname;
+  }, [pathname]);
 
   // Gdy jesteśmy na ekranie z sekcji zaawansowanej, rozwiń ją po otwarciu menu.
   useEffect(() => {
@@ -164,6 +174,22 @@ function AppDrawer() {
     if (!open) return;
     void getUnreadNotificationCount().then(setUnreadNotifications);
   }, [open, pathname]);
+
+  // AppDrawer jest zamontowany przez cały czas życia aplikacji (nie tylko gdy
+  // menu jest otwarte), więc to dobre miejsce na globalną subskrypcję —
+  // dzięki niej badge aktualizuje się na żywo niezależnie od tego, na jakim
+  // ekranie jest użytkownik, bez konieczności otwierania menu.
+  useEffect(() => {
+    void getUnreadNotificationCount().then(setUnreadNotifications);
+    const unsubscribe = subscribeToMyNotifications((n) => {
+      setUnreadNotifications((prev) => prev + 1);
+      if (pathnameRef.current !== '/notifications') {
+        const { title, body } = notificationDisplayText(n, t);
+        notifyInfo(body ? `${title} — ${body}` : title);
+      }
+    });
+    return unsubscribe;
+  }, []);
 
   useEffect(() => {
     translateX.value = withTiming(open ? 0 : -DRAWER_WIDTH, {

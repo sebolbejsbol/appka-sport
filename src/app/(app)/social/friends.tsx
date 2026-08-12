@@ -16,6 +16,7 @@ import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
+import { debounce, subscribeToTable } from '@/lib/realtime';
 import {
   cancelFriendRequest,
   listFriends,
@@ -77,8 +78,8 @@ export default function FriendsListsScreen() {
     }
   }, [params.tab]);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
+  const refresh = useCallback(async (silent = false) => {
+    if (!silent) setLoading(true);
     setLoadError(false);
     const [f, r, s] = await Promise.all([
       listFriends(),
@@ -97,6 +98,16 @@ export default function FriendsListsScreen() {
       void refresh();
     }, [refresh]),
   );
+
+  useEffect(() => {
+    const reload = debounce(() => void refresh(true), 300);
+    const unsubRequests = subscribeToTable('friend_requests', reload);
+    const unsubFriendships = subscribeToTable('friendships', reload);
+    return () => {
+      unsubRequests();
+      unsubFriendships();
+    };
+  }, [refresh]);
 
   async function handleRespond(requestId: string, accept: boolean) {
     await respondFriendRequest(requestId, accept);

@@ -51,6 +51,24 @@ export async function markAllNotificationsRead(): Promise<boolean> {
   return !error;
 }
 
+let notificationsChannelSeq = 0;
+
+/** Powiadamia o nowym powiadomieniu (INSERT) dla bieżącego użytkownika — RLS ogranicza do jego wierszy. */
+export function subscribeToMyNotifications(onInsert: (n: AppNotification) => void): () => void {
+  const channel = supabase
+    .channel(`notifications:${++notificationsChannelSeq}`)
+    .on(
+      'postgres_changes',
+      { event: 'INSERT', schema: 'public', table: 'notifications' },
+      (payload) => onInsert(mapNotificationRow(payload.new as Record<string, unknown>)),
+    )
+    .subscribe();
+
+  return () => {
+    void supabase.removeChannel(channel);
+  };
+}
+
 /** Renderowalny tekst dla powiadomienia, zależny od `type` — patrz notifications RPC. */
 export function notificationDisplayText(
   n: AppNotification,

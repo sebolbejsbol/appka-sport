@@ -1,5 +1,5 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -19,6 +19,7 @@ import { Brand } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
 import { showActionSheet } from '@/lib/action-sheet-navigation';
+import { debounce, subscribeToTable } from '@/lib/realtime';
 import {
   listConversationsV2,
   searchConversations,
@@ -57,6 +58,16 @@ export default function MessagesListScreen() {
       void refresh();
     }, [refresh]),
   );
+
+  useEffect(() => {
+    const reload = debounce(() => void refresh(true), 300);
+    const unsubMessages = subscribeToTable('messages', reload, { event: 'INSERT' });
+    const unsubMembers = subscribeToTable('conversation_members', reload, { event: 'UPDATE' });
+    return () => {
+      unsubMessages();
+      unsubMembers();
+    };
+  }, [refresh]);
 
   const onSearch = useCallback(async (text: string) => {
     setQuery(text);

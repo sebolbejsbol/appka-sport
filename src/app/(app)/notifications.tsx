@@ -1,5 +1,5 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -21,6 +21,7 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
   notificationDisplayText,
+  subscribeToMyNotifications,
   type AppNotification,
 } from '@/lib/notifications';
 import { notifyError } from '@/lib/toast';
@@ -44,6 +45,12 @@ export default function NotificationsScreen() {
       void refresh();
     }, [refresh]),
   );
+
+  useEffect(() => {
+    return subscribeToMyNotifications((n) => {
+      setRows((prev) => (prev.some((row) => row.id === n.id) ? prev : [n, ...prev]));
+    });
+  }, []);
 
   async function handlePress(item: AppNotification) {
     if (!item.read_at) {
