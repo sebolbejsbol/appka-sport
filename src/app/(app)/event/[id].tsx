@@ -299,10 +299,15 @@ export default function EventDetailScreen() {
   async function handleCheckIn() {
     if (!event) return;
     setBusy(true);
-    const freshCoords = (await getCheckInCoords()) ?? coords;
+    const locationResult = await getCheckInCoords();
+    const freshCoords = locationResult.coords ?? coords;
     if (!freshCoords) {
       setBusy(false);
-      notifyError(t('event.errors.checkInNoLocation'));
+      notifyError(
+        locationResult.status === 'permission_denied'
+          ? t('event.errors.checkInPermissionDenied')
+          : t('event.errors.checkInNoLocation'),
+      );
       return;
     }
 

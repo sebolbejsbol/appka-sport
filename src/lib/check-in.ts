@@ -28,21 +28,80 @@ export type CheckInResult =
   | 'no_location'
   | 'error';
 
-/** Pobiera świeżą pozycję GPS do meldowania (wysoka dokładność). */
-export async function getCheckInCoords(): Promise<LngLat | null> {
+export type CheckInLocationStatus = 'ok' | 'permission_denied' | 'unavailable';
+
+export type CheckInLocationResult = {
+  status: CheckInLocationStatus;
+  coords: LngLat | null;
+};
+
+// Pojedyncze getCurrentPositionAsync({accuracy: High}) bez timeoutu i bez
+// sprawdzania dokładności odczytu potrafiło "działać na jednym telefonie,
+// a nie na innym" — słaby pierwszy fix GPS (typowy w budynkach / z zimną
+// anteną) zwracał odczyt z dużą niepewnością, który i tak przechodził dalej,
+// albo request wisiał bez końca na urządzeniach/przeglądarkach z wolnym GPS.
+// Nowa wersja: kilka prób w budżecie czasowym, zatrzymuje najlepszy
+// (najdokładniejszy) odczyt, z jawnym timeoutem na próbę i fallbackiem na
+// niższą dokładność, jeśli High nigdy się nie uda.
+const ATTEMPT_TIMEOUT_MS = 6000;
+const TOTAL_BUDGET_MS = 9000;
+const GOOD_ENOUGH_ACCURACY_M = 30;
+
+function getPositionWithTimeout(
+  accuracy: Location.Accuracy,
+  timeoutMs: number,
+): Promise<Location.LocationObject> {
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error('timeout')), timeoutMs);
+    Location.getCurrentPositionAsync({ accuracy })
+      .then((position) => {
+        clearTimeout(timer);
+        resolve(position);
+      })
+      .catch((err) => {
+        clearTimeout(timer);
+        reject(err);
+      });
+  });
+}
+
+/** Pobiera świeżą pozycję GPS do meldowania, próbując uzyskać jak najlepszy odczyt. */
+export async function getCheckInCoords(): Promise<CheckInLocationResult> {
   const current = await Location.getForegroundPermissionsAsync();
   if (current.status !== 'granted') {
     const requested = await Location.requestForegroundPermissionsAsync();
-    if (requested.status !== 'granted') return null;
+    if (requested.status !== 'granted') return { status: 'permission_denied', coords: null };
   }
 
+  const deadline = Date.now() + TOTAL_BUDGET_MS;
+  let best: { coords: LngLat; accuracy: number } | null = null;
+
+  while (Date.now() < deadline) {
+    try {
+      const position = await getPositionWithTimeout(Location.Accuracy.High, ATTEMPT_TIMEOUT_MS);
+      const accuracy = position.coords.accuracy ?? Number.POSITIVE_INFINITY;
+      const coords: LngLat = [position.coords.longitude, position.coords.latitude];
+      if (!best || accuracy < best.accuracy) {
+        best = { coords, accuracy };
+      }
+      if (accuracy <= GOOD_ENOUGH_ACCURACY_M) {
+        return { status: 'ok', coords };
+      }
+    } catch {
+      // Timeout albo błąd platformy na tej próbie — spróbuj ponownie, jeśli starcza budżetu.
+    }
+  }
+
+  if (best) {
+    return { status: 'ok', coords: best.coords };
+  }
+
+  // Ostatnia próba z niższą (szybszą, mniej dokładną) dokładnością jako fallback.
   try {
-    const position = await Location.getCurrentPositionAsync({
-      accuracy: Location.Accuracy.High,
-    });
-    return [position.coords.longitude, position.coords.latitude];
+    const position = await getPositionWithTimeout(Location.Accuracy.Balanced, ATTEMPT_TIMEOUT_MS);
+    return { status: 'ok', coords: [position.coords.longitude, position.coords.latitude] };
   } catch {
-    return null;
+    return { status: 'unavailable', coords: null };
   }
 }
 
