@@ -107,7 +107,15 @@ const FADE_END = 7.3;
  * pełne? -> czerwony; inaczej brak eventów -> szary.
  */
 /** Sporty pokazywane jako mini-ikonki w klastrze — z ustalonymi pozycjami (patrz CLUSTER_SPORT_ICON_OFFSETS). */
-const CLUSTER_ICON_SPORTS = ['basketball', 'football', 'tennis', 'volleyball'] as const;
+const CLUSTER_ICON_SPORTS = ['basketball', 'football', 'tennis', 'volleyball', 'fitness'] as const;
+
+/** "fitness" jako ikonka obejmuje dwa typy boisk z OSM (siłownia plenerowa = też siłownia). */
+function clusterSportMatchExpr(sport: (typeof CLUSTER_ICON_SPORTS)[number]) {
+  if (sport === 'fitness') {
+    return ['case', ['in', ['get', 'sport'], ['literal', ['fitness', 'outdoor_gym']]], 1, 0];
+  }
+  return ['case', ['==', ['get', 'sport'], sport], 1, 0];
+}
 
 const CLUSTER_AVAILABILITY_PROPERTIES = {
   // Suma AKTYWNYCH EVENTÓW ze wszystkich boisk w klastrze — to jest liczba,
@@ -117,19 +125,21 @@ const CLUSTER_AVAILABILITY_PROPERTIES = {
   filling_count: ['+', ['case', ['==', ['get', 'availability'], 'filling'], 1, 0]],
   full_count: ['+', ['case', ['==', ['get', 'availability'], 'full'], 1, 0]],
   ...Object.fromEntries(
-    CLUSTER_ICON_SPORTS.map((sport) => [
-      `has_${sport}`,
-      ['max', ['case', ['==', ['get', 'sport'], sport], 1, 0]],
-    ]),
+    CLUSTER_ICON_SPORTS.map((sport) => [`has_${sport}`, ['max', clusterSportMatchExpr(sport)]]),
   ),
 };
 
-/** Stałe pozycje mini-ikonek sportu w rzędzie pod środkiem klastra. */
+/**
+ * Stałe pozycje mini-ikonek sportu w klastrze — siatka 2 rzędy (3 góra, 2 dół),
+ * z odstępami dobranymi tak, by ikonki się nie nakładały (patrz CLUSTER_ICON_SIZE
+ * niżej: ~15px szerokości przy max zoomie, więc odstęp środek-środek >= 16px).
+ */
 const CLUSTER_SPORT_ICON_OFFSETS: Record<(typeof CLUSTER_ICON_SPORTS)[number], [number, number]> = {
-  basketball: [-13, 9],
-  football: [-4.5, 9],
-  tennis: [4.5, 9],
-  volleyball: [13, 9],
+  basketball: [-16, -3],
+  football: [0, -3],
+  tennis: [16, -3],
+  volleyball: [-8, 14],
+  fitness: [8, 14],
 };
 
 type FieldSelection = { rpc: string | null; showFields: boolean };
@@ -778,10 +788,11 @@ export function AppMap() {
               circleRadius: [
                 'interpolate',
                 ['linear'],
-                ['zoom'],
-                FADE_START, 17,
-                10, 24,
-                13, 31,
+                ['get', 'total_events'],
+                1, 30,
+                5, 34,
+                15, 38,
+                40, 44,
               ],
               circleColor: [
                 'case',
@@ -810,10 +821,11 @@ export function AppMap() {
               circleRadius: [
                 'interpolate',
                 ['linear'],
-                ['zoom'],
-                FADE_START, 11,
-                10, 16,
-                13, 21,
+                ['get', 'total_events'],
+                1, 24,
+                5, 28,
+                15, 32,
+                40, 38,
               ],
               circleColor: 'rgba(4,6,14,0.94)',
               circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
@@ -857,7 +869,7 @@ export function AppMap() {
               minZoomLevel={FADE_START}
               style={{
                 iconImage: sport,
-                iconSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 0.36, 10, 0.5, 13, 0.68],
+                iconSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 0.3, 10, 0.36, 13, 0.42],
                 iconOffset: CLUSTER_SPORT_ICON_OFFSETS[sport],
                 iconOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
                 iconAllowOverlap: true,

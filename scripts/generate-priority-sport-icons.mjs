@@ -17,24 +17,28 @@ const OUT_DIR = join(ROOT, 'assets', 'map-field-icons');
 const SIZE = 108; // 36 * 3 (@3x, matches FIELD_ICON_SCALE=3 in map-field-icons.ts)
 
 // key -> [kolor tła, emoji (resvg renderuje mono glif zamiast kolorowego)]
-const ICONS = {
+const EMOJI_ICONS = {
   basketball: ['#f97316', '🏀'],
   football: ['#22c55e', '⚽'],
   tennis: ['#eab308', '🎾'],
   volleyball: ['#06b6d4', '🏐'],
 };
 
-function svgFor(bg, emoji) {
+function shell(bg, glyph) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 100 100">
     <ellipse cx="50" cy="53" rx="42" ry="41" fill="rgba(15,23,42,0.22)"/>
     <circle cx="50" cy="50" r="42" fill="${bg}" stroke="#ffffff" stroke-width="4"/>
-    <text x="50" y="69" font-size="56" text-anchor="middle" fill="#ffffff">${emoji}</text>
+    ${glyph}
   </svg>`;
+}
+
+function svgFor(bg, emoji) {
+  return shell(bg, `<text x="50" y="69" font-size="56" text-anchor="middle" fill="#ffffff">${emoji}</text>`);
 }
 
 mkdirSync(OUT_DIR, { recursive: true });
 
-for (const [key, [bg, emoji]] of Object.entries(ICONS)) {
+for (const [key, [bg, emoji]] of Object.entries(EMOJI_ICONS)) {
   const resvg = new Resvg(svgFor(bg, emoji), {
     fitTo: { mode: 'width', value: SIZE },
     font: { loadSystemFonts: true },
@@ -43,4 +47,20 @@ for (const [key, [bg, emoji]] of Object.entries(ICONS)) {
   writeFileSync(join(OUT_DIR, `${key}.png`), png);
 }
 
-console.log(`Wygenerowano ${Object.keys(ICONS).length} ikon w ${OUT_DIR}`);
+// Fitness/siłownia — emoji nie ma dobrego fallbacku (system renderuje sylwetkę
+// człowieka, inny styl niż reszta), więc hantle rysujemy ręcznie: prosty,
+// geometryczny kształt spójny z resztą rodziny ikon (brak figur ludzkich).
+const FITNESS_SVG = shell(
+  '#a855f7',
+  `<g fill="#ffffff">
+     <rect x="18" y="42" width="12" height="16" rx="3"/>
+     <rect x="70" y="42" width="12" height="16" rx="3"/>
+     <rect x="30" y="47" width="40" height="6" rx="3"/>
+   </g>`,
+);
+{
+  const resvg = new Resvg(FITNESS_SVG, { fitTo: { mode: 'width', value: SIZE } });
+  writeFileSync(join(OUT_DIR, 'fitness.png'), resvg.render().asPng());
+}
+
+console.log(`Wygenerowano ${Object.keys(EMOJI_ICONS).length + 1} ikon w ${OUT_DIR}`);
