@@ -18,6 +18,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FieldDetailSheet } from '@/components/field-detail-sheet';
 import { MapPlaySearchBar } from '@/components/map-play-search-bar';
+import {
+  MapNearbySheet,
+  NEARBY_SHEET_COLLAPSED_HEIGHT,
+  type NearbyFieldItem,
+} from '@/components/map-nearby-sheet';
 import { MapFiltersSheet } from '@/components/map-filters-sheet';
 import { MapLocationSearch } from '@/components/map-location-search';
 import { SzukajTerazSheet } from '@/components/szukaj-teraz-sheet';
@@ -39,6 +44,8 @@ import {
   type FieldSort,
 } from '@/lib/fields';
 import { listMyFavoriteFieldIds } from '@/lib/favorites';
+import { formatCourtName } from '@/lib/field-display';
+import { distanceMeters } from '@/lib/geo';
 import { markInitialDiscoverReady, markInitialFieldsReady } from '@/lib/map-ready';
 import { notifyInfo } from '@/lib/toast';
 import {
@@ -262,6 +269,7 @@ export function AppMap() {
   const [playNowOpen, setPlayNowOpen] = useState(false);
   const [searchedPlace, setSearchedPlace] = useState<PlaceSearchResult | null>(null);
   const [fieldsLoading, setFieldsLoading] = useState(false);
+  const [nearbyExpanded, setNearbyExpanded] = useState(false);
   const requestIdRef = useRef(0);
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestStateRef = useRef<MapState | undefined>(undefined);
@@ -298,6 +306,30 @@ export function AppMap() {
     () => countActiveDiscoverFilters(filters),
     [filters],
   );
+
+  // Panel "W pobliżu": ta sama lista boisk co na mapie (features), tylko
+  // posortowana wg odległości od użytkownika, do przewijalnej listy pod mapą.
+  const nearbyFields = useMemo<NearbyFieldItem[]>(() => {
+    const items = features.features.flatMap((feature) => {
+      if (feature.geometry?.type !== 'Point') return [];
+      const props = (feature.properties ?? {}) as Record<string, unknown>;
+      const [lng, lat] = feature.geometry.coordinates;
+      const sport = typeof props.sport === 'string' ? props.sport : null;
+      return [
+        {
+          id: String(feature.id ?? props.id ?? ''),
+          name: formatCourtName(typeof props.name === 'string' ? props.name : null, sport),
+          sport,
+          emoji: typeof props.emoji === 'string' ? props.emoji : '📍',
+          distanceMeters: coords ? distanceMeters(coords, [lng, lat]) : null,
+          countLabel: typeof props.count_label === 'string' ? props.count_label : '',
+          availability: (props.availability as NearbyFieldItem['availability']) ?? 'empty',
+        },
+      ];
+    });
+    items.sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity));
+    return items.slice(0, 40);
+  }, [features, coords]);
 
   // Liczba graczy / max na najbliższym (wg starts_at) evencie danego boiska —
   // niezależnie od aktualnych filtrów, żeby odznaka na mapie zawsze pokazywała
@@ -628,6 +660,18 @@ export function AppMap() {
     if (fieldTapLockRef.current) return;
     setSelectedField(null);
   }, []);
+
+  const onSelectNearby = useCallback(
+    (id: string) => {
+      const feature = features.features.find((f) => String(f.id ?? f.properties?.id) === id);
+      if (!feature) return;
+      const field = fieldFromMapFeature(feature);
+      if (!field) return;
+      setNearbyExpanded(false);
+      setSelectedField(field);
+    },
+    [features],
+  );
 
   const onLockedRegionPress = useCallback(() => {
     notifyInfo(`🔒 ${t('map.comingSoon')}`);
@@ -1172,16 +1216,30 @@ export function AppMap() {
         resultCount={visibleEvents.length}
       />
 
-      {!selectedField ? (
+      {!selectedField && !nearbyExpanded ? (
         <Pressable
           onPress={() => setPlayNowOpen(true)}
           style={({ pressed }) => [
             styles.playNowFab,
-            { bottom: insets.bottom + 24 },
+            {
+              bottom:
+                insets.bottom +
+                (nearbyFields.length > 0 ? NEARBY_SHEET_COLLAPSED_HEIGHT + 12 : 24),
+            },
             pressed && styles.playNowFabPressed,
           ]}>
           <Text style={styles.playNowFabText}>🔎 {t('playNow.button')}</Text>
         </Pressable>
+      ) : null}
+
+      {!selectedField ? (
+        <MapNearbySheet
+          fields={nearbyFields}
+          onSelect={onSelectNearby}
+          expanded={nearbyExpanded}
+          onToggleExpanded={() => setNearbyExpanded((v) => !v)}
+          bottomOffset={insets.bottom}
+        />
       ) : null}
 
       <SzukajTerazSheet

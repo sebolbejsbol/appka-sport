@@ -505,6 +505,13 @@ export const en: DeepPartialWide<Translations> = {
     longPressHint: 'Press and hold the map to report a missing court.',
     playSearchPlaceholder: 'What would you like to play today?',
     comingSoon: 'Coming soon',
+    nearby: {
+      title: 'Nearby',
+      availabilityOpen: 'Plenty of spots',
+      availabilityFilling: 'Filling up fast',
+      availabilityFull: 'Full',
+      availabilityEmpty: 'No events yet',
+    },
     sortDefault: 'Default',
     sortByRating: 'Top rated',
     locationSearchTitle: 'Where are you looking for a court?',

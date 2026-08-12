@@ -504,6 +504,13 @@ export const pl = {
     longPressHint: 'Przytrzymaj mapę, aby zgłosić brakujące boisko.',
     playSearchPlaceholder: 'Co chcesz dziś zagrać?',
     comingSoon: 'Wkrótce',
+    nearby: {
+      title: 'W pobliżu',
+      availabilityOpen: 'Dużo wolnych terminów',
+      availabilityFilling: 'Mało wolnych terminów',
+      availabilityFull: 'Brak wolnych terminów',
+      availabilityEmpty: 'Brak eventów',
+    },
     sortDefault: 'Domyślnie',
     sortByRating: 'Najwyżej oceniane',
     locationSearchTitle: 'Gdzie szukasz boiska?',
