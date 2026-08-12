@@ -241,6 +241,25 @@ export function AppMap() {
     [filters],
   );
 
+  // Liczba graczy / max na najbliższym (wg starts_at) evencie danego boiska —
+  // niezależnie od aktualnych filtrów, żeby odznaka na mapie zawsze pokazywała
+  // prawdziwy stan boiska, a nie tylko to, co akurat przechodzi przez filtr.
+  const fieldPlayersMap = useMemo(() => {
+    const soonestByField = new Map<string, DiscoverEvent>();
+    for (const event of discoverEvents) {
+      if (!event.field_id) continue;
+      const existing = soonestByField.get(event.field_id);
+      if (!existing || event.starts_at < existing.starts_at) {
+        soonestByField.set(event.field_id, event);
+      }
+    }
+    const result = new Map<string, { current: number; max: number | null }>();
+    for (const [fieldId, event] of soonestByField) {
+      result.set(fieldId, { current: event.participant_count, max: event.max_players });
+    }
+    return result;
+  }, [discoverEvents]);
+
   const patchFilters = useCallback(
     (patch: Partial<DiscoverFilters>) => setFilters((prev) => ({ ...prev, ...patch })),
     [],
@@ -267,9 +286,13 @@ export function AppMap() {
       for (const [id, field] of favoriteFieldsRef.current) {
         merged.set(id, field);
       }
-      setFeatures(fieldsToGeoJSON([...merged.values()]));
+      const enriched = [...merged.values()].map((field) => {
+        const players = fieldPlayersMap.get(field.id);
+        return { ...field, players_current: players?.current ?? 0, players_max: players?.max ?? null };
+      });
+      setFeatures(fieldsToGeoJSON(enriched));
     },
-    [showFields],
+    [showFields, fieldPlayersMap],
   );
 
   const applyFields = useCallback(
@@ -700,7 +723,7 @@ export function AppMap() {
           />
           <CircleLayer
             id="fields-badge-bg"
-            filter={['!', ['has', 'point_count']]}
+            filter={['all', ['!', ['has', 'point_count']], ['!=', ['get', 'availability'], 'empty']]}
             minZoomLevel={FADE_START}
             style={{
               circleRadius: [
@@ -713,9 +736,10 @@ export function AppMap() {
                 18, 12,
               ],
               circleColor: [
-                'case',
-                ['>', ['get', 'event_count'], 0],
-                Brand.success,
+                'match',
+                ['get', 'availability'],
+                'full', Brand.danger,
+                'open', Brand.success,
                 '#94a3b8',
               ],
               circleStrokeWidth: 1.8,
@@ -737,7 +761,7 @@ export function AppMap() {
           />
           <SymbolLayer
             id="fields-badge-text"
-            filter={['!', ['has', 'point_count']]}
+            filter={['all', ['!', ['has', 'point_count']], ['!=', ['get', 'availability'], 'empty']]}
             minZoomLevel={FADE_START}
             style={{
               textField: ['get', 'count_label'],

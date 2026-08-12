@@ -11,6 +11,9 @@ export type FieldPoint = {
   event_count: number;
   avg_rating: number | null;
   rating_count: number;
+  /** Uczestnicy najbliższego zaplanowanego eventu na tym boisku (dociągane po stronie mapy). */
+  players_current?: number;
+  players_max?: number | null;
 };
 
 export type FieldSort = 'default' | 'rating';
@@ -152,12 +155,31 @@ function capitalizePl(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+/** Status dostępności boiska do kolorowania odznaki na mapie (zielony/pomarańczowy/szary). */
+export type CourtAvailability = 'empty' | 'open' | 'full';
+
+function courtAvailability(playersCurrent: number, playersMax: number | null | undefined): CourtAvailability {
+  if (playersCurrent <= 0 && playersMax == null) return 'empty';
+  if (playersMax != null && playersCurrent >= playersMax) return 'full';
+  return 'open';
+}
+
+/** Etykieta „aktualni/max" na odznace boiska (np. „6/10", „3", „—"). */
+function playersLabel(playersCurrent: number, playersMax: number | null | undefined): string {
+  if (playersCurrent <= 0 && playersMax == null) return '';
+  if (playersMax != null) return `${playersCurrent}/${playersMax}`;
+  return String(playersCurrent);
+}
+
 export function fieldsToGeoJSON(fields: FieldPoint[]) {
   return {
     type: 'FeatureCollection' as const,
     features: fields.map((f) => {
       const event_count = Number(f.event_count ?? 0);
       const badge_icon = `badge-${Math.min(Math.max(event_count, 0), 20)}`;
+      const playersCurrent = f.players_current ?? 0;
+      const playersMax = f.players_max ?? null;
+      const availability = courtAvailability(playersCurrent, playersMax);
       return {
         type: 'Feature' as const,
         id: f.id,
@@ -170,7 +192,10 @@ export function fieldsToGeoJSON(fields: FieldPoint[]) {
           color: fieldMarkerColor(f.sport),
           emoji: fieldMarkerEmoji(f.sport),
           icon: fieldMarkerIcon(f.sport),
-          count_label: event_count > 99 ? '99+' : String(event_count),
+          count_label: playersLabel(playersCurrent, playersMax),
+          players_current: playersCurrent,
+          players_max: playersMax ?? -1,
+          availability,
           avg_rating: f.avg_rating ?? 0,
         },
         geometry: {
