@@ -418,6 +418,8 @@ type ShapeSourceProps = {
   cluster?: boolean;
   clusterRadius?: number;
   clusterMaxZoomLevel?: number;
+  /** Agregacje liczone przy łączeniu punktów w klaster, np. { open_count: ['+', ['case', ...]] }. */
+  clusterProperties?: Record<string, unknown>;
   children?: ReactNode;
 };
 
@@ -428,6 +430,7 @@ export function ShapeSource({
   cluster,
   clusterRadius,
   clusterMaxZoomLevel,
+  clusterProperties,
   children,
 }: ShapeSourceProps) {
   const { map, loaded, registerSource } = useMapContext();
@@ -446,6 +449,7 @@ export function ShapeSource({
         cluster: Boolean(cluster),
         clusterRadius: clusterRadius ?? 50,
         clusterMaxZoom: clusterMaxZoomLevel ?? 14,
+        ...(clusterProperties ? { clusterProperties } : null),
       });
     }
     return () => {

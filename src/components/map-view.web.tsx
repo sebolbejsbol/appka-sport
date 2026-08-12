@@ -90,6 +90,19 @@ const ACTIVE_VOIVODESHIP = 'pomorskie';
 const FADE_START = 6.5;
 const FADE_END = 7.3;
 
+/**
+ * Kolor klastra ma pokazywać, czy warto tam zajrzeć — nie liczebność grupy.
+ * Agregujemy przy łączeniu punktów, ile w klastrze jest boisk w każdym stanie
+ * dostępności, a potem wybieramy kolor wg priorytetu: jest coś otwartego? ->
+ * zielony (jest gdzie grać); inaczej mało miejsc? -> pomarańczowy; inaczej
+ * pełne? -> czerwony; inaczej brak eventów -> szary.
+ */
+const CLUSTER_AVAILABILITY_PROPERTIES = {
+  open_count: ['+', ['case', ['==', ['get', 'availability'], 'open'], 1, 0]],
+  filling_count: ['+', ['case', ['==', ['get', 'availability'], 'filling'], 1, 0]],
+  full_count: ['+', ['case', ['==', ['get', 'availability'], 'full'], 1, 0]],
+};
+
 type FieldSelection = { rpc: string | null; showFields: boolean };
 
 function fieldSelectionFor(
@@ -634,7 +647,8 @@ export function AppMap() {
           onPress={onFieldPress}
           cluster
           clusterRadius={55}
-          clusterMaxZoomLevel={13}>
+          clusterMaxZoomLevel={13}
+          clusterProperties={CLUSTER_AVAILABILITY_PROPERTIES}>
           <CircleLayer
             id="clusters-halo"
             filter={['has', 'point_count']}
@@ -650,15 +664,11 @@ export function AppMap() {
                 500, 38,
               ],
               circleColor: [
-                'interpolate',
-                ['linear'],
-                ['get', 'point_count'],
-                1, '#22d3ee',
-                15, '#22c55e',
-                60, '#eab308',
-                200, '#f97316',
-                600, '#ef4444',
-                1500, '#d946ef',
+                'case',
+                ['>', ['get', 'open_count'], 0], Brand.success,
+                ['>', ['get', 'filling_count'], 0], Brand.warning,
+                ['>', ['get', 'full_count'], 0], Brand.danger,
+                '#94a3b8',
               ],
               circleBlur: 0.8,
               circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 0.35],
@@ -679,15 +689,11 @@ export function AppMap() {
                 500, 27,
               ],
               circleColor: [
-                'interpolate',
-                ['linear'],
-                ['get', 'point_count'],
-                1, '#22d3ee',
-                15, '#22c55e',
-                60, '#eab308',
-                200, '#f97316',
-                600, '#ef4444',
-                1500, '#d946ef',
+                'case',
+                ['>', ['get', 'open_count'], 0], Brand.success,
+                ['>', ['get', 'filling_count'], 0], Brand.warning,
+                ['>', ['get', 'full_count'], 0], Brand.danger,
+                '#94a3b8',
               ],
               circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 0.94],
               circleStrokeWidth: 2,
@@ -781,6 +787,7 @@ export function AppMap() {
                 'match',
                 ['get', 'availability'],
                 'full', Brand.danger,
+                'filling', Brand.warning,
                 'open', Brand.success,
                 '#94a3b8',
               ],

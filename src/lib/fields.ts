@@ -198,12 +198,17 @@ function capitalizePl(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-/** Status dostępności boiska do kolorowania odznaki na mapie (zielony/pomarańczowy/szary). */
-export type CourtAvailability = 'empty' | 'open' | 'full';
+/** Status dostępności boiska do kolorowania odznaki na mapie (zielony/pomarańczowy/czerwony/szary). */
+export type CourtAvailability = 'empty' | 'open' | 'filling' | 'full';
 
 function courtAvailability(playersCurrent: number, playersMax: number | null | undefined): CourtAvailability {
   if (playersCurrent <= 0 && playersMax == null) return 'empty';
-  if (playersMax != null && playersCurrent >= playersMax) return 'full';
+  if (playersMax == null) return 'open';
+  if (playersCurrent >= playersMax) return 'full';
+  const remaining = playersMax - playersCurrent;
+  const fillRatio = playersCurrent / playersMax;
+  // "Szybko się zapełnia": zostało 1 miejsce albo obłożenie ≥75%.
+  if (remaining <= 1 || fillRatio >= 0.75) return 'filling';
   return 'open';
 }
 
