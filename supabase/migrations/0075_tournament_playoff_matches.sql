@@ -147,11 +147,24 @@ begin
   end loop;
 
   -- Wolne losy z rundy 1 od razu awansują do rundy 2 (no-op jeśli total_rounds=1).
+  -- Dwa oddzielne UPDATE-y (nieparzyste -> team_a, parzyste -> team_b): gdy
+  -- dwa wolne losy zasilają ten sam slot rundy 2 (typowe), pojedynczy
+  -- UPDATE...FROM dopasowałby obie wiersze źródłowe do jednego wiersza
+  -- docelowego i Postgres zastosowałby tylko jeden z nich (niedeterministycznie),
+  -- gubiąc drugą stronę.
   update public.tournament_playoff_matches r2
-    set team_a_id = case when r1.slot % 2 = 1 then r1.winner_team_id else r2.team_a_id end,
-        team_b_id = case when r1.slot % 2 = 0 then r1.winner_team_id else r2.team_b_id end
+    set team_a_id = r1.winner_team_id
     from public.tournament_playoff_matches r1
     where r1.tournament_id = p_tournament_id and r1.round = 1 and r1.status = 'completed'
+      and r1.slot % 2 = 1
+      and r2.tournament_id = p_tournament_id and r2.round = 2
+      and r2.slot = ceil(r1.slot / 2.0);
+
+  update public.tournament_playoff_matches r2
+    set team_b_id = r1.winner_team_id
+    from public.tournament_playoff_matches r1
+    where r1.tournament_id = p_tournament_id and r1.round = 1 and r1.status = 'completed'
+      and r1.slot % 2 = 0
       and r2.tournament_id = p_tournament_id and r2.round = 2
       and r2.slot = ceil(r1.slot / 2.0);
 
