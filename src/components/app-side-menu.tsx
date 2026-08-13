@@ -200,7 +200,10 @@ function DesktopSidebar() {
 
   return (
     <View style={styles.sidebar}>
-      <Text style={styles.sidebarBrand}>{t('nav.menu')}</Text>
+      <View style={styles.sidebarHeader}>
+        <Text style={styles.sidebarBrand}>{t('nav.menu')}</Text>
+        <NotificationsBell unreadCount={unreadNotifications} onUnreadCountChange={setUnreadNotifications} />
+      </View>
 
       <ScrollView
         style={styles.panelBody}
@@ -229,7 +232,6 @@ function DesktopSidebar() {
                 onPress={() => navigate(item.path)}
               />
             ))}
-            <NotificationsBell unreadCount={unreadNotifications} onUnreadCountChange={setUnreadNotifications} />
           </View>
         </View>
       </ScrollView>
@@ -374,12 +376,19 @@ function AppDrawer() {
           ]}>
           <View style={styles.panelHeader}>
             <Text style={styles.panelTitle}>{t('nav.menu')}</Text>
-            <Pressable
-              onPress={closeMenu}
-              hitSlop={12}
-              style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}>
-              <Text style={styles.closeText}>✕</Text>
-            </Pressable>
+            <View style={styles.panelHeaderActions}>
+              <NotificationsBell
+                unreadCount={unreadNotifications}
+                onUnreadCountChange={setUnreadNotifications}
+                onBeforeOpen={closeMenu}
+              />
+              <Pressable
+                onPress={closeMenu}
+                hitSlop={12}
+                style={({ pressed }) => [styles.closeButton, pressed && styles.pressed]}>
+                <Text style={styles.closeText}>✕</Text>
+              </Pressable>
+            </View>
           </View>
 
           <ScrollView
@@ -423,13 +432,6 @@ function AppDrawer() {
                       />
                     ))
                   : null}
-                {advancedOpen ? (
-                  <NotificationsBell
-                    unreadCount={unreadNotifications}
-                    onUnreadCountChange={setUnreadNotifications}
-                    onBeforeOpen={closeMenu}
-                  />
-                ) : null}
               </View>
             </View>
           </ScrollView>
@@ -582,22 +584,19 @@ function NotificationsBell({
     <>
       <Pressable
         onPress={() => void openPanel()}
-        style={({ pressed }) => [styles.navItem, pressed && styles.navItemPressed]}>
-        <View style={styles.navIconWrap}>
-          <Text style={styles.navIcon}>🔔</Text>
-          {unreadCount ? (
-            <Animated.View
-              key={unreadCount}
-              entering={ZoomIn.springify().damping(10).stiffness(300)}
-              style={styles.navBadge}>
-              <Text style={styles.navBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
-            </Animated.View>
-          ) : null}
-        </View>
-        <View style={styles.navItemMain}>
-          <Text style={styles.navItemLabel}>{t('nav.notifications')}</Text>
-        </View>
-        <Text style={styles.navItemChevron}>›</Text>
+        hitSlop={12}
+        accessibilityRole="button"
+        accessibilityLabel={t('nav.notifications')}
+        style={({ pressed }) => [bellStyles.trigger, pressed && styles.pressed]}>
+        <Text style={bellStyles.triggerIcon}>🔔</Text>
+        {unreadCount ? (
+          <Animated.View
+            key={unreadCount}
+            entering={ZoomIn.springify().damping(10).stiffness(300)}
+            style={styles.navBadge}>
+            <Text style={styles.navBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+          </Animated.View>
+        ) : null}
       </Pressable>
 
       <Modal transparent visible={panelOpen} animationType="fade" onRequestClose={closePanel} statusBarTranslucent>
@@ -715,12 +714,17 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 16,
   },
+  sidebarHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
   sidebarBrand: {
     fontSize: 20,
     fontWeight: '800',
     letterSpacing: -0.3,
     color: Brand.textPrimary,
-    marginBottom: 16,
   },
   backdrop: {
     position: 'absolute',
@@ -750,6 +754,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 4,
+  },
+  panelHeaderActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   panelTitle: {
     fontSize: 22,
@@ -947,6 +956,18 @@ const styles = StyleSheet.create({
 });
 
 const bellStyles = StyleSheet.create({
+  trigger: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Brand.screenBackground,
+    position: 'relative',
+  },
+  triggerIcon: {
+    fontSize: 18,
+  },
   root: {
     flex: 1,
     alignItems: 'center',
