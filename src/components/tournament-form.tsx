@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View, Image } from 'react-native';
 
 import { DatePickerField } from '@/components/date-picker-field';
@@ -206,7 +206,24 @@ type Props = {
   disabled?: boolean;
 };
 
-export function TournamentForm({ value, onChange, disabled }: Props) {
+type TournamentFormSections = {
+  identity: ReactNode;
+  schedule: ReactNode;
+  location: ReactNode;
+  teamSetup: ReactNode;
+  scoring: ReactNode;
+  groups: ReactNode;
+};
+
+/**
+ * Buduje JSX każdej sekcji formularza RAZ, jako gotowe węzły — dzięki temu
+ * płaski `TournamentForm` (edycja) i `TournamentFormWizard` (tworzenie,
+ * krok-po-kroku) dzielą DOKŁADNIE tę samą logikę pól/walidacji/stanu (logo,
+ * lista grup), tylko inaczej je układają. Żadna reguła hooków nie jest
+ * łamana — to zwykła funkcja komponentu wywoływana raz na render przez
+ * każdego z dwóch konsumentów, nie warunkowo wewnątrz nich.
+ */
+export function useTournamentFormSections({ value, onChange, disabled }: Props): TournamentFormSections {
   const [busyLogo, setBusyLogo] = useState(false);
 
   const LOCATION_PICKER_COPY: LocationPickerCopy = {
@@ -245,10 +262,8 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
     onChange({ groupNames: value.groupNames.filter((_, i) => i !== index) });
   }
 
-  return (
-    <View style={styles.container}>
-      <Text style={styles.sectionTitle}>{t('tournamentForm.sectionBasic')}</Text>
-
+  const identity = (
+    <>
       <TextField
         label={t('tournamentForm.name')}
         value={value.name}
@@ -288,7 +303,11 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
           <Text style={styles.secondaryBtnText}>{t('tournamentForm.pickLogo')}</Text>
         </Pressable>
       </View>
+    </>
+  );
 
+  const schedule = (
+    <>
       <Text style={styles.label}>{t('tournamentForm.eventDate')}</Text>
       <View style={styles.row}>
         <View style={styles.flex1}>
@@ -356,7 +375,11 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
           />
         </View>
       </View>
+    </>
+  );
 
+  const location = (
+    <>
       <FieldReportLocationPicker
         value={
           value.latitude != null && value.longitude != null
@@ -391,9 +414,11 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
         onChangeText={(contactInfo) => onChange({ contactInfo })}
         editable={!disabled}
       />
+    </>
+  );
 
-      <Text style={styles.sectionTitle}>{t('tournamentForm.sectionConfig')}</Text>
-
+  const teamSetup = (
+    <>
       <View style={styles.row}>
         <View style={styles.flex1}>
           <TextField
@@ -441,7 +466,11 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
         onChange={(requiresApproval) => onChange({ requiresApproval })}
         disabled={disabled}
       />
+    </>
+  );
 
+  const scoring = (
+    <>
       <View style={styles.row}>
         <View style={styles.flex1}>
           <TextField
@@ -478,8 +507,11 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
         onChange={(allowDraws) => onChange({ allowDraws })}
         disabled={disabled}
       />
+    </>
+  );
 
-      <Text style={styles.sectionTitle}>{t('tournamentForm.sectionGroups')}</Text>
+  const groups = (
+    <>
       {value.groupNames.map((name, index) => (
         <View key={index} style={styles.groupRow}>
           <TextInput
@@ -501,6 +533,28 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
       <Pressable disabled={disabled} onPress={addGroup} style={styles.secondaryBtn}>
         <Text style={styles.secondaryBtnText}>{t('tournamentForm.addGroup')}</Text>
       </Pressable>
+    </>
+  );
+
+  return { identity, schedule, location, teamSetup, scoring, groups };
+}
+
+export function TournamentForm({ value, onChange, disabled }: Props) {
+  const sections = useTournamentFormSections({ value, onChange, disabled });
+
+  return (
+    <View style={styles.container}>
+      <Text style={styles.sectionTitle}>{t('tournamentForm.sectionBasic')}</Text>
+      {sections.identity}
+      {sections.schedule}
+      {sections.location}
+
+      <Text style={styles.sectionTitle}>{t('tournamentForm.sectionConfig')}</Text>
+      {sections.teamSetup}
+      {sections.scoring}
+
+      <Text style={styles.sectionTitle}>{t('tournamentForm.sectionGroups')}</Text>
+      {sections.groups}
     </View>
   );
 }

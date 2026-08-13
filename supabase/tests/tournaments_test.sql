@@ -14,6 +14,7 @@ declare
   v_draft_id uuid; v_cancelled_id uuid; v_geo_id uuid;
   v_lat double precision; v_lng double precision;
   v_rls_role_ok boolean := true;
+  v_lifecycle_team_a uuid; v_lifecycle_team_b uuid;
 begin
   select id into v_admin from public.profiles where role in ('admin', 'super_admin') order by created_at limit 1;
   select id into v_user from public.profiles where role = 'user' order by created_at limit 1;
@@ -31,12 +32,16 @@ begin
   if v_status <> 'not_admin' then raise exception 'FAIL user cannot create, got %', v_status; end if;
   insert into _t values ('non-admin create blocked OK');
 
-  -- 2) Admin tworzy turniej z 2 grupami
+  -- 2) Admin tworzy turniej z 2 grupami.
+  -- players_per_team=1 celowo (nie 5) — krok 5 poniżej rejestruje 2 minimalne,
+  -- jednoosobowe drużyny tylko po to, żeby spełnić min_teams=2 przy przejściu
+  -- do 'ready' (wymagane od migracji 0073); ten test sprawdza stan maszyny
+  -- cyklu życia turnieju, nie rozmiar drużyn (patrz tournament_teams_test.sql).
   perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
   select status, tournament_id into v_status, v_id from public.admin_create_tournament(
     'Test Cup', 'opis', null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    8, 2, 5, 0, false, 3, 1, 0, true, array['Grupa A', 'Grupa B']
+    8, 2, 1, 0, false, 3, 1, 0, true, array['Grupa A', 'Grupa B']
   );
   if v_status <> 'ok' or v_id is null then raise exception 'FAIL admin create, got %', v_status; end if;
   select count(*) into v_group_count from public.tournament_groups where tournament_id = v_id;
@@ -52,7 +57,7 @@ begin
   select public.admin_update_tournament(
     v_id, 'Test Cup', 'opis', null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    16, 2, 5, 0, false, 3, 1, 0, true, array['Grupa A', 'Grupa B']
+    16, 2, 1, 0, false, 3, 1, 0, true, array['Grupa A', 'Grupa B']
   ) into v_status;
   if v_status <> 'ok' then raise exception 'FAIL update draft, got %', v_status; end if;
   if (select max_teams from public.tournaments where id = v_id) <> 16 then
@@ -63,6 +68,28 @@ begin
   -- 5) Przejście przez cały cykl życia
   select public.admin_set_tournament_status(v_id, 'registration_open') into v_status;
   if v_status <> 'ok' then raise exception 'FAIL draft->registration_open, got %', v_status; end if;
+
+  -- min_teams=2 jest wymagane przy przejściu do 'ready' (migracja 0073) —
+  -- rejestrujemy i zatwierdzamy 2 minimalne (1-osobowe, players_per_team=1)
+  -- drużyny, żeby cykl życia mógł ruszyć dalej.
+  perform set_config('request.jwt.claims', json_build_object('sub', v_user, 'role', 'authenticated')::text, true);
+  insert into public.teams (name, sport, owner_id) values ('Lifecycle Test FC A', 'basketball', v_user)
+  returning id into v_lifecycle_team_a;
+  insert into public.team_members (team_id, user_id, role) values (v_lifecycle_team_a, v_user, 'owner');
+  select public.register_team_for_tournament(v_id, v_lifecycle_team_a) into v_status;
+  if v_status <> 'ok' then raise exception 'FAIL lifecycle team A register, got %', v_status; end if;
+
+  insert into public.teams (name, sport, owner_id) values ('Lifecycle Test FC B', 'basketball', v_user)
+  returning id into v_lifecycle_team_b;
+  insert into public.team_members (team_id, user_id, role) values (v_lifecycle_team_b, v_user, 'owner');
+  select public.register_team_for_tournament(v_id, v_lifecycle_team_b) into v_status;
+  if v_status <> 'ok' then raise exception 'FAIL lifecycle team B register, got %', v_status; end if;
+
+  -- requires_approval=false na tym turnieju -> obie rejestracje trafiają od
+  -- razu jako 'approved', nic do zatwierdzenia przez admina.
+  perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
+  insert into _t values ('lifecycle teams registered (auto-approved, requires_approval=false) OK');
+
   select public.admin_set_tournament_status(v_id, 'registration_closed') into v_status;
   if v_status <> 'ok' then raise exception 'FAIL ->registration_closed, got %', v_status; end if;
   select public.admin_set_tournament_status(v_id, 'ready') into v_status;
@@ -183,6 +210,12 @@ begin
   else
     insert into _t values ('RLS raw-select check skipped (SET LOCAL ROLE authenticated not permitted here)');
   end if;
+
+  -- Fikcyjne turnieje z tego pliku celowo NIE są sprzątane (pre-istniejący
+  -- stan tego testu) — ale fikcyjne DRUŻYNY dodane w kroku 5 są widoczne w
+  -- ogólnej liście drużyn całej appki, więc te akurat sprzątamy.
+  delete from public.team_members where team_id in (v_lifecycle_team_a, v_lifecycle_team_b);
+  delete from public.teams where id in (v_lifecycle_team_a, v_lifecycle_team_b);
 
   raise notice 'Wszystkie testy turniejów zaliczone: %', (select string_agg(step, ', ') from _t);
 end;

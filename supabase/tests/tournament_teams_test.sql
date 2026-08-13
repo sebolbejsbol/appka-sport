@@ -16,6 +16,7 @@ declare
   v_reject_team_id uuid; v_remove_team_id uuid;
   v_status text; v_reg_id uuid; v_second_reg_id uuid; v_group_id uuid;
   v_reject_reg_id uuid; v_remove_reg_id uuid;
+  v_size_tournament_id uuid; v_size_team_id uuid;
 begin
   select id into v_admin from public.profiles where role in ('admin', 'super_admin') order by created_at limit 1;
   select id into v_manager from public.profiles where role = 'user' order by created_at limit 1;
@@ -35,12 +36,15 @@ begin
   returning id into v_wrongsport_team_id;
   insert into public.team_members (team_id, user_id, role) values (v_wrongsport_team_id, v_manager, 'owner');
 
-  -- Fikcyjny turniej koszykarski, max_teams=2, min_teams=2, 2 grupy
+  -- Fikcyjny turniej koszykarski, max_teams=2, min_teams=2, 2 grupy.
+  -- players_per_team=1 celowo (nie 5) — każda fikcyjna drużyna w tym pliku ma
+  -- dokładnie 1 członka (właściciela); ten test sprawdza flow rejestracji/
+  -- akceptacji, nie egzekwowanie rozmiaru drużyny (patrz osobny blok niżej).
   perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
   select status, tournament_id into v_status, v_tournament_id from public.admin_create_tournament(
     'Registration Test Cup', null, null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    2, 2, 5, 0, true, 3, 1, 0, true, array['Grupa A', 'Grupa B']
+    2, 2, 1, 0, true, 3, 1, 0, true, array['Grupa A', 'Grupa B']
   );
   if v_status <> 'ok' or v_tournament_id is null then raise exception 'FAIL tournament fixture create, got %', v_status; end if;
   select id into v_group_id from public.tournament_groups where tournament_id = v_tournament_id order by sort_order limit 1;
@@ -234,15 +238,51 @@ begin
   if v_status <> 'withdrawn' then raise exception 'FAIL expected withdrawn, got %', v_status; end if;
   insert into _t values ('withdraw approved team -> withdrawn OK');
 
+  -- 21) team_too_small: nowy, osobny turniej z players_per_team=2 — drużyna
+  --     z 1 członkiem nie może się zarejestrować; po dobraniu drugiego
+  --     członka rejestracja się udaje. Zamierzenie 0086: wcześniej rozmiar
+  --     drużyny nie był w ogóle sprawdzany.
+  perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
+  select status, tournament_id into v_status, v_size_tournament_id from public.admin_create_tournament(
+    'Registration Size Test Cup', null, null, 'basketball', current_date + 14, '10:00', null,
+    null, now() + interval '7 days', null, null, null, null, null, null,
+    4, 2, 2, 0, false, 3, 1, 0, true, array['Grupa A']
+  );
+  if v_status <> 'ok' or v_size_tournament_id is null then
+    raise exception 'FAIL size-test tournament fixture create, got %', v_status;
+  end if;
+  select public.admin_set_tournament_status(v_size_tournament_id, 'registration_open') into v_status;
+  if v_status <> 'ok' then raise exception 'FAIL open size-test registration, got %', v_status; end if;
+
+  perform set_config('request.jwt.claims', json_build_object('sub', v_manager, 'role', 'authenticated')::text, true);
+  insert into public.teams (name, sport, owner_id) values ('Test Registration Size', 'basketball', v_manager)
+  returning id into v_size_team_id;
+  insert into public.team_members (team_id, user_id, role) values (v_size_team_id, v_manager, 'owner');
+
+  select public.register_team_for_tournament(v_size_tournament_id, v_size_team_id) into v_status;
+  if v_status <> 'team_too_small' then
+    raise exception 'FAIL team_too_small not enforced (1 member, needs 2), got %', v_status;
+  end if;
+  insert into _t values ('team_too_small enforced at registration OK');
+
+  insert into public.team_members (team_id, user_id, role) values (v_size_team_id, v_outsider, 'member');
+  select public.register_team_for_tournament(v_size_tournament_id, v_size_team_id) into v_status;
+  if v_status <> 'ok' then
+    raise exception 'FAIL register once team meets players_per_team, got %', v_status;
+  end if;
+  insert into _t values ('register succeeds once team meets players_per_team (2/2 members) OK');
+
   -- Sprzątanie fikcyjnych danych
-  delete from public.tournament_teams where tournament_id = v_tournament_id;
-  delete from public.tournament_groups where tournament_id = v_tournament_id;
-  delete from public.tournaments where id = v_tournament_id;
+  delete from public.tournament_teams where tournament_id in (v_tournament_id, v_size_tournament_id);
+  delete from public.tournament_groups where tournament_id in (v_tournament_id, v_size_tournament_id);
+  delete from public.tournaments where id in (v_tournament_id, v_size_tournament_id);
   delete from public.team_members where team_id in (
-    v_team_id, v_wrongsport_team_id, v_second_team_id, v_third_team_id, v_reject_team_id, v_remove_team_id
+    v_team_id, v_wrongsport_team_id, v_second_team_id, v_third_team_id, v_reject_team_id, v_remove_team_id,
+    v_size_team_id
   );
   delete from public.teams where id in (
-    v_team_id, v_wrongsport_team_id, v_second_team_id, v_third_team_id, v_reject_team_id, v_remove_team_id
+    v_team_id, v_wrongsport_team_id, v_second_team_id, v_third_team_id, v_reject_team_id, v_remove_team_id,
+    v_size_team_id
   );
   insert into _t values ('fixture cleanup OK');
 

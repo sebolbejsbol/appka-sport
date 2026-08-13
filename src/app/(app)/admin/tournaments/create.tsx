@@ -3,14 +3,13 @@ import { useState } from 'react';
 import { ActivityIndicator, KeyboardAvoidingView, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Button } from '@/components/button';
 import { ScreenHeader } from '@/components/screen-header';
 import {
-  TournamentForm,
   emptyTournamentFormValue,
   tournamentFormValueToInput,
   validateTournamentForm,
 } from '@/components/tournament-form';
+import { TournamentFormWizard } from '@/components/tournament-form-wizard';
 import { Brand } from '@/constants/theme';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
@@ -100,9 +99,8 @@ export default function CreateTournamentScreen() {
       />
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
-          <TournamentForm value={value} onChange={onChange} disabled={busy} />
+          <TournamentFormWizard value={value} onChange={onChange} onSubmit={handleCreate} disabled={busy} />
           {error ? <Text style={styles.errorText}>{error}</Text> : null}
-          <Button label={t('tournamentForm.createAction')} onPress={handleCreate} disabled={busy} style={styles.submit} />
         </ScrollView>
       </KeyboardAvoidingView>
     </View>
@@ -115,5 +113,4 @@ const styles = StyleSheet.create({
   muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
   content: { paddingHorizontal: 20, paddingTop: 8 },
   errorText: { fontSize: 14, color: Brand.danger, marginTop: 12 },
-  submit: { marginTop: 20 },
 });

@@ -34,10 +34,13 @@ begin
   end if;
 
   perform set_config('request.jwt.claims', json_build_object('sub', v_admin, 'role', 'authenticated')::text, true);
+  -- players_per_team=1 celowo (nie 5) — wszystkie fikcyjne drużyny w tym
+  -- pliku mają dokładnie 1 członka (właściciela); egzekwowanie rozmiaru
+  -- drużyny (migracja 0086) jest testowane osobno w tournament_teams_test.sql.
   select status, tournament_id into v_status, v_tournament_id from public.admin_create_tournament(
     'Playoff Test Cup', null, null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    5, 5, 5, 0, false, 3, 1, 0, true, array['Grupa A', 'Grupa B']
+    5, 5, 1, 0, false, 3, 1, 0, true, array['Grupa A', 'Grupa B']
   );
   if v_status <> 'ok' or v_tournament_id is null then raise exception 'FAIL tournament fixture create, got %', v_status; end if;
   select id into v_group_a from public.tournament_groups where tournament_id = v_tournament_id order by sort_order limit 1;
