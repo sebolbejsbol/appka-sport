@@ -5,11 +5,21 @@ import {
   useContext,
   useEffect,
   useMemo,
-  useRef,
   useState,
   type PropsWithChildren,
 } from 'react';
-import { Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import {
+  ActivityIndicator,
+  FlatList,
+  Modal,
+  Platform,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -25,12 +35,17 @@ import { shadow } from '@/constants/ui';
 import { useLocale } from '@/context/locale';
 import { useIsAdmin } from '@/hooks/use-is-admin';
 import { t } from '@/i18n';
+import { formatRelativeShortTime } from '@/lib/datetime';
 import {
   getUnreadNotificationCount,
+  listMyNotifications,
+  markAllNotificationsRead,
+  markNotificationRead,
   notificationDisplayText,
   subscribeToMyNotifications,
+  type AppNotification,
 } from '@/lib/notifications';
-import { notifyInfo } from '@/lib/toast';
+import { notifyError, notifyInfo } from '@/lib/toast';
 
 const DRAWER_WIDTH = 288;
 const SIDEBAR_WIDTH = 264;
@@ -63,24 +78,17 @@ function buildPrimaryItems(): NavItem[] {
   ];
 }
 
-function buildAdvancedItems(unreadNotifications: number): NavItem[] {
+function buildAdvancedItems(): NavItem[] {
   return [
     { key: 'feed', label: t('nav.feed'), path: '/feed' as Href, icon: '📣', hint: t('nav.feedHint') },
     { key: 'ranking', label: t('nav.ranking'), path: '/ranking' as Href, icon: '🏆', hint: t('nav.rankingHint') },
     { key: 'teams', label: t('nav.teams'), path: '/teams' as Href, icon: '🛡️', hint: t('nav.teamsHint') },
     { key: 'friends', label: t('nav.friends'), path: '/social', icon: '🤝' },
     { key: 'messages', label: t('nav.messages'), path: '/messages' as Href, icon: '💬' },
-    {
-      key: 'notifications',
-      label: t('nav.notifications'),
-      path: '/notifications' as Href,
-      icon: '🔔',
-      badge: unreadNotifications,
-    },
   ];
 }
 
-const ADVANCED_PATHS = ['/feed', '/ranking', '/teams', '/social', '/messages', '/notifications'];
+const ADVANCED_PATHS = ['/feed', '/ranking', '/teams', '/social', '/messages'];
 
 type AppMenuContextValue = {
   open: boolean;
@@ -114,7 +122,6 @@ function isMenuVisibleRoute(pathname: string): boolean {
     pathname === '/settings' ||
     pathname === '/social' ||
     pathname === '/messages' ||
-    pathname === '/notifications' ||
     pathname === '/admin'
   );
 }
@@ -163,25 +170,16 @@ function DesktopSidebar() {
   const { isAdmin } = useIsAdmin();
   const { locale } = useLocale();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
-  const pathnameRef = useRef(pathname);
-  useEffect(() => {
-    pathnameRef.current = pathname;
-  }, [pathname]);
 
   const primaryItems = useMemo(() => buildPrimaryItems(), [locale]);
-  const advancedItems = useMemo(
-    () => buildAdvancedItems(unreadNotifications),
-    [locale, unreadNotifications],
-  );
+  const advancedItems = useMemo(() => buildAdvancedItems(), [locale]);
 
   useEffect(() => {
     void getUnreadNotificationCount().then(setUnreadNotifications);
     const unsubscribe = subscribeToMyNotifications((n) => {
       setUnreadNotifications((prev) => prev + 1);
-      if (pathnameRef.current !== '/notifications') {
-        const { title, body } = notificationDisplayText(n, t);
-        notifyInfo(body ? `${title} — ${body}` : title);
-      }
+      const { title, body } = notificationDisplayText(n, t);
+      notifyInfo(body ? `${title} — ${body}` : title);
     });
     return unsubscribe;
   }, []);
@@ -231,6 +229,7 @@ function DesktopSidebar() {
                 onPress={() => navigate(item.path)}
               />
             ))}
+            <NotificationsBell unreadCount={unreadNotifications} onUnreadCountChange={setUnreadNotifications} />
           </View>
         </View>
       </ScrollView>
@@ -297,16 +296,9 @@ function AppDrawer() {
 
   const [unreadNotifications, setUnreadNotifications] = useState(0);
   const primaryItems = useMemo(() => buildPrimaryItems(), [locale]);
-  const advancedItems = useMemo(
-    () => buildAdvancedItems(unreadNotifications),
-    [locale, unreadNotifications],
-  );
+  const advancedItems = useMemo(() => buildAdvancedItems(), [locale]);
   const onAdvancedRoute = ADVANCED_PATHS.includes(pathname);
   const [advancedOpen, setAdvancedOpen] = useState(onAdvancedRoute);
-  const pathnameRef = useRef(pathname);
-  useEffect(() => {
-    pathnameRef.current = pathname;
-  }, [pathname]);
 
   // Gdy jesteśmy na ekranie z sekcji zaawansowanej, rozwiń ją po otwarciu menu.
   useEffect(() => {
@@ -326,10 +318,8 @@ function AppDrawer() {
     void getUnreadNotificationCount().then(setUnreadNotifications);
     const unsubscribe = subscribeToMyNotifications((n) => {
       setUnreadNotifications((prev) => prev + 1);
-      if (pathnameRef.current !== '/notifications') {
-        const { title, body } = notificationDisplayText(n, t);
-        notifyInfo(body ? `${title} — ${body}` : title);
-      }
+      const { title, body } = notificationDisplayText(n, t);
+      notifyInfo(body ? `${title} — ${body}` : title);
     });
     return unsubscribe;
   }, []);
@@ -433,6 +423,13 @@ function AppDrawer() {
                       />
                     ))
                   : null}
+                {advancedOpen ? (
+                  <NotificationsBell
+                    unreadCount={unreadNotifications}
+                    onUnreadCountChange={setUnreadNotifications}
+                    onBeforeOpen={closeMenu}
+                  />
+                ) : null}
               </View>
             </View>
           </ScrollView>
@@ -519,6 +516,154 @@ function NavRow({
       </View>
       <Text style={styles.navItemChevron}>›</Text>
     </Pressable>
+  );
+}
+
+/**
+ * Zamiast osobnej zakładki/trasy — dzwoneczek w miejscu dawnej pozycji menu
+ * "Powiadomienia", otwierający listę jako panel nad aplikacją. Licznik
+ * nieprzeczytanych i subskrypcja realtime żyją w komponencie-rodzicu
+ * (DesktopSidebar/AppDrawer, patrz komentarz przy subskrypcji tam) — ten
+ * komponent dostaje je jako propsy i zarządza tylko stanem panelu/listy.
+ */
+function NotificationsBell({
+  unreadCount,
+  onUnreadCountChange,
+  onBeforeOpen,
+}: {
+  unreadCount: number;
+  onUnreadCountChange: (updater: (prev: number) => number) => void;
+  onBeforeOpen?: () => void;
+}) {
+  const insets = useSafeAreaInsets();
+  const [panelOpen, setPanelOpen] = useState(false);
+  const [rows, setRows] = useState<AppNotification[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(false);
+
+  const openPanel = useCallback(async () => {
+    onBeforeOpen?.();
+    setPanelOpen(true);
+    setLoading(true);
+    setLoadError(false);
+    const { data, error } = await listMyNotifications();
+    setRows(data);
+    setLoadError(Boolean(error));
+    setLoading(false);
+  }, [onBeforeOpen]);
+
+  const closePanel = useCallback(() => setPanelOpen(false), []);
+
+  async function handleItemPress(item: AppNotification) {
+    if (!item.read_at) {
+      setRows((prev) =>
+        prev.map((row) => (row.id === item.id ? { ...row, read_at: new Date().toISOString() } : row)),
+      );
+      onUnreadCountChange((prev) => Math.max(0, prev - 1));
+      void markNotificationRead(item.id);
+    }
+    const eventId = item.data.event_id;
+    closePanel();
+    if (typeof eventId === 'string' && eventId) {
+      router.push({ pathname: '/event/[id]', params: { id: eventId } });
+    }
+  }
+
+  async function handleMarkAllRead() {
+    setRows((prev) => prev.map((row) => ({ ...row, read_at: row.read_at ?? new Date().toISOString() })));
+    onUnreadCountChange(() => 0);
+    const ok = await markAllNotificationsRead();
+    if (!ok) notifyError(t('notifications.loadError'));
+  }
+
+  const hasUnread = rows.some((row) => !row.read_at);
+
+  return (
+    <>
+      <Pressable
+        onPress={() => void openPanel()}
+        style={({ pressed }) => [styles.navItem, pressed && styles.navItemPressed]}>
+        <View style={styles.navIconWrap}>
+          <Text style={styles.navIcon}>🔔</Text>
+          {unreadCount ? (
+            <Animated.View
+              key={unreadCount}
+              entering={ZoomIn.springify().damping(10).stiffness(300)}
+              style={styles.navBadge}>
+              <Text style={styles.navBadgeText}>{unreadCount > 9 ? '9+' : unreadCount}</Text>
+            </Animated.View>
+          ) : null}
+        </View>
+        <View style={styles.navItemMain}>
+          <Text style={styles.navItemLabel}>{t('nav.notifications')}</Text>
+        </View>
+        <Text style={styles.navItemChevron}>›</Text>
+      </Pressable>
+
+      <Modal transparent visible={panelOpen} animationType="fade" onRequestClose={closePanel} statusBarTranslucent>
+        <View style={bellStyles.root} pointerEvents="box-none">
+          <Pressable style={bellStyles.backdrop} onPress={closePanel} />
+          <View style={[bellStyles.panel, { marginTop: insets.top + 60 }]}>
+            <View style={bellStyles.panelHeader}>
+              <Text style={bellStyles.panelTitle}>{t('notifications.title')}</Text>
+              <View style={bellStyles.headerActions}>
+                {hasUnread ? (
+                  <Pressable
+                    onPress={() => void handleMarkAllRead()}
+                    hitSlop={8}
+                    accessibilityLabel={t('notifications.markAllRead')}
+                    style={bellStyles.headerAction}>
+                    <Text style={bellStyles.headerActionText}>✓</Text>
+                  </Pressable>
+                ) : null}
+                <Pressable onPress={closePanel} hitSlop={8} style={bellStyles.headerAction}>
+                  <Text style={bellStyles.headerActionText}>✕</Text>
+                </Pressable>
+              </View>
+            </View>
+            {loading ? (
+              <ActivityIndicator color={Brand.primary} style={bellStyles.loader} />
+            ) : loadError ? (
+              <Text style={bellStyles.empty}>{t('notifications.loadError')}</Text>
+            ) : rows.length === 0 ? (
+              <Text style={bellStyles.empty}>{t('notifications.empty')}</Text>
+            ) : (
+              <FlatList
+                data={rows}
+                keyExtractor={(item) => item.id}
+                style={bellStyles.list}
+                renderItem={({ item }) => {
+                  const { title, body } = notificationDisplayText(item, t);
+                  const unread = !item.read_at;
+                  return (
+                    <Pressable
+                      onPress={() => void handleItemPress(item)}
+                      style={({ pressed }) => [
+                        bellStyles.row,
+                        unread && bellStyles.rowUnread,
+                        pressed && styles.pressed,
+                      ]}>
+                      {unread ? <View style={bellStyles.dot} /> : <View style={bellStyles.dotSpacer} />}
+                      <View style={styles.navItemMain}>
+                        <Text style={bellStyles.rowTitle} numberOfLines={1}>
+                          {title}
+                        </Text>
+                        {body ? (
+                          <Text style={bellStyles.rowBody} numberOfLines={2}>
+                            {body}
+                          </Text>
+                        ) : null}
+                        <Text style={bellStyles.rowTime}>{formatRelativeShortTime(item.created_at)}</Text>
+                      </View>
+                    </Pressable>
+                  );
+                }}
+              />
+            )}
+          </View>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -798,5 +943,113 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.8,
+  },
+});
+
+const bellStyles = StyleSheet.create({
+  root: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  backdrop: {
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    bottom: 0,
+    left: 0,
+    backgroundColor: Brand.overlay,
+  },
+  panel: {
+    width: '92%',
+    maxWidth: 380,
+    maxHeight: 480,
+    backgroundColor: Brand.surface,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Brand.border,
+    overflow: 'hidden',
+    ...shadow('lg'),
+  },
+  panelHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: Brand.border,
+  },
+  panelTitle: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: Brand.textPrimary,
+  },
+  headerActions: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  headerAction: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: Brand.screenBackground,
+  },
+  headerActionText: {
+    fontSize: 14,
+    color: Brand.textSecondary,
+    fontWeight: '700',
+  },
+  loader: {
+    marginVertical: 32,
+  },
+  empty: {
+    color: Brand.textMuted,
+    textAlign: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 24,
+    fontSize: 14,
+  },
+  list: {
+    maxHeight: 420,
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: Brand.border,
+  },
+  rowUnread: {
+    backgroundColor: Brand.primaryLight,
+  },
+  dot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: Brand.primary,
+    marginTop: 6,
+  },
+  dotSpacer: {
+    width: 8,
+    height: 8,
+    marginTop: 6,
+  },
+  rowTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: Brand.textPrimary,
+  },
+  rowBody: {
+    fontSize: 12,
+    color: Brand.textSecondary,
+  },
+  rowTime: {
+    fontSize: 11,
+    color: Brand.textMuted,
+    marginTop: 2,
   },
 });
