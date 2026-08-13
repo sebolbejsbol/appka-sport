@@ -369,6 +369,8 @@ export const pl = {
     popularNearby: 'Popularne w okolicy',
     mostActiveTeams: 'Najaktywniejsze zespoły',
     tournamentsRailTitle: 'Turnieje',
+    tournamentFeaturedBadge: 'Oficjalny turniej',
+    tournamentFeaturedCta: 'Zobacz turniej',
   },
   eventFilters: {
     title: 'Filtry eventów',

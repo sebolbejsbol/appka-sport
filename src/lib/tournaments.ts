@@ -80,6 +80,7 @@ export type TournamentListItem = {
   max_teams: number;
   min_teams: number;
   created_at: string;
+  approved_teams_count: number;
 };
 
 export type NewTournament = {
@@ -131,6 +132,9 @@ export type SetTournamentStatusResult =
   | 'invalid_transition'
   | 'not_enough_teams'
   | 'error';
+
+/** 'locked' = turniej nie jest w statusie draft/cancelled (trzeba go najpierw anulować). */
+export type DeleteTournamentResult = 'ok' | 'not_admin' | 'not_found' | 'locked' | 'error';
 
 function parseSport(raw: unknown): TournamentSport {
   return raw === 'football' || raw === 'volleyball' || raw === 'handball' ? raw : 'basketball';
@@ -205,6 +209,7 @@ function mapTournamentListRow(raw: Record<string, unknown>): TournamentListItem 
     max_teams: Number(raw.max_teams) || 0,
     min_teams: Number(raw.min_teams) || 0,
     created_at: String(raw.created_at ?? ''),
+    approved_teams_count: Number(raw.approved_teams_count) || 0,
   };
 }
 
@@ -276,6 +281,14 @@ export async function setTournamentStatus(
   });
   if (error) return 'error';
   return (data as SetTournamentStatusResult | null) ?? 'error';
+}
+
+export async function deleteTournament(tournamentId: string): Promise<DeleteTournamentResult> {
+  const { data, error } = await supabase.rpc('admin_delete_tournament', {
+    p_tournament_id: tournamentId,
+  });
+  if (error) return 'error';
+  return (data as DeleteTournamentResult | null) ?? 'error';
 }
 
 export async function getTournamentDetail(

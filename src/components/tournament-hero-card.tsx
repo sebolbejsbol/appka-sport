@@ -1,47 +1,25 @@
-import { memo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
+import { formatWhen, sportEmoji, statusLabel } from '@/components/tournament-card';
 import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
-import { formatEventDateTime, parseLocalDateTime } from '@/lib/datetime';
 import { formatTeamSport } from '@/lib/sports';
-import type { TournamentListItem, TournamentStatus } from '@/lib/tournaments';
+import type { TournamentListItem } from '@/lib/tournaments';
 
 type Props = {
   tournament: TournamentListItem;
   onPress: (tournament: TournamentListItem) => void;
 };
 
-const SPORT_EMOJI: Record<string, string> = {
-  basketball: '🏀',
-  football: '⚽',
-  volleyball: '🏐',
-  handball: '🤾',
-};
-
-export function sportEmoji(sport: string): string {
-  return SPORT_EMOJI[sport] ?? '🏆';
-}
-
-export function statusLabel(status: TournamentStatus): string {
-  switch (status) {
-    case 'draft': return t('tournamentStatus.draft');
-    case 'registration_open': return t('tournamentStatus.registrationOpen');
-    case 'registration_closed': return t('tournamentStatus.registrationClosed');
-    case 'ready': return t('tournamentStatus.ready');
-    case 'in_progress': return t('tournamentStatus.inProgress');
-    case 'completed': return t('tournamentStatus.completed');
-    case 'cancelled': return t('tournamentStatus.cancelled');
-  }
-}
-
-export function formatWhen(tournament: TournamentListItem): string {
-  const iso = parseLocalDateTime(tournament.event_date, tournament.start_time.slice(0, 5));
-  return iso ? formatEventDateTime(iso) : tournament.event_date;
-}
-
-function TournamentCardComponent({ tournament, onPress }: Props) {
+/**
+ * Wyróżniona pozycja nad rail'em zwykłych kart — turniej stworzony przez
+ * admina to oficjalne wydarzenie "od najwyższej władzy", ma się rzucać w
+ * oczy, nie ginąć jako jedna z 8 małych kart w poziomym scrollu. Rail
+ * (TournamentCard) obok tego komponentu pokazuje pozostałe, niewyróżnione
+ * turnieje — patrz events/index.tsx.
+ */
+export function TournamentHeroCard({ tournament, onPress }: Props) {
   const emoji = sportEmoji(tournament.sport);
   const place = [tournament.location_name, tournament.city].filter(Boolean).join(', ');
 
@@ -57,8 +35,13 @@ function TournamentCardComponent({ tournament, onPress }: Props) {
             <Text style={styles.fallbackEmoji}>{emoji}</Text>
           </View>
         )}
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusBadgeText}>{statusLabel(tournament.status)}</Text>
+        <View style={styles.badgeRow}>
+          <View style={styles.featuredBadge}>
+            <Text style={styles.featuredBadgeText}>🏆 {t('eventsList.tournamentFeaturedBadge')}</Text>
+          </View>
+          <View style={styles.statusBadge}>
+            <Text style={styles.statusBadgeText}>{statusLabel(tournament.status)}</Text>
+          </View>
         </View>
       </View>
 
@@ -89,37 +72,38 @@ function TournamentCardComponent({ tournament, onPress }: Props) {
               {emoji} {formatTeamSport(tournament.sport)}
             </Text>
           </View>
-          <View style={styles.footerSpacer} />
           <Text style={styles.teams}>
             👥 {tournament.approved_teams_count}/{tournament.max_teams}
           </Text>
+          <View style={styles.footerSpacer} />
+          <View style={styles.ctaBtn}>
+            <Text style={styles.ctaText}>{t('eventsList.tournamentFeaturedCta')}</Text>
+          </View>
         </View>
       </View>
     </Pressable>
   );
 }
 
-// Memo: analogiczne uzasadnienie co w EventCard — karty turniejów też żyją
-// na przewijanych listach/rail'ach, które odświeżają się co fokus ekranu.
-export const TournamentCard = memo(TournamentCardComponent);
-
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Brand.surface,
     borderRadius: Radius.lg,
     borderWidth: 1,
-    borderColor: Brand.border,
+    borderColor: Brand.primary,
     overflow: 'hidden',
-    ...shadow('sm'),
+    marginHorizontal: 16,
+    marginTop: 12,
+    ...shadow('md'),
   },
   pressed: {
     opacity: 0.96,
-    transform: [{ scale: 0.985 }],
+    transform: [{ scale: 0.99 }],
   },
   media: {
     position: 'relative',
     width: '100%',
-    aspectRatio: 16 / 9,
+    aspectRatio: 21 / 9,
     backgroundColor: Brand.surfaceMuted,
   },
   image: {
@@ -134,16 +118,32 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primaryLight,
   },
   fallbackEmoji: {
-    fontSize: 52,
+    fontSize: 72,
+  },
+  badgeRow: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    right: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  featuredBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: Radius.pill,
+    backgroundColor: Brand.primary,
+  },
+  featuredBadgeText: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#ffffff',
   },
   statusBadge: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: Radius.pill,
-    backgroundColor: Brand.primary,
+    backgroundColor: Brand.ink,
   },
   statusBadgeText: {
     fontSize: 12,
@@ -151,14 +151,14 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   body: {
-    padding: 14,
-    gap: 6,
+    padding: 16,
+    gap: 8,
   },
   title: {
-    fontSize: 16,
+    fontSize: 20,
     fontWeight: '800',
     color: Brand.textPrimary,
-    letterSpacing: -0.2,
+    letterSpacing: -0.3,
   },
   metaRow: {
     flexDirection: 'row',
@@ -166,37 +166,48 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   metaIcon: {
-    fontSize: 13,
+    fontSize: 14,
   },
   metaText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 14,
     color: Brand.textSecondary,
   },
   footer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 6,
+    gap: 10,
+    marginTop: 8,
   },
   footerSpacer: {
     flex: 1,
   },
   sportChip: {
-    paddingHorizontal: 9,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: Radius.pill,
     borderWidth: 1,
     borderColor: Brand.border,
   },
   sportChipText: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
     color: Brand.textSecondary,
   },
   teams: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: '700',
     color: Brand.textSecondary,
+  },
+  ctaBtn: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: Radius.md,
+    backgroundColor: Brand.primary,
+  },
+  ctaText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#ffffff',
   },
 });

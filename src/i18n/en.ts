@@ -370,6 +370,8 @@ export const en: DeepPartialWide<Translations> = {
     popularNearby: 'Popular nearby',
     mostActiveTeams: 'Most active teams',
     tournamentsRailTitle: 'Tournaments',
+    tournamentFeaturedBadge: 'Official tournament',
+    tournamentFeaturedCta: 'View tournament',
   },
   eventFilters: {
     title: 'Event filters',

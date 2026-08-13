@@ -33,6 +33,7 @@ import {
 import { getActiveTeams, type ActiveTeam } from '@/lib/teams';
 import { formatTeamSport } from '@/lib/sports';
 import { TournamentCard } from '@/components/tournament-card';
+import { TournamentHeroCard } from '@/components/tournament-hero-card';
 import { listTournaments, type TournamentListItem } from '@/lib/tournaments';
 import { t } from '@/i18n';
 import {
@@ -125,6 +126,20 @@ export default function EventsScreen() {
 
   const showDiscoveryShelf =
     activeCount === 0 && filters.search.trim() === '' && view === 'list';
+
+  // Turniej stworzony przez admina to oficjalne wydarzenie — ma wyjść na
+  // pierwszy plan zamiast tonąć jako jedna z kart w poziomym rail'u.
+  // Preferujemy ten z otwartymi zapisami (tam gracze mają się zgłaszać
+  // najpilniej); jeśli żaden nie ma otwartych zapisów, bierzemy najbliższy
+  // nadchodzący (lista już posortowana rosnąco po dacie).
+  const featuredTournament = useMemo(
+    () => tournaments.find((tItem) => tItem.status === 'registration_open') ?? tournaments[0] ?? null,
+    [tournaments],
+  );
+  const railTournaments = useMemo(
+    () => tournaments.filter((tItem) => tItem.id !== featuredTournament?.id),
+    [tournaments, featuredTournament],
+  );
 
   function selectCategory(category: CategoryFilter) {
     setFilters((prev) => ({ ...prev, category, subcategory: null }));
@@ -312,8 +327,11 @@ export default function EventsScreen() {
           }
           ListHeaderComponent={
             <>
-              {tournaments.length > 0 ? (
-                <TournamentsRail tournaments={tournaments} onOpenTournament={openTournament} />
+              {featuredTournament ? (
+                <TournamentHeroCard tournament={featuredTournament} onPress={openTournament} />
+              ) : null}
+              {railTournaments.length > 0 ? (
+                <TournamentsRail tournaments={railTournaments} onOpenTournament={openTournament} />
               ) : null}
               {showDiscoveryShelf ? (
                 <PopularShelf
