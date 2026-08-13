@@ -14,7 +14,7 @@ import { Brand } from '@/constants/theme';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
-import { createTournament, updateTournament } from '@/lib/tournaments';
+import { createTournament, setTournamentStatus, updateTournament } from '@/lib/tournaments';
 import { uploadTournamentLogo } from '@/lib/tournament-storage';
 
 export default function CreateTournamentScreen() {
@@ -61,6 +61,11 @@ export default function CreateTournamentScreen() {
         logoFailed = Boolean(uploadError);
       }
     }
+
+    // Kreator publikuje od razu — bez tego admin musiałby dodatkowo wejść w
+    // edycję i ręcznie otworzyć rejestrację, zanim turniej stanie się
+    // widoczny/rejestrowalny dla graczy.
+    await setTournamentStatus(result.tournamentId, 'registration_open');
 
     setBusy(false);
     router.replace({
