@@ -48,6 +48,7 @@ import {
   type FieldSort,
 } from '@/lib/fields';
 import { listMyFavoriteFieldIds } from '@/lib/favorites';
+import { dedupeNearbyFields } from '@/lib/field-dedupe';
 import { formatCourtName } from '@/lib/field-display';
 import { distanceMeters } from '@/lib/geo';
 import { markInitialDiscoverReady, markInitialFieldsReady } from '@/lib/map-ready';
@@ -429,7 +430,7 @@ export function AppMap() {
         const stats = counts.get(field.id);
         return { ...field, event_count: stats?.event_count ?? 0, availability: stats?.availability };
       });
-      applyFields(merged, mapZoom);
+      applyFields(dedupeNearbyFields(merged), mapZoom);
       setFieldsLoading(false);
     },
     [applyFields, publishFeatures, showFields, sportFilter],
