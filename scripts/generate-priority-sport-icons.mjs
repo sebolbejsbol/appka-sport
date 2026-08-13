@@ -1,10 +1,14 @@
-// Regenerates the "priority" sport marker icons (basketball, football,
-// tennis, volleyball, hockey) used both for individual map pins and for the
-// per-sport mini-icons inside map clusters. Uses the system emoji/symbol
-// font's monochrome fallback glyph (resvg doesn't render color emoji, but
-// the fallback outline glyphs are real, detailed sport pictograms) in white
-// on a solid brand-color circle — much more recognizable at small marker
-// sizes than the old white-dot + thin-ring + hand-drawn-line-art look.
+// Generates ALL map marker icons (assets/map-field-icons/) in one consistent
+// style: solid brand-color circle + white ring + white monochrome glyph.
+// Supersedes the older generate-map-field-icons.py look (white dot + thin
+// colored ring + full-color emoji), which read as pale/washed-out at marker
+// size and, for a few glyphs (e.g. running), rendered inside what looked
+// like a prohibition/warning sign because of the emoji's own baked-in
+// circle. resvg only renders the system font's monochrome fallback glyph
+// (not color emoji), so glyph + circle colors are fully ours to control —
+// no more accidental "no entry" signs.
+//
+// Kolory/emoji muszą być spójne z src/lib/sports.ts (FIELD_MARKER_*).
 // Run: node scripts/generate-priority-sport-icons.mjs
 import { Resvg } from '@resvg/resvg-js';
 import { mkdirSync, writeFileSync } from 'node:fs';
@@ -23,6 +27,31 @@ const EMOJI_ICONS = {
   tennis: ['#eab308', '🎾'],
   volleyball: ['#06b6d4', '🏐'],
   hockey: ['#1d4ed8', '🏒'],
+  running: ['#ef4444', '🏃'],
+  swimming: ['#0284c7', '🏊'],
+  climbing: ['#92400e', '🧗'],
+  skatepark: ['#8b5cf6', '🛹'],
+  outdoor_gym: ['#14b8a6', '🏋️'],
+  music_club: ['#a855f7', '🎶'],
+  multi: ['#6366f1', '🥅'],
+  generic: ['#1f6bff', '📍'],
+  handball: ['#0ea5e9', '🤾'],
+  badminton: ['#84cc16', '🏸'],
+  padel: ['#0d9488', '🏓'],
+  arts_centre: ['#a78bfa', '🎨'],
+  photo_studio: ['#7c3aed', '📷'],
+  pottery: ['#b45309', '🏺'],
+  cooking_school: ['#fb923c', '🍳'],
+  chess: ['#6b7280', '♟️'],
+  park: ['#10b981', '🌳'],
+  museum: ['#db2777', '🖼️'],
+  theatre: ['#f472b6', '🎭'],
+  cinema: ['#d946ef', '🎬'],
+  library: ['#e11d48', '📖'],
+  concert_hall: ['#f59e0b', '🎤'],
+  community_centre: ['#3b82f6', '🎓'],
+  coworking: ['#78716c', '🤝'],
+  conference_centre: ['#475569', '🏢'],
 };
 
 function shell(bg, glyph) {
@@ -52,7 +81,7 @@ for (const [key, [bg, emoji]] of Object.entries(EMOJI_ICONS)) {
 // człowieka, inny styl niż reszta), więc hantle rysujemy ręcznie: prosty,
 // geometryczny kształt spójny z resztą rodziny ikon (brak figur ludzkich).
 const FITNESS_SVG = shell(
-  '#a855f7',
+  '#ec4899',
   `<g fill="#ffffff">
      <rect x="18" y="42" width="12" height="16" rx="3"/>
      <rect x="70" y="42" width="12" height="16" rx="3"/>
