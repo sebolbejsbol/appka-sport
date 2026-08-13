@@ -2,6 +2,7 @@ import Mapbox, {
   Camera,
   CircleLayer,
   FillLayer,
+  Images,
   LineLayer,
   LocationPuck,
   MapView,
@@ -50,7 +51,14 @@ import { listMyFavoriteFieldIds } from '@/lib/favorites';
 import { formatCourtName } from '@/lib/field-display';
 import { distanceMeters } from '@/lib/geo';
 import { markInitialDiscoverReady, markInitialFieldsReady } from '@/lib/map-ready';
-import { buildAvailabilityMatchExpression, buildClusterStatusColorExpression } from '@/lib/map-theme';
+import {
+  buildAvailabilityMatchExpression,
+  buildClusterCategoryProperties,
+  buildClusterIconSlotExpression,
+  buildClusterIconSlotOffsetExpression,
+  buildClusterIconSlotVisibleFilter,
+  buildClusterStatusColorExpression,
+} from '@/lib/map-theme';
 import { notifyInfo } from '@/lib/toast';
 import {
   applyDiscoverFilters,
@@ -63,6 +71,7 @@ import {
 import { type CategoryFilter } from '@/lib/event-categories';
 import { fieldFilterForSelection } from '@/lib/venue-types';
 import type { PlaceSearchResult } from '@/lib/map-geocoding';
+import { mapFieldIcons } from '@/lib/map-field-icons';
 import {
   bboxAroundCenter,
   expandBbox,
@@ -100,6 +109,10 @@ const FADE_END = 7.3;
  * dostępności, a potem wybieramy kolor wg priorytetu: jest coś otwartego? ->
  * zielony (jest gdzie grać); inaczej mało miejsc? -> pomarańczowy; inaczej
  * pełne? -> czerwony; inaczej brak eventów -> szary.
+ *
+ * Kategorie sportu w klastrze pokazujemy jako stałą siatkę ikon (1/2/3-4/5+),
+ * patrz buildClusterCategoryProperties/buildClusterIconSlot* w
+ * src/lib/map-theme.ts (dzielone z map-view.tsx).
  */
 const CLUSTER_AVAILABILITY_PROPERTIES = {
   // Suma AKTYWNYCH EVENTÓW ze wszystkich boisk w klastrze — to jest liczba,
@@ -108,6 +121,7 @@ const CLUSTER_AVAILABILITY_PROPERTIES = {
   open_count: ['+', ['case', ['==', ['get', 'availability'], 'open'], 1, 0]],
   filling_count: ['+', ['case', ['==', ['get', 'availability'], 'filling'], 1, 0]],
   full_count: ['+', ['case', ['==', ['get', 'availability'], 'full'], 1, 0]],
+  ...buildClusterCategoryProperties(),
 };
 
 type FieldSelection = { rpc: string | null; showFields: boolean };
@@ -691,6 +705,8 @@ export function AppMap() {
           }}
         />
 
+        <Images images={mapFieldIcons} />
+
         <ShapeSource
           ref={fieldsSourceRef}
           id="fields"
@@ -758,12 +774,35 @@ export function AppMap() {
               textField: ['get', 'total_events'],
               textSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 13, 10, 16, 13, 19],
               textColor: '#ffffff',
+              textOffset: [0, -0.85],
               textOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
               textAllowOverlap: true,
               textIgnorePlacement: true,
               textPitchAlignment: 'viewport',
             }}
           />
+          {/* Siatka ikon kategorii pod liczbą — stała, deterministyczna geometria
+              (patrz CLUSTER_ICON_GRID w map-theme.ts): 1 wyśrodkowana, 2 obok
+              siebie, 3-4 w układzie 2x2, 5+ -> pierwsze 3 + piktogram "more".
+              Wszystkie 4 warstwy dzielą DOKŁADNIE ten sam styl iconSize, więc
+              ikony w jednym bąblu zawsze mają identyczny rozmiar. */}
+          {([0, 1, 2, 3] as const).map((slot) => (
+            <SymbolLayer
+              key={`cluster-icon-slot-${slot}`}
+              id={`cluster-icon-slot-${slot}`}
+              filter={['all', ['has', 'point_count'], buildClusterIconSlotVisibleFilter(slot)]}
+              minZoomLevel={FADE_START}
+              style={{
+                iconImage: buildClusterIconSlotExpression(slot),
+                iconSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 0.36, 10, 0.4, 13, 0.44],
+                iconOffset: buildClusterIconSlotOffsetExpression(slot),
+                iconOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
+                iconAllowOverlap: true,
+                iconIgnorePlacement: true,
+                iconPitchAlignment: 'viewport',
+              }}
+            />
+          ))}
           {/* Miękka poświata obiektu — kolor wg dostępności (jak klaster), nie wg
               liczby eventów, żeby jeden spójny język wizualny opisywał "czy warto". */}
           <CircleLayer
@@ -819,7 +858,32 @@ export function AppMap() {
               circleStrokeOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
             }}
           />
-          {/* Liczba AKTYWNYCH EVENTÓW na tym konkretnym boisku, wyśrodkowana w bąblu —
+          {/* Ikonka sportu (górna połowa bąbla) — obrazek, bo Mapbox nie renderuje
+              emoji w warstwie tekstu (gł. Android). */}
+          <SymbolLayer
+            id="fields-icon"
+            filter={['!', ['has', 'point_count']]}
+            minZoomLevel={FADE_START}
+            style={{
+              iconImage: ['get', 'icon'],
+              iconSize: [
+                'interpolate',
+                ['linear'],
+                ['zoom'],
+                7, 0.38,
+                12, 0.52,
+                14, 0.62,
+                16, 0.74,
+                18, 0.86,
+              ],
+              iconOffset: [0, -9],
+              iconOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
+              iconAllowOverlap: true,
+              iconIgnorePlacement: true,
+              iconPitchAlignment: 'viewport',
+            }}
+          />
+          {/* Liczba AKTYWNYCH EVENTÓW na tym konkretnym boisku (dolna połowa bąbla) —
               to jest to, co user ma widzieć od razu, nie licznik graczy jednego eventu. */}
           <SymbolLayer
             id="fields-count-text"
@@ -838,6 +902,7 @@ export function AppMap() {
                 18, 21,
               ],
               textColor: '#ffffff',
+              textOffset: [0, 0.9],
               textOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
               textAllowOverlap: true,
               textIgnorePlacement: true,

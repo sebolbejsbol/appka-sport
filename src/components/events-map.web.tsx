@@ -1,6 +1,7 @@
 import Mapbox, {
   Camera,
   CircleLayer,
+  Images,
   LocationPuck,
   MapView,
   MarkerView,
@@ -14,7 +15,16 @@ import { Brand } from '@/constants/theme';
 import type { DiscoverEvent } from '@/lib/discover-events';
 import { groupEventsByVenue, soonestEvent } from '@/lib/discover-events-venue-points';
 import { POLAND_CENTER } from '@/lib/map-bbox';
-import { buildAvailabilityMatchExpression, buildClusterStatusColorExpression } from '@/lib/map-theme';
+import { mapFieldIcons } from '@/lib/map-field-icons';
+import {
+  buildAvailabilityMatchExpression,
+  buildClusterCategoryProperties,
+  buildClusterIconSlotExpression,
+  buildClusterIconSlotOffsetExpression,
+  buildClusterIconSlotVisibleFilter,
+  buildClusterStatusColorExpression,
+} from '@/lib/map-theme';
+import { fieldMarkerIcon } from '@/lib/sports';
 import type { TournamentListItem } from '@/lib/tournaments';
 import type { LngLat } from '@/hooks/use-user-location';
 
@@ -28,15 +38,17 @@ type Props = {
 
 /**
  * Klaster/pojedynczy obiekt (nie pojedynczy event!) — dokładnie ten sam język
- * wizualny co główna mapa: czarne kółko, kolorowa obwódka statusu. Event to
- * WYŁĄCZNIE dane zasilające wygląd punktu, do którego fizycznie należy
- * (patrz groupEventsByVenue) — nigdy własny, osobny marker na mapie.
+ * wizualny co główna mapa: czarne kółko, kolorowa obwódka statusu, siatka
+ * ikon kategorii / jedna ikona sportu. Event to WYŁĄCZNIE dane zasilające
+ * wygląd punktu, do którego fizycznie należy (patrz groupEventsByVenue) —
+ * nigdy własny, osobny marker na mapie.
  */
 const CLUSTER_AVAILABILITY_PROPERTIES = {
   total_events: ['+', ['get', 'event_count']],
   open_count: ['+', ['case', ['==', ['get', 'availability'], 'open'], 1, 0]],
   filling_count: ['+', ['case', ['==', ['get', 'availability'], 'filling'], 1, 0]],
   full_count: ['+', ['case', ['==', ['get', 'availability'], 'full'], 1, 0]],
+  ...buildClusterCategoryProperties(),
 };
 
 function venuePointsToGeoJSON(points: ReturnType<typeof groupEventsByVenue>['points']) {
@@ -47,8 +59,10 @@ function venuePointsToGeoJSON(points: ReturnType<typeof groupEventsByVenue>['poi
       id: p.id,
       properties: {
         id: p.id,
+        sport: p.sport,
         event_count: p.eventCount,
         availability: p.availability,
+        icon: fieldMarkerIcon(p.sport),
       },
       geometry: { type: 'Point' as const, coordinates: [p.lng, p.lat] },
     })),
@@ -97,6 +111,8 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
           animationDuration={800}
         />
 
+        <Images images={mapFieldIcons} />
+
         <ShapeSource
           id="event-venues"
           shape={shape}
@@ -132,11 +148,27 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
               textField: ['get', 'total_events'],
               textSize: 15,
               textColor: '#ffffff',
+              textOffset: [0, -0.85],
               textAllowOverlap: true,
               textIgnorePlacement: true,
               textPitchAlignment: 'viewport',
             }}
           />
+          {([0, 1, 2, 3] as const).map((slot) => (
+            <SymbolLayer
+              key={`event-venues-cluster-icon-slot-${slot}`}
+              id={`event-venues-cluster-icon-slot-${slot}`}
+              filter={['all', ['has', 'point_count'], buildClusterIconSlotVisibleFilter(slot)]}
+              style={{
+                iconImage: buildClusterIconSlotExpression(slot),
+                iconSize: 0.4,
+                iconOffset: buildClusterIconSlotOffsetExpression(slot),
+                iconAllowOverlap: true,
+                iconIgnorePlacement: true,
+                iconPitchAlignment: 'viewport',
+              }}
+            />
+          ))}
           <CircleLayer
             id="event-venue-ring"
             filter={['!', ['has', 'point_count']]}
@@ -148,12 +180,25 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
             }}
           />
           <SymbolLayer
+            id="event-venue-icon"
+            filter={['!', ['has', 'point_count']]}
+            style={{
+              iconImage: ['get', 'icon'],
+              iconSize: 0.6,
+              iconOffset: [0, -9],
+              iconAllowOverlap: true,
+              iconIgnorePlacement: true,
+              iconPitchAlignment: 'viewport',
+            }}
+          />
+          <SymbolLayer
             id="event-venue-count"
             filter={['!', ['has', 'point_count']]}
             style={{
               textField: ['get', 'event_count'],
               textSize: 16,
               textColor: '#ffffff',
+              textOffset: [0, 0.9],
               textAllowOverlap: true,
               textIgnorePlacement: true,
               textPitchAlignment: 'viewport',

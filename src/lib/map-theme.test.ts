@@ -3,9 +3,16 @@ import { describe, expect, it } from 'vitest';
 import { Brand } from '@/constants/theme';
 import {
   buildAvailabilityMatchExpression,
+  buildClusterCategoryProperties,
+  buildClusterIconSlotExpression,
+  buildClusterIconSlotVisibleFilter,
   buildClusterStatusColorExpression,
+  CLUSTER_GRID_MAX_SLOTS,
+  CLUSTER_ICON_SPORTS,
+  clusterIconSlots,
   getAvailabilityColor,
   MAP_STATUS_COLORS,
+  presentCategories,
 } from '@/lib/map-theme';
 
 describe('getAvailabilityColor', () => {
@@ -39,5 +46,92 @@ describe('buildAvailabilityMatchExpression', () => {
       'open', MAP_STATUS_COLORS.open,
       MAP_STATUS_COLORS.empty,
     ]);
+  });
+});
+
+describe('buildClusterCategoryProperties', () => {
+  it('has one count_* property per CLUSTER_ICON_SPORTS entry plus count_other', () => {
+    const props = buildClusterCategoryProperties();
+    for (const sport of CLUSTER_ICON_SPORTS) {
+      expect(props[`count_${sport}`]).toBeDefined();
+    }
+    expect(props.count_other).toBeDefined();
+    expect(Object.keys(props)).toHaveLength(CLUSTER_ICON_SPORTS.length + 1);
+  });
+});
+
+describe('presentCategories', () => {
+  it('returns only categories with a positive count, in priority order', () => {
+    expect(presentCategories({ football: 3, basketball: 2, other: 1 })).toEqual([
+      'basketball',
+      'football',
+      'other',
+    ]);
+  });
+
+  it('ignores zero/missing counts', () => {
+    expect(presentCategories({ basketball: 0, football: undefined })).toEqual([]);
+    expect(presentCategories({})).toEqual([]);
+  });
+});
+
+describe('clusterIconSlots', () => {
+  it('centers a single category', () => {
+    expect(clusterIconSlots({ basketball: 3 })).toEqual(['basketball']);
+  });
+
+  it('keeps 2, 3, and exactly 4 categories as real icons (no overflow glyph)', () => {
+    expect(clusterIconSlots({ basketball: 1, football: 1 })).toEqual(['basketball', 'football']);
+    expect(clusterIconSlots({ basketball: 1, football: 1, tennis: 1 })).toEqual([
+      'basketball',
+      'football',
+      'tennis',
+    ]);
+    expect(clusterIconSlots({ basketball: 1, football: 1, tennis: 1, volleyball: 1 })).toEqual([
+      'basketball',
+      'football',
+      'tennis',
+      'volleyball',
+    ]);
+  });
+
+  it('caps at 3 real icons + a "more" glyph for 5+ categories, never exceeding CLUSTER_GRID_MAX_SLOTS', () => {
+    const slots = clusterIconSlots({
+      basketball: 1,
+      football: 1,
+      tennis: 1,
+      volleyball: 1,
+      hockey: 1,
+    });
+    expect(slots).toEqual(['basketball', 'football', 'tennis', 'more']);
+    expect(slots).toHaveLength(CLUSTER_GRID_MAX_SLOTS);
+  });
+
+  it('never returns more than CLUSTER_GRID_MAX_SLOTS entries for any input', () => {
+    const allPresent = Object.fromEntries(CLUSTER_ICON_SPORTS.map((s) => [s, 1]));
+    expect(clusterIconSlots({ ...allPresent, other: 1 }).length).toBeLessThanOrEqual(CLUSTER_GRID_MAX_SLOTS);
+  });
+});
+
+describe('buildClusterIconSlotVisibleFilter', () => {
+  it('requires slot index + 1 present categories', () => {
+    expect(buildClusterIconSlotVisibleFilter(0)).toEqual(['>=', expect.anything(), 1]);
+    expect(buildClusterIconSlotVisibleFilter(3)).toEqual(['>=', expect.anything(), 4]);
+  });
+});
+
+describe('buildClusterIconSlotExpression', () => {
+  it('slot 3 falls back to the "more" glyph when the count exceeds CLUSTER_GRID_MAX_SLOTS', () => {
+    const expr = buildClusterIconSlotExpression(3);
+    expect(expr[0]).toBe('case');
+    // ['case', [>, total, 4], 'more', <slot-3-category-expr>]
+    expect(expr[1][0]).toBe('>');
+    expect(expr[2]).toBe('more');
+  });
+
+  it('slots 0-2 resolve to a plain case expression over present/rank checks', () => {
+    const expr = buildClusterIconSlotExpression(0);
+    expect(expr[0]).toBe('case');
+    expect(expr.at(-1)).toBe('generic'); // trailing fallback
   });
 });
