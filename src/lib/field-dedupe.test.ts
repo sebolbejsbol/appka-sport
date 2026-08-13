@@ -72,4 +72,12 @@ describe('dedupeNearbyFields', () => {
     const result = dedupeNearbyFields(fields);
     expect(result[0].availability).toBe('open');
   });
+
+  it('treats fitness and outdoor_gym as the same category (OSM tags the same real thing differently)', () => {
+    const fields = [
+      field({ id: 'a', sport: 'fitness', lat: 54.35, lng: 18.6 }),
+      field({ id: 'b', sport: 'outdoor_gym', lat: 54.3502, lng: 18.6 }),
+    ];
+    expect(dedupeNearbyFields(fields)).toHaveLength(1);
+  });
 });

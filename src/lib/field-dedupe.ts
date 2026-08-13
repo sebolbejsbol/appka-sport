@@ -26,6 +26,23 @@ export type DedupableField = {
  */
 const DEDUPE_DISTANCE_METERS = 25;
 
+/**
+ * Kategorie traktowane jako "ten sam sport" wyłącznie na potrzeby scalania —
+ * te same pary co w clusterSportCondition() w map-theme.ts (siłownia plenerowa
+ * w OSM bywa tagowana jako `outdoor_gym`, ale wizualnie/funkcjonalnie to
+ * "fitness"). Bez tego dwa węzły tej samej strefy z różnym tagiem OSM nigdy
+ * by się nie scaliły, mimo że stoją metr od siebie.
+ */
+const SPORT_EQUIVALENCE_GROUPS: readonly (readonly string[])[] = [['fitness', 'outdoor_gym']];
+
+function canonicalSport(sport: string | null): string | null {
+  if (sport == null) return null;
+  for (const group of SPORT_EQUIVALENCE_GROUPS) {
+    if (group.includes(sport)) return group[0];
+  }
+  return sport;
+}
+
 const AVAILABILITY_PRIORITY: Record<CourtAvailability, number> = {
   open: 3,
   filling: 2,
@@ -66,7 +83,7 @@ export function dedupeNearbyFields<T extends DedupableField>(fields: T[]): T[] {
 
   for (let i = 0; i < n; i++) {
     for (let j = i + 1; j < n; j++) {
-      if (fields[i].sport !== fields[j].sport) continue;
+      if (canonicalSport(fields[i].sport) !== canonicalSport(fields[j].sport)) continue;
       const dist = distanceMeters([fields[i].lng, fields[i].lat], [fields[j].lng, fields[j].lat]);
       if (dist <= DEDUPE_DISTANCE_METERS) union(i, j);
     }

@@ -383,7 +383,11 @@ export function AppMap() {
         const players = fieldPlayersMap.get(field.id);
         return { ...field, players_current: players?.current ?? 0, players_max: players?.max ?? null };
       });
-      setFeatures(fieldsToGeoJSON(enriched));
+      // Scalanie na PEŁNYM, zebranym zestawie (nie tylko świeżo pobranej paczce) —
+      // dwa boiska bliżej niż próg mogły dojechać z osobnych zapytań bbox przy
+      // przesuwaniu mapy i inaczej nigdy by się nie spotkały w jednym wywołaniu
+      // dedupeNearbyFields, zostając jako dwa trwałe, sąsiadujące bąble.
+      setFeatures(fieldsToGeoJSON(dedupeNearbyFields(enriched)));
     },
     [showFields, fieldPlayersMap],
   );
@@ -447,7 +451,7 @@ export function AppMap() {
         const stats = counts.get(field.id);
         return { ...field, event_count: stats?.event_count ?? 0, availability: stats?.availability };
       });
-      applyFields(dedupeNearbyFields(merged), mapZoom);
+      applyFields(merged, mapZoom);
       setFieldsLoading(false);
     },
     [applyFields, publishFeatures, showFields, sportFilter],
