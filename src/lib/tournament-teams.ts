@@ -23,6 +23,7 @@ export type RegisterTeamResult =
   | 'team_not_found'
   | 'not_open'
   | 'wrong_sport'
+  | 'team_too_small'
   | 'already_registered'
   | 'tournament_full'
   | 'error';
@@ -35,6 +36,7 @@ export type AdminRespondResult =
   | 'not_found'
   | 'not_pending'
   | 'tournament_full'
+  | 'team_too_small'
   | 'error';
 
 export type AdminRemoveResult = 'ok' | 'not_admin' | 'not_found' | 'error';

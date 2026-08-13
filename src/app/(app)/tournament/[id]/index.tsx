@@ -1,4 +1,4 @@
-import { useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
+import { router, useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -206,6 +206,13 @@ export default function TournamentDetailScreen() {
     );
   }
 
+  const myRegisteredTeam = myTeams.find((team) => {
+    const s = myStatuses[team.team_id];
+    return s === 'pending' || s === 'approved';
+  });
+  const spotsAvailable = registrations.length < tournament.max_teams;
+  const canAddTeam = tournament.status === 'registration_open' && !myRegisteredTeam && spotsAvailable;
+
   return (
     <View style={styles.flex}>
       <ScreenHeader insetTop={insets.top} title={tournament.name} onBack={() => goBack('/' as Href)} />
@@ -250,7 +257,7 @@ export default function TournamentDetailScreen() {
           </Text>
         </View>
 
-        {myTeams.length > 0 && tournament.status === 'registration_open' ? (
+        {(myTeams.length > 0 || canAddTeam) && tournament.status === 'registration_open' ? (
           <View style={styles.registerBlock}>
             <Text style={styles.sectionHeading}>{t('tournamentTeams.registerSectionTitle')}</Text>
             {(() => {
@@ -310,6 +317,16 @@ export default function TournamentDetailScreen() {
                 </>
               );
             })()}
+            {canAddTeam ? (
+              <Button
+                label={t('tournamentTeamBuilder.addTeamCta')}
+                variant="secondary"
+                onPress={() =>
+                  router.push({ pathname: '/tournament/[id]/build-team', params: { id: tournamentId ?? '' } })
+                }
+                style={styles.registerBtn}
+              />
+            ) : null}
             {regError ? <Text style={styles.regErrorText}>{regError}</Text> : null}
           </View>
         ) : null}

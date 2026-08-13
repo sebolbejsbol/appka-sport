@@ -13,16 +13,20 @@ type Props = {
   teamId: string;
   /** Wywołane po udanym wysłaniu zaproszenia — np. do odświeżenia składu drużyny w kreatorze. */
   onInvited?: (userId: string) => void;
+  /**
+   * false gdy lista jest osadzona wewnątrz zewnętrznego ScrollView (np. krok
+   * kreatora drużyny turniejowej) — wyłącza własne przewijanie FlatList,
+   * scroll przejmuje wtedy rodzic. Domyślnie true (użycie standalone).
+   */
+  scrollEnabled?: boolean;
 };
 
 /**
  * Wyszukiwarka graczy po nicku + wysyłanie zaproszeń do drużyny — dokładnie
  * ta sama logika co w standalone /teams/[id]/invite (stąd wydzielenie), teraz
  * reużywana też jako krok kreatora drużyny turniejowej (build-team.tsx).
- * Renderuje własną FlatList — NIE osadzać wewnątrz ScrollView (zagnieżdżone
- * VirtualizedList), rodzic powinien dać jej po prostu dostępną przestrzeń flex.
  */
-export function PlayerSearchInviteList({ teamId, onInvited }: Props) {
+export function PlayerSearchInviteList({ teamId, onInvited, scrollEnabled = true }: Props) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<ProfileSearchHit[]>([]);
   const [loading, setLoading] = useState(false);
@@ -73,6 +77,7 @@ export function PlayerSearchInviteList({ teamId, onInvited }: Props) {
           data={results}
           keyExtractor={(item) => item.user_id}
           style={styles.list}
+          scrollEnabled={scrollEnabled}
           ListEmptyComponent={
             <Text style={styles.empty}>
               {query.trim().length < 2 ? t('social.searchHint') : t('social.emptySearch')}
