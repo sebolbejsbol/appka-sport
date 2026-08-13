@@ -32,7 +32,6 @@ const SIZE = 108; // 36 * 3 (@3x, matches FIELD_ICON_SCALE=3 in map-field-icons.
 const MATERIAL_ICONS = {
   basketball: ['#f97316', 'sports_basketball'],
   football: ['#22c55e', 'sports_soccer'],
-  tennis: ['#eab308', 'sports_tennis'],
   volleyball: ['#06b6d4', 'sports_volleyball'],
   hockey: ['#1d4ed8', 'sports_hockey'],
   running: ['#ef4444', 'directions_run'],
@@ -61,7 +60,12 @@ const MATERIAL_ICONS = {
   conference_centre: ['#475569', 'corporate_fare'],
 };
 
-/** pottery.png keeps its existing hand-rendered art — no decent Material Symbols match. */
+/**
+ * pottery.png keeps its existing hand-rendered art — no decent Material
+ * Symbols match. tennis.png is ALSO hand-drawn (see below, near fitness/
+ * more) rather than sourced from Material Symbols — `sports_tennis` reads
+ * as a lollipop, not a racket, at marker size.
+ */
 const SKIPPED_KEYS = ['pottery'];
 
 function shell(bg, glyph) {
@@ -119,6 +123,26 @@ const FITNESS_SVG = shell(
   writeFileSync(join(OUT_DIR, 'fitness.png'), resvg.render().asPng());
 }
 
+// Tenis — rakieta (owalna głowa z naciągiem + rączka) i piłka rysowane ręcznie:
+// Material Symbols `sports_tennis` jest zbyt abstrakcyjne w rozmiarze znacznika
+// (czyta się jak lizak, nie rakieta).
+const TENNIS_SVG = shell(
+  '#eab308',
+  `<g transform="translate(40,38) rotate(-25)" fill="none" stroke="#ffffff" stroke-width="5" stroke-linecap="round">
+     <ellipse cx="0" cy="-19" rx="14.5" ry="18.5"/>
+     <line x1="-7" y1="-29" x2="7" y2="-9"/>
+     <line x1="7" y1="-29" x2="-7" y2="-9"/>
+     <line x1="0" y1="-37.5" x2="0" y2="-0.5"/>
+     <line x1="-12" y1="-19" x2="12" y2="-19"/>
+     <line x1="0" y1="0" x2="0" y2="22"/>
+   </g>
+   <circle cx="73" cy="68" r="10" fill="#ffffff"/>`,
+);
+{
+  const resvg = new Resvg(TENNIS_SVG, { fitTo: { mode: 'width', value: SIZE } });
+  writeFileSync(join(OUT_DIR, 'tennis.png'), resvg.render().asPng());
+}
+
 // "Więcej" — piktogram nadmiaru kategorii w klastrze (gdy jest ich więcej niż
 // mieści się w siatce 2x2), neutralny szary, żeby nie sugerował konkretnego sportu.
 const MORE_SVG = shell(
@@ -135,6 +159,6 @@ const MORE_SVG = shell(
 }
 
 console.log(
-  `Wygenerowano ${Object.keys(MATERIAL_ICONS).length + 2} ikon w ${OUT_DIR} ` +
-    `(pominięto: ${SKIPPED_KEYS.join(', ')} — zachowują istniejący plik)`,
+  `Wygenerowano ${Object.keys(MATERIAL_ICONS).length + 3} ikon w ${OUT_DIR} ` +
+    `(pominięto: ${SKIPPED_KEYS.join(', ')} — zachowuje istniejący plik)`,
 );
