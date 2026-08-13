@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View, Image } from 'react-native';
+import { Pressable, StyleSheet, Text, View, Image } from 'react-native';
 
 import { DatePickerField } from '@/components/date-picker-field';
 import { FieldReportLocationPicker, type LocationPickerCopy } from '@/components/field-report-map-picker';
@@ -41,7 +41,6 @@ export type TournamentFormValue = {
   pointsDraw: string;
   pointsLoss: string;
   allowDraws: boolean;
-  groupNames: string[];
 };
 
 export function emptyTournamentFormValue(): TournamentFormValue {
@@ -75,7 +74,6 @@ export function emptyTournamentFormValue(): TournamentFormValue {
     pointsDraw: '1',
     pointsLoss: '0',
     allowDraws: true,
-    groupNames: [''],
   };
 }
 
@@ -118,7 +116,6 @@ export function tournamentToFormValue(tournament: Tournament): TournamentFormVal
     pointsDraw: String(tournament.points_draw),
     pointsLoss: String(tournament.points_loss),
     allowDraws: tournament.allow_draws,
-    groupNames: tournament.groups.length > 0 ? tournament.groups.map((g) => g.name) : [''],
   };
 }
 
@@ -154,11 +151,6 @@ export function validateTournamentForm(v: TournamentFormValue): string | null {
   const substitutes = toInt(v.substitutesPerTeam);
   if (!Number.isFinite(substitutes) || substitutes < 0 || substitutes > 15)
     return t('tournamentForm.errSubstitutes');
-
-  const groups = v.groupNames.map((g) => g.trim()).filter(Boolean);
-  if (groups.length < 1 || groups.length > 16) return t('tournamentForm.errGroups');
-  if (groups.some((g) => g.length > 40)) return t('tournamentForm.errGroupNames');
-  if (new Set(groups).size !== groups.length) return t('tournamentForm.errGroupDuplicate');
 
   return null;
 }
@@ -196,7 +188,6 @@ export function tournamentFormValueToInput(v: TournamentFormValue): NewTournamen
     pointsDraw: toInt(v.pointsDraw),
     pointsLoss: toInt(v.pointsLoss),
     allowDraws: v.allowDraws,
-    groupNames: v.groupNames.map((g) => g.trim()).filter(Boolean),
   };
 }
 
@@ -212,7 +203,6 @@ type TournamentFormSections = {
   location: ReactNode;
   teamSetup: ReactNode;
   scoring: ReactNode;
-  groups: ReactNode;
 };
 
 /**
@@ -244,22 +234,6 @@ export function useTournamentFormSections({ value, onChange, disabled }: Props):
     setBusyLogo(false);
     if (!picked) return;
     onChange({ logoUri: picked.uri, logoMime: picked.mimeType, logoBase64: picked.base64 ?? null });
-  }
-
-  function setGroup(index: number, name: string) {
-    const next = [...value.groupNames];
-    next[index] = name;
-    onChange({ groupNames: next });
-  }
-
-  function addGroup() {
-    if (value.groupNames.length >= 16) return;
-    onChange({ groupNames: [...value.groupNames, ''] });
-  }
-
-  function removeGroup(index: number) {
-    if (value.groupNames.length <= 1) return;
-    onChange({ groupNames: value.groupNames.filter((_, i) => i !== index) });
   }
 
   const identity = (
@@ -510,33 +484,7 @@ export function useTournamentFormSections({ value, onChange, disabled }: Props):
     </>
   );
 
-  const groups = (
-    <>
-      {value.groupNames.map((name, index) => (
-        <View key={index} style={styles.groupRow}>
-          <TextInput
-            style={styles.groupInput}
-            value={name}
-            onChangeText={(text) => setGroup(index, text)}
-            placeholder={t('tournamentForm.groupPlaceholder')}
-            placeholderTextColor={Brand.textMuted}
-            editable={!disabled}
-          />
-          <Pressable
-            disabled={disabled || value.groupNames.length <= 1}
-            onPress={() => removeGroup(index)}
-            style={styles.removeGroupBtn}>
-            <Text style={styles.removeGroupText}>{t('tournamentForm.removeGroup')}</Text>
-          </Pressable>
-        </View>
-      ))}
-      <Pressable disabled={disabled} onPress={addGroup} style={styles.secondaryBtn}>
-        <Text style={styles.secondaryBtnText}>{t('tournamentForm.addGroup')}</Text>
-      </Pressable>
-    </>
-  );
-
-  return { identity, schedule, location, teamSetup, scoring, groups };
+  return { identity, schedule, location, teamSetup, scoring };
 }
 
 export function TournamentForm({ value, onChange, disabled }: Props) {
@@ -552,9 +500,6 @@ export function TournamentForm({ value, onChange, disabled }: Props) {
       <Text style={styles.sectionTitle}>{t('tournamentForm.sectionConfig')}</Text>
       {sections.teamSetup}
       {sections.scoring}
-
-      <Text style={styles.sectionTitle}>{t('tournamentForm.sectionGroups')}</Text>
-      {sections.groups}
     </View>
   );
 }
@@ -627,18 +572,4 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   secondaryBtnText: { fontSize: 14, fontWeight: '600', color: Brand.textPrimary },
-  groupRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  groupInput: {
-    flex: 1,
-    backgroundColor: Brand.surface,
-    borderWidth: 1,
-    borderColor: Brand.border,
-    borderRadius: Radius.md,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 16,
-    color: Brand.textPrimary,
-  },
-  removeGroupBtn: { paddingHorizontal: 10, paddingVertical: 10 },
-  removeGroupText: { fontSize: 13, fontWeight: '600', color: Brand.danger },
 });

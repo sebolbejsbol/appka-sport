@@ -108,7 +108,6 @@ export type NewTournament = {
   pointsDraw: number;
   pointsLoss: number;
   allowDraws: boolean;
-  groupNames: string[];
 };
 
 export type TournamentUpdate = NewTournament;
@@ -135,6 +134,14 @@ export type SetTournamentStatusResult =
 
 /** 'locked' = turniej nie jest w statusie draft/cancelled (trzeba go najpierw anulować). */
 export type DeleteTournamentResult = 'ok' | 'not_admin' | 'not_found' | 'locked' | 'error';
+
+export type AutoOrganizeResult =
+  | 'ok'
+  | 'not_admin'
+  | 'not_found'
+  | 'invalid_status'
+  | 'not_enough_teams'
+  | 'error';
 
 function parseSport(raw: unknown): TournamentSport {
   return raw === 'football' || raw === 'volleyball' || raw === 'handball' ? raw : 'basketball';
@@ -239,7 +246,6 @@ function toRpcPayload(input: NewTournament) {
     p_points_draw: input.pointsDraw,
     p_points_loss: input.pointsLoss,
     p_allow_draws: input.allowDraws,
-    p_group_names: input.groupNames,
   };
 }
 
@@ -289,6 +295,14 @@ export async function deleteTournament(tournamentId: string): Promise<DeleteTour
   });
   if (error) return 'error';
   return (data as DeleteTournamentResult | null) ?? 'error';
+}
+
+export async function autoOrganizeTournament(tournamentId: string): Promise<AutoOrganizeResult> {
+  const { data, error } = await supabase.rpc('admin_auto_organize_tournament', {
+    p_tournament_id: tournamentId,
+  });
+  if (error) return 'error';
+  return (data as AutoOrganizeResult | null) ?? 'error';
 }
 
 export async function getTournamentDetail(

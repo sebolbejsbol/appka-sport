@@ -17,7 +17,15 @@ import {
   listTournamentTeamRegistrations,
   type TournamentTeamRegistration,
 } from '@/lib/tournament-teams';
-import { getTournamentDetail, type Tournament } from '@/lib/tournaments';
+import { autoOrganizeTournament, getTournamentDetail, type AutoOrganizeResult, type Tournament } from '@/lib/tournaments';
+
+function organizeErrorMessage(result: AutoOrganizeResult): string {
+  switch (result) {
+    case 'invalid_status': return t('tournamentTeams.autoOrganizeErrorInvalidStatus');
+    case 'not_enough_teams': return t('tournamentTeams.autoOrganizeErrorNotEnoughTeams');
+    default: return t('tournamentTeams.autoOrganizeError');
+  }
+}
 
 type StatusFilter = 'all' | 'pending' | 'approved' | 'rejected';
 
@@ -52,6 +60,9 @@ export default function ManageTournamentTeamsScreen() {
   const [loadError, setLoadError] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [organizeBusy, setOrganizeBusy] = useState(false);
+  const [organizeError, setOrganizeError] = useState<string | null>(null);
+  const [organizeSuccess, setOrganizeSuccess] = useState<'direct' | 'groups' | null>(null);
 
   const load = useCallback(async () => {
     if (!tournamentId || !isAdmin) return;
@@ -122,6 +133,33 @@ export default function ManageTournamentTeamsScreen() {
     void load();
   }
 
+  function confirmOrganize() {
+    confirmAction(
+      t('tournamentTeams.autoOrganizeConfirmTitle'),
+      t('tournamentTeams.autoOrganizeConfirmMessage'),
+      t('tournamentTeams.autoOrganizeAction'),
+      t('common.cancel'),
+      () => void handleOrganize(),
+      false,
+    );
+  }
+
+  async function handleOrganize() {
+    if (!tournamentId) return;
+    setOrganizeBusy(true);
+    setOrganizeError(null);
+    setOrganizeSuccess(null);
+    const result = await autoOrganizeTournament(tournamentId);
+    setOrganizeBusy(false);
+    if (result !== 'ok') {
+      setOrganizeError(organizeErrorMessage(result));
+      return;
+    }
+    const { data: fresh } = await getTournamentDetail(tournamentId);
+    setOrganizeSuccess(fresh?.status === 'in_progress' ? 'direct' : 'groups');
+    void load();
+  }
+
   if (roleLoading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
@@ -146,6 +184,25 @@ export default function ManageTournamentTeamsScreen() {
         title={tournament ? `${t('tournamentTeams.manageTitle')} — ${tournament.name}` : t('tournamentTeams.manageTitle')}
         onBack={() => goBack({ pathname: '/admin/tournaments/[id]/edit', params: { id: tournamentId ?? '' } } as Href)}
       />
+
+      {tournament && tournament.status === 'registration_closed' ? (
+        <View style={styles.organizeBlock}>
+          <Button
+            label={t('tournamentTeams.autoOrganizeAction')}
+            onPress={confirmOrganize}
+            disabled={organizeBusy}
+            style={styles.organizeBtn}
+          />
+          {organizeError ? <Text style={styles.actionErrorText}>{organizeError}</Text> : null}
+        </View>
+      ) : null}
+      {organizeSuccess ? (
+        <Text style={styles.organizeSuccessText}>
+          {organizeSuccess === 'direct'
+            ? t('tournamentTeams.autoOrganizeSuccessBracket')
+            : t('tournamentTeams.autoOrganizeSuccessGroups')}
+        </Text>
+      ) : null}
 
       <View style={styles.filtersRow}>
         {(['all', 'pending', 'approved', 'rejected'] as StatusFilter[]).map((f) => (
@@ -248,6 +305,14 @@ const styles = StyleSheet.create({
   loader: { marginTop: 32 },
   muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
   actionErrorText: { fontSize: 13, color: Brand.danger, marginTop: 8, marginHorizontal: 20 },
+  organizeBlock: { paddingHorizontal: 20, marginTop: 12, gap: 8 },
+  organizeBtn: { alignSelf: 'flex-start' },
+  organizeSuccessText: {
+    fontSize: 13,
+    color: Brand.textSecondary,
+    marginTop: 8,
+    marginHorizontal: 20,
+  },
   filtersRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',

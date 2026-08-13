@@ -42,9 +42,14 @@ begin
   select status, tournament_id into v_status, v_tournament_id from public.admin_create_tournament(
     'Matches Test Cup', null, null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    8, 7, 1, 0, false, 3, 1, 0, false, array['Grupa A', 'Grupa B']
+    8, 7, 1, 0, false, 3, 1, 0, false
   );
   if v_status <> 'ok' or v_tournament_id is null then raise exception 'FAIL tournament fixture create, got %', v_status; end if;
+  -- Grupy nie są już tworzone przez admin_create_tournament (0087) — ten test
+  -- ćwiczy terminarz/tabelę fazy grupowej bezpośrednio (funkcjonalność
+  -- niezmieniona), więc zasiewamy grupy ręcznie zamiast przez segregator.
+  insert into public.tournament_groups (tournament_id, name, sort_order) values
+    (v_tournament_id, 'Grupa A', 0), (v_tournament_id, 'Grupa B', 1);
   select id into v_group_a from public.tournament_groups where tournament_id = v_tournament_id order by sort_order limit 1;
   select id into v_group_b from public.tournament_groups where tournament_id = v_tournament_id order by sort_order offset 1 limit 1;
   insert into _t values ('fixture: tournament (requires_approval=false, allow_draws=false, min=7/max=8) created OK');
@@ -229,10 +234,11 @@ begin
   select status, tournament_id into v_status, v_draw_tournament_id from public.admin_create_tournament(
     'Draws Test Cup', null, null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    2, 2, 1, 0, false, 3, 1, 0, false, array['Solo Group']
+    2, 2, 1, 0, false, 3, 1, 0, false
   );
   if v_status <> 'ok' then raise exception 'FAIL draw-test tournament create, got %', v_status; end if;
-  select id into v_draw_group_id from public.tournament_groups where tournament_id = v_draw_tournament_id limit 1;
+  insert into public.tournament_groups (tournament_id, name, sort_order) values (v_draw_tournament_id, 'Solo Group', 0)
+    returning id into v_draw_group_id;
 
   perform set_config('request.jwt.claims', json_build_object('sub', v_manager, 'role', 'authenticated')::text, true);
   insert into public.teams (name, sport, owner_id) values ('Draw Team One', 'basketball', v_manager) returning id into v_d1;

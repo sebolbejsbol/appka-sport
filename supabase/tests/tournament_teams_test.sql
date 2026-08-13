@@ -44,9 +44,15 @@ begin
   select status, tournament_id into v_status, v_tournament_id from public.admin_create_tournament(
     'Registration Test Cup', null, null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    2, 2, 1, 0, true, 3, 1, 0, true, array['Grupa A', 'Grupa B']
+    2, 2, 1, 0, true, 3, 1, 0, true
   );
   if v_status <> 'ok' or v_tournament_id is null then raise exception 'FAIL tournament fixture create, got %', v_status; end if;
+  -- Grupy nie są już tworzone przez admin_create_tournament (0087) — segregator
+  -- tworzy je automatycznie po zamknięciu zapisów. Ten test wciąż sprawdza
+  -- admin_assign_team_group bezpośrednio (funkcjonalność niezmieniona), więc
+  -- zasiewamy grupy ręcznie, tak jak wcześniej robił to admin_create_tournament.
+  insert into public.tournament_groups (tournament_id, name, sort_order) values
+    (v_tournament_id, 'Grupa A', 0), (v_tournament_id, 'Grupa B', 1);
   select id into v_group_id from public.tournament_groups where tournament_id = v_tournament_id order by sort_order limit 1;
   insert into _t values ('fixture: tournament (max_teams=2, min_teams=2, requires_approval) created OK');
 
@@ -246,7 +252,7 @@ begin
   select status, tournament_id into v_status, v_size_tournament_id from public.admin_create_tournament(
     'Registration Size Test Cup', null, null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    4, 2, 2, 0, false, 3, 1, 0, true, array['Grupa A']
+    4, 2, 2, 0, false, 3, 1, 0, true
   );
   if v_status <> 'ok' or v_size_tournament_id is null then
     raise exception 'FAIL size-test tournament fixture create, got %', v_status;

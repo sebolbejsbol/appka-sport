@@ -24,7 +24,6 @@ const STEP_TITLES = [
   'stepLocation',
   'sectionConfig',
   'stepScoring',
-  'sectionGroups',
   'stepReview',
 ] as const;
 
@@ -34,7 +33,6 @@ const STEP_HINTS = [
   'stepLocationHint',
   'stepTeamSetupHint',
   'stepScoringHint',
-  'stepGroupsHint',
   'stepReviewHint',
 ] as const;
 
@@ -58,7 +56,6 @@ export function TournamentFormWizard({ value, onChange, onSubmit, disabled }: Pr
     sections.location,
     sections.teamSetup,
     sections.scoring,
-    sections.groups,
     <ReviewSummary key="review" value={value} />,
   ];
 
@@ -66,9 +63,6 @@ export function TournamentFormWizard({ value, onChange, onSubmit, disabled }: Pr
 
   function localStepCheck(index: number): string | null {
     if (index === 0 && value.name.trim().length < 3) return t('tournamentForm.errName');
-    if (index === 5 && value.groupNames.map((g) => g.trim()).filter(Boolean).length < 1) {
-      return t('tournamentForm.errGroups');
-    }
     return null;
   }
 
@@ -121,10 +115,6 @@ function ReviewSummary({ value }: { value: TournamentFormValue }) {
     [t('tournamentForm.locationName'), value.locationName || '—'],
     [t('tournamentForm.maxTeams'), value.maxTeams || '—'],
     [t('tournamentForm.playersPerTeam'), value.playersPerTeam || '—'],
-    [
-      t('tournamentForm.sectionGroups'),
-      value.groupNames.map((g) => g.trim()).filter(Boolean).join(', ') || '—',
-    ],
   ];
   return (
     <>

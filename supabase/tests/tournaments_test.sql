@@ -27,12 +27,12 @@ begin
   select status into v_status from public.admin_create_tournament(
     'Test Cup', null, null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    8, 2, 5, 0, false, 3, 1, 0, true, array['Grupa A', 'Grupa B']
+    8, 2, 5, 0, false, 3, 1, 0, true
   );
   if v_status <> 'not_admin' then raise exception 'FAIL user cannot create, got %', v_status; end if;
   insert into _t values ('non-admin create blocked OK');
 
-  -- 2) Admin tworzy turniej z 2 grupami.
+  -- 2) Admin tworzy turniej.
   -- players_per_team=1 celowo (nie 5) — krok 5 poniżej rejestruje 2 minimalne,
   -- jednoosobowe drużyny tylko po to, żeby spełnić min_teams=2 przy przejściu
   -- do 'ready' (wymagane od migracji 0073); ten test sprawdza stan maszyny
@@ -41,12 +41,15 @@ begin
   select status, tournament_id into v_status, v_id from public.admin_create_tournament(
     'Test Cup', 'opis', null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    8, 2, 1, 0, false, 3, 1, 0, true, array['Grupa A', 'Grupa B']
+    8, 2, 1, 0, false, 3, 1, 0, true
   );
   if v_status <> 'ok' or v_id is null then raise exception 'FAIL admin create, got %', v_status; end if;
+  -- Od migracji 0087 grupy NIE są już tworzone przy zakładaniu turnieju —
+  -- to teraz robi segregator (admin_auto_organize_tournament) po zamknięciu
+  -- zapisów. Sprawdzamy więc odwrotność dawnej asercji.
   select count(*) into v_group_count from public.tournament_groups where tournament_id = v_id;
-  if v_group_count <> 2 then raise exception 'FAIL expected 2 groups, got %', v_group_count; end if;
-  insert into _t values ('admin create + 2 groups OK');
+  if v_group_count <> 0 then raise exception 'FAIL expected 0 groups at creation, got %', v_group_count; end if;
+  insert into _t values ('admin create -> 0 groups at creation OK');
 
   -- 3) Nowy turniej ma status draft
   select status into v_status from public.tournaments where id = v_id;
@@ -57,7 +60,7 @@ begin
   select public.admin_update_tournament(
     v_id, 'Test Cup', 'opis', null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    16, 2, 1, 0, false, 3, 1, 0, true, array['Grupa A', 'Grupa B']
+    16, 2, 1, 0, false, 3, 1, 0, true
   ) into v_status;
   if v_status <> 'ok' then raise exception 'FAIL update draft, got %', v_status; end if;
   if (select max_teams from public.tournaments where id = v_id) <> 16 then
@@ -109,7 +112,7 @@ begin
   select public.admin_update_tournament(
     v_id, 'Test Cup', 'opis', null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    16, 2, 5, 0, false, 3, 1, 0, true, array['Grupa A', 'Grupa B']
+    16, 2, 5, 0, false, 3, 1, 0, true
   ) into v_status;
   if v_status <> 'locked' then raise exception 'FAIL completed tournament not locked, got %', v_status; end if;
   insert into _t values ('completed tournament locked OK');
@@ -126,7 +129,7 @@ begin
   select status, tournament_id into v_status, v_id from public.admin_create_tournament(
     'Draft Cup', null, null, 'football', current_date + 21, '09:00', null,
     null, now() + interval '10 days', null, null, null, null, null, null,
-    4, 2, 5, 0, false, 3, 1, 0, true, array['Grupa A']
+    4, 2, 5, 0, false, 3, 1, 0, true
   );
   if v_status <> 'ok' or v_id is null then raise exception 'FAIL draft create, got %', v_status; end if;
   v_draft_id := v_id; -- zachowane do testu list_tournaments (krok 12) — v_id jest reużywane dalej
@@ -150,7 +153,7 @@ begin
   select status, tournament_id into v_status, v_cancelled_id from public.admin_create_tournament(
     'Cancelled Cup', null, null, 'basketball', current_date + 30, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    8, 2, 5, 0, false, 3, 1, 0, true, array['Grupa A']
+    8, 2, 5, 0, false, 3, 1, 0, true
   );
   if v_status <> 'ok' or v_cancelled_id is null then
     raise exception 'FAIL cancelled fixture create, got %', v_status;
@@ -176,7 +179,7 @@ begin
   select status, tournament_id into v_status, v_geo_id from public.admin_create_tournament(
     'Geo Cup', null, null, 'basketball', current_date + 40, '10:00', null,
     null, now() + interval '7 days', 'Hala Warszawa', null, 'Warszawa', 52.2297, 21.0122, null,
-    8, 2, 5, 0, false, 3, 1, 0, true, array['Grupa A']
+    8, 2, 5, 0, false, 3, 1, 0, true
   );
   if v_status <> 'ok' or v_geo_id is null then raise exception 'FAIL geo fixture create, got %', v_status; end if;
   select latitude, longitude into v_lat, v_lng

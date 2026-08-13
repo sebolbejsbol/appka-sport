@@ -18,6 +18,8 @@ import {
 } from '@/lib/tournament-playoffs';
 import { getTournamentDetail, type Tournament } from '@/lib/tournaments';
 
+const TEAMS_PER_GROUP_ADVANCING = 2;
+
 function roundLabel(round: number, totalRounds: number): string {
   const fromEnd = totalRounds - round;
   if (fromEnd === 0) return t('tournamentPlayoffs.roundLabelFinal');
@@ -59,7 +61,6 @@ export default function ManageTournamentBracketScreen() {
   const [bracket, setBracket] = useState<TournamentPlayoffMatch[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
-  const [teamsPerGroup, setTeamsPerGroup] = useState('2');
   const [generateBusy, setGenerateBusy] = useState(false);
   const [generateError, setGenerateError] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
@@ -87,14 +88,9 @@ export default function ManageTournamentBracketScreen() {
 
   async function handleGenerate() {
     if (!tournamentId) return;
-    const n = Number(teamsPerGroup);
-    if (!teamsPerGroup || Number.isNaN(n) || n < 1) {
-      setGenerateError(t('tournamentPlayoffs.generateError'));
-      return;
-    }
     setGenerateBusy(true);
     setGenerateError(null);
-    const result = await adminGenerateBracket(tournamentId, n);
+    const result = await adminGenerateBracket(tournamentId, TEAMS_PER_GROUP_ADVANCING);
     setGenerateBusy(false);
     if (result !== 'ok') {
       setGenerateError(generateErrorMessage(result));
@@ -174,13 +170,6 @@ export default function ManageTournamentBracketScreen() {
         <View style={styles.generateBlock}>
           {tournament?.status === 'in_progress' ? (
             <>
-              <Text style={styles.generateLabel}>{t('tournamentPlayoffs.teamsPerGroupLabel')}</Text>
-              <TextInput
-                style={styles.teamsInput}
-                keyboardType="number-pad"
-                value={teamsPerGroup}
-                onChangeText={(v) => setTeamsPerGroup(v.replace(/[^0-9]/g, ''))}
-              />
               <Button
                 label={t('tournamentPlayoffs.generateAction')}
                 onPress={handleGenerate}
@@ -249,17 +238,6 @@ const styles = StyleSheet.create({
   loader: { marginTop: 32 },
   muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
   generateBlock: { paddingHorizontal: 20, marginTop: 24, gap: 10 },
-  generateLabel: { fontSize: 14, fontWeight: '600', color: Brand.textPrimary },
-  teamsInput: {
-    width: 80,
-    borderWidth: 1,
-    borderColor: Brand.border,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 14,
-    color: Brand.textPrimary,
-  },
   generateBtn: { marginTop: 4 },
   roundSection: { marginTop: 20 },
   roundHeading: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 8 },

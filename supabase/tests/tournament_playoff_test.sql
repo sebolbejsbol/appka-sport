@@ -40,9 +40,14 @@ begin
   select status, tournament_id into v_status, v_tournament_id from public.admin_create_tournament(
     'Playoff Test Cup', null, null, 'basketball', current_date + 14, '10:00', null,
     null, now() + interval '7 days', null, null, null, null, null, null,
-    5, 5, 1, 0, false, 3, 1, 0, true, array['Grupa A', 'Grupa B']
+    5, 5, 1, 0, false, 3, 1, 0, true
   );
   if v_status <> 'ok' or v_tournament_id is null then raise exception 'FAIL tournament fixture create, got %', v_status; end if;
+  -- Grupy nie są już tworzone przez admin_create_tournament (0087) — ten test
+  -- ćwiczy admin_generate_bracket bezpośrednio (funkcjonalność niezmieniona),
+  -- więc zasiewamy grupy ręcznie zamiast przez segregator.
+  insert into public.tournament_groups (tournament_id, name, sort_order) values
+    (v_tournament_id, 'Grupa A', 0), (v_tournament_id, 'Grupa B', 1);
   select id into v_group_a from public.tournament_groups where tournament_id = v_tournament_id order by sort_order limit 1;
   select id into v_group_b from public.tournament_groups where tournament_id = v_tournament_id order by sort_order offset 1 limit 1;
   insert into _t values ('fixture: tournament (5/5 teams, allow_draws=true) created OK');
