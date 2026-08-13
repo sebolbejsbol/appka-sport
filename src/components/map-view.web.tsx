@@ -362,7 +362,13 @@ export function AppMap() {
       // w jeden klaster razem, niezależnie od tego, czy akurat mają eventy.
       const merged = new Map(showFields ? cache : new Map<string, FieldPoint>());
       for (const [id, field] of favoriteFieldsRef.current) {
-        merged.set(id, field);
+        // Ulubione mają być widoczne ZAWSZE, ale getFieldsByIds() (skąd
+        // pochodzą) nie liczy event_count/availability (to osobne zapytanie
+        // event_counts_in_bbox) — zawsze zwraca 0/undefined. Jeśli boisko
+        // jest już w cache (widoczne w viewport, poprawnie wzbogacone), NIE
+        // nadpisujemy go zerem — inaczej ulubione boisko z aktywnym eventem
+        // "gasło" na mapie za każdym razem, gdy ulubione się odświeżały.
+        if (!merged.has(id)) merged.set(id, field);
       }
       const enriched = [...merged.values()].map((field) => {
         const players = fieldPlayersMap.get(field.id);

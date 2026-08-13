@@ -127,6 +127,12 @@ async function scheduleReminder(opts: {
   title: string;
   body: string;
 }): Promise<void> {
+  // Lokalne, urządzeniowe przypomnienia nie mają sensownego odpowiednika na
+  // webie (zakładka nie jest "żywa" o czasie fireAt) — expo-notifications na
+  // webie potrafi za to WISZEĆ (np. czekając na natywny prompt o zgodę na
+  // powiadomienia przeglądarki), co blokowało handleJoin/handleLeave na
+  // event/[id].tsx na wiele sekund zanim UI w ogóle zareagowało na klik.
+  if (Platform.OS === 'web') return;
   if (opts.fireAt.getTime() <= Date.now()) return;
 
   await Notifications.scheduleNotificationAsync({
@@ -146,6 +152,9 @@ async function scheduleReminder(opts: {
 }
 
 export async function cancelEventReminders(eventId: string): Promise<void> {
+  // Patrz komentarz w scheduleReminder() — na webie nic tu nigdy nie zostało
+  // zaplanowane, a wywołanie tego API potrafi wisieć bez końca.
+  if (Platform.OS === 'web') return;
   await Notifications.cancelScheduledNotificationAsync(reminderId(eventId, 'checkin'));
   await Notifications.cancelScheduledNotificationAsync(reminderId(eventId, 'start'));
 }
@@ -155,6 +164,7 @@ export async function scheduleEventReminders(event: {
   title: string | null;
   starts_at: string;
 }): Promise<void> {
+  if (Platform.OS === 'web') return;
   const enabled = await getNotificationsEnabled();
   if (!enabled) return;
 
