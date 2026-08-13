@@ -95,6 +95,12 @@ const SEARCH_ZOOM = 12;
 const LOAD_DEBOUNCE_MS = 320;
 const BBOX_PADDING = 1.6;
 const MAX_CACHED_FIELDS = 2200;
+/**
+ * Tymczasowo ukryty przycisk FAB "Szukaj teraz" — logika (SzukajTerazSheet,
+ * playNowOpen) zostaje nietknięta, docelowo przycisk wróci jako
+ * "Szukaj w pobliżu" (eventy w promieniu 5 km od użytkownika).
+ */
+const SZUKAJ_TERAZ_BUTTON_VISIBLE = false;
 const FIELD_LOAD_MIN_ZOOM = 6.3;
 const MAX_BADGE_COUNT = 20;
 const FIELD_SORT: FieldSort = 'default';
@@ -1124,7 +1130,7 @@ export function AppMap() {
         resultCount={visibleEvents.length}
       />
 
-      {!selectedField && !nearbyExpanded ? (
+      {SZUKAJ_TERAZ_BUTTON_VISIBLE && !selectedField && !nearbyExpanded ? (
         <Pressable
           onPress={() => setPlayNowOpen(true)}
           style={({ pressed }) => [
