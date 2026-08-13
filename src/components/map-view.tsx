@@ -81,6 +81,7 @@ import {
   POLAND_CENTER,
 } from '@/lib/map-bbox';
 import {
+  onFavoritesRefresh,
   onFieldEventCountChange,
   onMapFieldsRefresh,
 } from '@/lib/map-field-sync';
@@ -557,9 +558,13 @@ export function AppMap() {
       void loadVisibleFields(latestStateRef.current);
       void loadFavoriteFields().then(() => publishFeatures(fieldsCacheRef.current));
     });
+    const unsubFavorites = onFavoritesRefresh(() => {
+      void loadFavoriteFields().then(() => publishFeatures(fieldsCacheRef.current));
+    });
     return () => {
       unsubCount();
       unsubRefresh();
+      unsubFavorites();
     };
   }, [bumpFieldEventCount, loadDiscover, loadFavoriteFields, loadVisibleFields, publishFeatures]);
 

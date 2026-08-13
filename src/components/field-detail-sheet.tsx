@@ -37,7 +37,7 @@ import { applyEventFilters } from '@/lib/event-filters';
 import type { CourtAvailability, FieldPoint } from '@/lib/fields';
 import { listMyFavoriteFieldIds, toggleFieldFavorite } from '@/lib/favorites';
 import { getAvailabilityColor, getAvailabilityLabel } from '@/lib/map-theme';
-import { requestMapFieldsRefresh } from '@/lib/map-field-sync';
+import { requestFavoritesRefresh } from '@/lib/map-field-sync';
 import { cancelEventReminders, scheduleEventReminders } from '@/lib/push-notifications';
 import { distanceMeters, formatDistance } from '@/lib/geo';
 import { fieldMarkerEmoji } from '@/lib/sports';
@@ -103,7 +103,11 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
     notifySuccess(result ? t('favorites.added') : t('favorites.removed'));
     // Odśwież mapę od razu, żeby ulubione boisko natychmiast pojawiło się
     // (lub zniknęło) z wymuszonej widoczności, bez czekania na focus ekranu.
-    requestMapFieldsRefresh();
+    // Lekkie odświeżenie — ulubione nie zmieniają danych boisk/eventów, więc
+    // pełny requestMapFieldsRefresh() (discover + cały bbox od nowa) byłby
+    // marnotrawstwem i widocznym, chaotycznym przeładowaniem całej mapy pod
+    // otwartym właśnie arkuszem szczegółów.
+    requestFavoritesRefresh();
   }
 
   const loadEvents = useCallback(async () => {
