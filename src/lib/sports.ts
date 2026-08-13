@@ -19,6 +19,7 @@ export const FIELD_SPORTS = [
   'handball',
   'badminton',
   'padel',
+  'hockey',
   'music_club',
 ] as const;
 
@@ -46,6 +47,7 @@ const FIELD_MARKER_COLORS: Record<string, string> = {
   handball: '#0ea5e9', // błękit
   badminton: '#84cc16', // limonka
   padel: '#0d9488', // teal
+  hockey: '#1d4ed8', // granat
   // hobby
   arts_centre: '#8b5cf6',
   photo_studio: '#7c3aed',
@@ -97,6 +99,7 @@ const FIELD_MARKER_EMOJI: Record<string, string> = {
   handball: '🤾',
   badminton: '🏸',
   padel: '🎾',
+  hockey: '🏒',
   // hobby
   arts_centre: '🎨',
   photo_studio: '📷',
@@ -152,6 +155,7 @@ const FIELD_MARKER_ICON: Record<string, string> = {
   handball: 'handball',
   badminton: 'badminton',
   padel: 'padel',
+  hockey: 'hockey',
   // hobby
   arts_centre: 'arts_centre',
   photo_studio: 'photo_studio',
@@ -245,6 +249,8 @@ export function formatSportLabel(sport: string | null | undefined): string {
       return t('field.sports.badminton');
     case 'padel':
       return t('field.sports.padel');
+    case 'hockey':
+      return t('field.sports.hockey');
     case 'arts_centre':
       return t('field.sports.arts_centre');
     case 'photo_studio':

@@ -7,7 +7,9 @@ import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import type { CourtAvailability } from '@/lib/fields';
 import { formatDistance } from '@/lib/geo';
+import { getAvailabilityColor, getAvailabilityLabel } from '@/lib/map-theme';
 import { formatCountEvent } from '@/lib/plural-pl';
+import { fieldMarkerEmoji } from '@/lib/sports';
 
 export type NearbyFieldItem = {
   id: string;
@@ -18,36 +20,12 @@ export type NearbyFieldItem = {
   /** Liczba AKTYWNYCH eventów na tym boisku (nie liczba graczy jednego eventu). */
   eventCount: number;
   availability: CourtAvailability;
+  /** Rozbicie eventCount per dyscyplina, do chipów pod wierszem (może być puste). */
+  eventsByCategory: { sport: string; count: number }[];
 };
 
 export const NEARBY_SHEET_COLLAPSED_HEIGHT = 116;
 const EXPANDED_RATIO = 0.46;
-
-function availabilityColor(a: CourtAvailability): string {
-  switch (a) {
-    case 'open':
-      return Brand.success;
-    case 'filling':
-      return Brand.warning;
-    case 'full':
-      return Brand.danger;
-    default:
-      return '#94a3b8';
-  }
-}
-
-function availabilityLabel(a: CourtAvailability): string {
-  switch (a) {
-    case 'open':
-      return t('map.nearby.availabilityOpen');
-    case 'filling':
-      return t('map.nearby.availabilityFilling');
-    case 'full':
-      return t('map.nearby.availabilityFull');
-    default:
-      return t('map.nearby.availabilityEmpty');
-  }
-}
 
 type Props = {
   fields: NearbyFieldItem[];
@@ -91,17 +69,28 @@ export function MapNearbySheet({ fields, onSelect, expanded, onToggleExpanded, b
           <Pressable
             onPress={() => onSelect(item.id)}
             style={({ pressed }) => [styles.row, pressed && styles.rowPressed]}>
-            <View style={[styles.dot, { backgroundColor: availabilityColor(item.availability) }]} />
+            <View style={[styles.dot, { backgroundColor: getAvailabilityColor(item.availability) }]} />
             <Text style={styles.emoji}>{item.emoji}</Text>
             <View style={styles.rowMain}>
               <Text style={styles.rowName} numberOfLines={1}>
                 {item.name}
               </Text>
               <Text style={styles.rowMeta} numberOfLines={1}>
-                {availabilityLabel(item.availability)}
+                {getAvailabilityLabel(item.availability)}
                 {` · ${formatCountEvent(item.eventCount)}`}
                 {item.distanceMeters != null ? ` · ${formatDistance(item.distanceMeters)}` : ''}
               </Text>
+              {item.eventsByCategory.length > 0 ? (
+                <View style={styles.categoryChips}>
+                  {item.eventsByCategory.map((c) => (
+                    <View key={c.sport} style={styles.categoryChip}>
+                      <Text style={styles.categoryChipText}>
+                        {fieldMarkerEmoji(c.sport)} {c.count}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              ) : null}
             </View>
             <Text style={styles.chevron}>›</Text>
           </Pressable>
@@ -185,6 +174,23 @@ const styles = StyleSheet.create({
   rowMeta: {
     fontSize: 12,
     color: Brand.textMuted,
+  },
+  categoryChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 4,
+    marginTop: 4,
+  },
+  categoryChip: {
+    backgroundColor: Brand.surfaceMuted,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 7,
+    paddingVertical: 2,
+  },
+  categoryChipText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Brand.textSecondary,
   },
   chevron: {
     fontSize: 20,

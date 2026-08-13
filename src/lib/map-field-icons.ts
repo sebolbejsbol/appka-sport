@@ -25,9 +25,12 @@ export const mapFieldIcons = {
   music_club: icon(require('../../assets/map-field-icons/music_club.png')),
   multi: icon(require('../../assets/map-field-icons/multi.png')),
   generic: icon(require('../../assets/map-field-icons/generic.png')),
+  /** Piktogram nadmiaru kategorii wewnątrz klastra (więcej niż mieści się w siatce 2x2). */
+  more: icon(require('../../assets/map-field-icons/more.png')),
   handball: icon(require('../../assets/map-field-icons/handball.png')),
   badminton: icon(require('../../assets/map-field-icons/badminton.png')),
   padel: icon(require('../../assets/map-field-icons/padel.png')),
+  hockey: icon(require('../../assets/map-field-icons/hockey.png')),
   arts_centre: icon(require('../../assets/map-field-icons/arts_centre.png')),
   photo_studio: icon(require('../../assets/map-field-icons/photo_studio.png')),
   pottery: icon(require('../../assets/map-field-icons/pottery.png')),

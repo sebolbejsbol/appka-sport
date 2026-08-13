@@ -1,5 +1,5 @@
-// Regenerates the 4 "priority" sport marker icons (basketball, football,
-// tennis, volleyball) used both for individual map pins and for the
+// Regenerates the "priority" sport marker icons (basketball, football,
+// tennis, volleyball, hockey) used both for individual map pins and for the
 // per-sport mini-icons inside map clusters. Uses the system emoji/symbol
 // font's monochrome fallback glyph (resvg doesn't render color emoji, but
 // the fallback outline glyphs are real, detailed sport pictograms) in white
@@ -22,6 +22,7 @@ const EMOJI_ICONS = {
   football: ['#22c55e', '⚽'],
   tennis: ['#eab308', '🎾'],
   volleyball: ['#06b6d4', '🏐'],
+  hockey: ['#1d4ed8', '🏒'],
 };
 
 function shell(bg, glyph) {
@@ -63,4 +64,19 @@ const FITNESS_SVG = shell(
   writeFileSync(join(OUT_DIR, 'fitness.png'), resvg.render().asPng());
 }
 
-console.log(`Wygenerowano ${Object.keys(EMOJI_ICONS).length + 1} ikon w ${OUT_DIR}`);
+// "Więcej" — piktogram nadmiaru kategorii w klastrze (gdy jest ich więcej niż
+// mieści się w siatce 2x2), neutralny szary, żeby nie sugerował konkretnego sportu.
+const MORE_SVG = shell(
+  '#64748b',
+  `<g fill="#ffffff">
+     <circle cx="32" cy="50" r="7"/>
+     <circle cx="50" cy="50" r="7"/>
+     <circle cx="68" cy="50" r="7"/>
+   </g>`,
+);
+{
+  const resvg = new Resvg(MORE_SVG, { fitTo: { mode: 'width', value: SIZE } });
+  writeFileSync(join(OUT_DIR, 'more.png'), resvg.render().asPng());
+}
+
+console.log(`Wygenerowano ${Object.keys(EMOJI_ICONS).length + 2} ikon w ${OUT_DIR}`);

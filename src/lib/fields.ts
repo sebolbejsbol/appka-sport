@@ -1,5 +1,8 @@
+import { courtAvailability, type CourtAvailability } from '@/lib/court-availability';
 import { fieldMarkerColor, fieldMarkerEmoji, fieldMarkerIcon } from '@/lib/sports';
 import { supabase } from '@/lib/supabase';
+
+export { courtAvailability, type CourtAvailability };
 
 /** Pojedyncze boisko zwrócone przez funkcję bazodanową fields_in_bbox. */
 export type FieldPoint = {
@@ -16,6 +19,8 @@ export type FieldPoint = {
   players_max?: number | null;
   /** Dostępność policzona po stronie bazy (event_counts_in_bbox) — nadpisuje wyliczenie z players_current/max. */
   availability?: CourtAvailability;
+  /** Zdjęcie boiska (dodawane przez admina) — patrz supabase/migrations/0084_field_photos.sql. */
+  photo_url?: string | null;
 };
 
 export type FieldSort = 'default' | 'rating';
@@ -104,6 +109,39 @@ export async function getEventCountsInBbox(
         ? row.availability
         : 'empty';
     map.set(row.field_id, { event_count: Number(row.event_count) || 0, availability });
+  }
+  return { data: map, error };
+}
+
+export type FieldCategoryCount = { sport: string; count: number; availability: CourtAvailability };
+
+/**
+ * Rozbicie event_count per dyscyplina sportu, dla chipów na liście „W pobliżu"
+ * (np. „3 🏀 2 ⚽" zamiast jednej zsumowanej liczby). W przeciwieństwie do
+ * getEventCountsInBbox nie przyjmuje sport_filter — zawsze wszystkie sporty,
+ * bo chodzi o pełne rozbicie danego boiska.
+ */
+export async function getEventCountsByCategoryInBbox(
+  bbox: Bbox,
+): Promise<{ data: Map<string, FieldCategoryCount[]>; error: { message: string } | null }> {
+  const { data, error } = await supabase.rpc('event_counts_by_category_in_bbox', {
+    min_lng: bbox.minLng,
+    min_lat: bbox.minLat,
+    max_lng: bbox.maxLng,
+    max_lat: bbox.maxLat,
+  });
+
+  const map = new Map<string, FieldCategoryCount[]>();
+  for (const row of (data as
+    | { field_id: string; sport: string; event_count: number; availability: string }[]
+    | null) ?? []) {
+    const availability: CourtAvailability =
+      row.availability === 'open' || row.availability === 'filling' || row.availability === 'full'
+        ? row.availability
+        : 'empty';
+    const list = map.get(row.field_id) ?? [];
+    list.push({ sport: row.sport, count: Number(row.event_count) || 0, availability });
+    map.set(row.field_id, list);
   }
   return { data: map, error };
 }
@@ -212,20 +250,6 @@ function capitalizePl(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
-/** Status dostępności boiska do kolorowania odznaki na mapie (zielony/pomarańczowy/czerwony/szary). */
-export type CourtAvailability = 'empty' | 'open' | 'filling' | 'full';
-
-function courtAvailability(playersCurrent: number, playersMax: number | null | undefined): CourtAvailability {
-  if (playersCurrent <= 0 && playersMax == null) return 'empty';
-  if (playersMax == null) return 'open';
-  if (playersCurrent >= playersMax) return 'full';
-  const remaining = playersMax - playersCurrent;
-  const fillRatio = playersCurrent / playersMax;
-  // "Szybko się zapełnia": zostało 1 miejsce albo obłożenie ≥75%.
-  if (remaining <= 1 || fillRatio >= 0.75) return 'filling';
-  return 'open';
-}
-
 /** Etykieta „aktualni/max" na odznace boiska (np. „6/10", „3", „—"). */
 function playersLabel(playersCurrent: number, playersMax: number | null | undefined): string {
   if (playersCurrent <= 0 && playersMax == null) return '';
@@ -259,6 +283,7 @@ export function fieldsToGeoJSON(fields: FieldPoint[]) {
           players_max: playersMax ?? -1,
           availability,
           avg_rating: f.avg_rating ?? 0,
+          photo_url: f.photo_url ?? null,
         },
         geometry: {
           type: 'Point' as const,
@@ -287,5 +312,6 @@ export function fieldFromMapFeature(feature: GeoJSON.Feature): FieldPoint | null
     event_count: Number(props.event_count ?? 0),
     avg_rating: props.avg_rating != null ? Number(props.avg_rating) : null,
     rating_count: Number(props.rating_count ?? 0),
+    photo_url: props.photo_url != null ? String(props.photo_url) : null,
   };
 }

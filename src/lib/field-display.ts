@@ -46,6 +46,8 @@ export function defaultCourtNameForSport(sport?: string | null): string {
       return t('field.courtNames.badminton');
     case 'padel':
       return t('field.courtNames.padel');
+    case 'hockey':
+      return t('field.courtNames.hockey');
     case 'arts_centre':
       return t('field.courtNames.arts_centre');
     case 'photo_studio':

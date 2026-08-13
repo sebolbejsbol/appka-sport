@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
+  Image,
   Linking,
   Modal,
   Pressable,
@@ -22,16 +23,20 @@ import {
   getAdminFieldsQueue,
   getAdminNearbyFields,
   moderateField,
+  setFieldPhoto,
   type AdminFieldItem,
   type AdminFieldStatus,
   type NearbyFieldItem,
 } from '@/lib/admin-fields';
 import { formatCourtName } from '@/lib/field-display';
+import { uploadFieldPhoto } from '@/lib/field-storage';
 import { formatDistance } from '@/lib/geo';
+import { requestMapFieldsRefresh } from '@/lib/map-field-sync';
 import { goBack } from '@/lib/navigation';
+import { pickImageFromLibrary } from '@/lib/pick-image';
 import { getProfileAdminFlag } from '@/lib/profiles';
 
-const FILTERS: AdminFieldStatus[] = ['pending', 'rejected'];
+const FILTERS: AdminFieldStatus[] = ['pending', 'approved', 'rejected'];
 
 type ModerationMode = 'approve' | 'reject';
 
@@ -54,6 +59,7 @@ export default function AdminFieldsScreen() {
   const [nearbyFields, setNearbyFields] = useState<NearbyFieldItem[]>([]);
   const [nearbyLoading, setNearbyLoading] = useState(false);
   const [moderateBusy, setModerateBusy] = useState(false);
+  const [photoBusyId, setPhotoBusyId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!userId) {
@@ -178,8 +184,55 @@ export default function AdminFieldsScreen() {
     void Linking.openURL(url);
   }
 
+  async function handlePickPhoto(field: AdminFieldItem) {
+    const picked = await pickImageFromLibrary({ aspect: [16, 9] });
+    if (!picked) return;
+
+    setActionError(null);
+    setPhotoBusyId(field.id);
+    const { publicUrl, error: uploadError } = await uploadFieldPhoto(
+      field.id,
+      picked.uri,
+      picked.mimeType,
+      picked.base64,
+    );
+    if (uploadError || !publicUrl) {
+      setPhotoBusyId(null);
+      setActionError(t('adminFields.photoError'));
+      return;
+    }
+
+    const { error: saveError } = await setFieldPhoto(field.id, publicUrl);
+    setPhotoBusyId(null);
+    if (saveError) {
+      setActionError(t('adminFields.photoError'));
+      return;
+    }
+
+    setFields((prev) => prev.map((f) => (f.id === field.id ? { ...f, photo_url: publicUrl } : f)));
+    requestMapFieldsRefresh();
+  }
+
   function filterLabel(key: AdminFieldStatus): string {
-    return key === 'pending' ? t('adminFields.filterPending') : t('adminFields.filterRejected');
+    switch (key) {
+      case 'pending':
+        return t('adminFields.filterPending');
+      case 'approved':
+        return t('adminFields.filterApproved');
+      case 'rejected':
+        return t('adminFields.filterRejected');
+    }
+  }
+
+  function emptyLabel(key: AdminFieldStatus): string {
+    switch (key) {
+      case 'pending':
+        return t('adminFields.emptyPending');
+      case 'approved':
+        return t('adminFields.emptyApproved');
+      case 'rejected':
+        return t('adminFields.emptyRejected');
+    }
   }
 
   if (isAdmin === null) {
@@ -234,9 +287,7 @@ export default function AdminFieldsScreen() {
       ) : loadError ? (
         <Text style={styles.muted}>{t('adminFields.loadError')}</Text>
       ) : fields.length === 0 ? (
-        <Text style={styles.muted}>
-          {filter === 'pending' ? t('adminFields.emptyPending') : t('adminFields.emptyRejected')}
-        </Text>
+        <Text style={styles.muted}>{emptyLabel(filter)}</Text>
       ) : (
         <FlatList
           data={fields}
@@ -246,9 +297,12 @@ export default function AdminFieldsScreen() {
             <FieldRow
               field={item}
               showActions={filter === 'pending'}
+              showPhotoAction={filter === 'approved'}
+              photoBusy={photoBusyId === item.id}
               onApprove={() => openModeration(item, 'approve')}
               onReject={() => openModeration(item, 'reject')}
               onMap={() => openOnMap(item)}
+              onPickPhoto={() => void handlePickPhoto(item)}
             />
           )}
         />
@@ -278,12 +332,24 @@ export default function AdminFieldsScreen() {
 type RowProps = {
   field: AdminFieldItem;
   showActions: boolean;
+  showPhotoAction: boolean;
+  photoBusy: boolean;
   onApprove: () => void;
   onReject: () => void;
   onMap: () => void;
+  onPickPhoto: () => void;
 };
 
-function FieldRow({ field, showActions, onApprove, onReject, onMap }: RowProps) {
+function FieldRow({
+  field,
+  showActions,
+  showPhotoAction,
+  photoBusy,
+  onApprove,
+  onReject,
+  onMap,
+  onPickPhoto,
+}: RowProps) {
   const courtName = formatCourtName(field.name);
   const sportLabel = field.sport?.trim() || t('field.sports.basketball');
   const sourceLabel =
@@ -291,6 +357,7 @@ function FieldRow({ field, showActions, onApprove, onReject, onMap }: RowProps) 
 
   return (
     <View style={styles.row}>
+      {field.photo_url ? <Image source={{ uri: field.photo_url }} style={styles.rowPhoto} /> : null}
       <Pressable style={styles.rowMain} onPress={onMap}>
         <Text style={styles.rowCourt}>{courtName}</Text>
         {field.name && field.name !== courtName ? (
@@ -317,20 +384,35 @@ function FieldRow({ field, showActions, onApprove, onReject, onMap }: RowProps) 
         <Text style={styles.mapLink}>{t('adminFields.openMap')} ›</Text>
       </Pressable>
 
-      {showActions ? (
-        <View style={styles.rowActions}>
-          <Pressable
-            style={({ pressed }) => [styles.approveBtn, pressed && styles.pressed]}
-            onPress={onApprove}>
-            <Text style={styles.approveBtnText}>{t('adminFields.approve')}</Text>
-          </Pressable>
-          <Pressable
-            style={({ pressed }) => [styles.rejectBtn, pressed && styles.pressed]}
-            onPress={onReject}>
-            <Text style={styles.rejectBtnText}>{t('adminFields.reject')}</Text>
-          </Pressable>
-        </View>
-      ) : null}
+      <View style={styles.rowActions}>
+        {showActions ? (
+          <>
+            <Pressable
+              style={({ pressed }) => [styles.approveBtn, pressed && styles.pressed]}
+              onPress={onApprove}>
+              <Text style={styles.approveBtnText}>{t('adminFields.approve')}</Text>
+            </Pressable>
+            <Pressable
+              style={({ pressed }) => [styles.rejectBtn, pressed && styles.pressed]}
+              onPress={onReject}>
+              <Text style={styles.rejectBtnText}>{t('adminFields.reject')}</Text>
+            </Pressable>
+          </>
+        ) : null}
+        {showPhotoAction ? (
+          photoBusy ? (
+            <ActivityIndicator color={Brand.primary} />
+          ) : (
+            <Pressable
+              style={({ pressed }) => [styles.photoBtn, pressed && styles.pressed]}
+              onPress={onPickPhoto}>
+              <Text style={styles.photoBtnText}>
+                {field.photo_url ? t('adminFields.photoChange') : t('adminFields.photoAdd')}
+              </Text>
+            </Pressable>
+          )
+        ) : null}
+      </View>
     </View>
   );
 }
@@ -566,6 +648,25 @@ const styles = StyleSheet.create({
   rowActions: {
     gap: 8,
     paddingTop: 2,
+  },
+  rowPhoto: {
+    width: 56,
+    height: 56,
+    borderRadius: 10,
+    backgroundColor: Brand.surfaceMuted,
+  },
+  photoBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: Brand.primary,
+    backgroundColor: Brand.surface,
+  },
+  photoBtnText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Brand.primary,
   },
   rowCourt: {
     fontSize: 15,

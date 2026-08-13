@@ -44,10 +44,13 @@
     "@types/react": "~19.2.2",
     "@types/react-dom": "~19.2.2",
     "eas-cli": "^20.3.0",
+    "eslint": "^9.0.0",
+    "eslint-config-expo": "~56.0.4",
     "gifenc": "^1.0.3",
     "jpeg-js": "^0.4.4",
     "pngjs": "^7.0.0",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "vitest": "^4.1.10"
   },
   "scripts": {
     "start": "expo start",
@@ -56,6 +59,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
+    "test": "vitest run",
     "basketball:status": "node scripts/basketball-upload/apply.mjs status",
     "basketball:next": "node scripts/basketball-upload/apply.mjs next",
     "basketball:upload": "node --use-system-ca scripts/basketball-upload/upload-loop.mjs"

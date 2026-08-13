@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 
-export type AdminFieldStatus = 'pending' | 'rejected';
+export type AdminFieldStatus = 'pending' | 'approved' | 'rejected';
 
 export type AdminFieldItem = {
   id: string;
@@ -14,6 +14,7 @@ export type AdminFieldItem = {
   user_note: string | null;
   submitted_by_nick: string | null;
   admin_note: string | null;
+  photo_url: string | null;
 };
 
 export type NearbyFieldItem = {
@@ -45,6 +46,7 @@ function mapQueueRow(raw: Record<string, unknown>): AdminFieldItem {
     user_note: raw.user_note != null ? String(raw.user_note) : null,
     submitted_by_nick: raw.submitted_by_nick != null ? String(raw.submitted_by_nick) : null,
     admin_note: raw.admin_note != null ? String(raw.admin_note) : null,
+    photo_url: raw.photo_url != null ? String(raw.photo_url) : null,
   };
 }
 
@@ -109,4 +111,18 @@ export async function moderateField(
   if (msg.includes('field_not_found')) return 'not_found';
   if (msg.includes('invalid_name') || msg.includes('invalid_admin_note')) return 'invalid';
   return 'error';
+}
+
+/**
+ * Zapisuje zdjęcie boiska (już wgrane do bucketu field-photos). Zwykły update
+ * na public.fields, nie RPC — admini mają na tę tabelę politykę UPDATE bez
+ * ograniczeń kolumn (0013_admin_fields.sql), a moderate_field działa tylko
+ * na boiskach status='pending', więc nie nadaje się do edycji zatwierdzonych.
+ */
+export async function setFieldPhoto(
+  fieldId: string,
+  photoUrl: string,
+): Promise<{ error: { message: string } | null }> {
+  const { error } = await supabase.from('fields').update({ photo_url: photoUrl }).eq('id', fieldId);
+  return { error };
 }

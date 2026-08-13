@@ -1,21 +1,20 @@
 import Mapbox, {
   Camera,
   CircleLayer,
-  Images,
   LocationPuck,
   MapView,
   MarkerView,
   ShapeSource,
   SymbolLayer,
 } from '@/lib/map-kit-web';
-import { useMemo, useRef } from 'react';
-import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useMemo, useRef } from 'react';
+import { Pressable, StyleSheet, Text, View, Image } from 'react-native';
 
 import { Brand } from '@/constants/theme';
-import { categoryMeta, eventMarkerIcon, markerEmoji } from '@/lib/event-categories';
 import type { DiscoverEvent } from '@/lib/discover-events';
+import { groupEventsByVenue, soonestEvent } from '@/lib/discover-events-venue-points';
 import { POLAND_CENTER } from '@/lib/map-bbox';
-import { mapEventIcons } from '@/lib/map-event-icons';
+import { buildAvailabilityMatchExpression, buildClusterStatusColorExpression } from '@/lib/map-theme';
 import type { TournamentListItem } from '@/lib/tournaments';
 import type { LngLat } from '@/hooks/use-user-location';
 
@@ -27,42 +26,59 @@ type Props = {
   onSelectTournament: (tournament: TournamentListItem) => void;
 };
 
-function toGeoJSON(events: DiscoverEvent[]) {
+/**
+ * Klaster/pojedynczy obiekt (nie pojedynczy event!) — dokładnie ten sam język
+ * wizualny co główna mapa: czarne kółko, kolorowa obwódka statusu. Event to
+ * WYŁĄCZNIE dane zasilające wygląd punktu, do którego fizycznie należy
+ * (patrz groupEventsByVenue) — nigdy własny, osobny marker na mapie.
+ */
+const CLUSTER_AVAILABILITY_PROPERTIES = {
+  total_events: ['+', ['get', 'event_count']],
+  open_count: ['+', ['case', ['==', ['get', 'availability'], 'open'], 1, 0]],
+  filling_count: ['+', ['case', ['==', ['get', 'availability'], 'filling'], 1, 0]],
+  full_count: ['+', ['case', ['==', ['get', 'availability'], 'full'], 1, 0]],
+};
+
+function venuePointsToGeoJSON(points: ReturnType<typeof groupEventsByVenue>['points']) {
   return {
     type: 'FeatureCollection' as const,
-    features: events
-      .filter((e) => e.lng != null && e.lat != null)
-      .map((e) => {
-        const meta = categoryMeta(e.category);
-        return {
-          type: 'Feature' as const,
-          id: e.id,
-          geometry: { type: 'Point' as const, coordinates: [e.lng as number, e.lat as number] },
-          properties: {
-            id: e.id,
-            color: meta.color,
-            emoji: markerEmoji(e.category, e.subcategory),
-            icon: eventMarkerIcon(e.category, e.subcategory),
-            instant: e.is_instant ? 1 : 0,
-          },
-        };
-      }),
+    features: points.map((p) => ({
+      type: 'Feature' as const,
+      id: p.id,
+      properties: {
+        id: p.id,
+        event_count: p.eventCount,
+        availability: p.availability,
+      },
+      geometry: { type: 'Point' as const, coordinates: [p.lng, p.lat] },
+    })),
   };
 }
 
 export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSelectTournament }: Props) {
   const cameraRef = useRef<unknown>(null);
-  const shape = useMemo(() => toGeoJSON(events), [events]);
+
+  const { points, eventsByVenue } = useMemo(() => groupEventsByVenue(events), [events]);
+  const shape = useMemo(() => venuePointsToGeoJSON(points), [points]);
 
   const center = userCoords ?? POLAND_CENTER;
   const zoom = userCoords ? 11 : 6;
 
-  function onPress(event: { features?: GeoJSON.Feature[] }) {
-    const id = event.features?.[0]?.properties?.id;
-    if (typeof id !== 'string') return;
-    const match = events.find((e) => e.id === id);
-    if (match) onSelectEvent(match);
-  }
+  const onPress = useCallback(
+    (event: { features?: GeoJSON.Feature[] }) => {
+      const feature = event.features?.[0];
+      if (!feature) return;
+      // Klaster (wiele obiektów) — bez akcji, użytkownik przybliża ręcznie, tak
+      // jak na głównej mapie punkty rozdzielają się naturalnie przy zoomie.
+      if (feature.properties?.point_count != null) return;
+
+      const id = feature.properties?.id;
+      if (typeof id !== 'string') return;
+      const match = soonestEvent(eventsByVenue.get(id) ?? []);
+      if (match) onSelectEvent(match);
+    },
+    [eventsByVenue, onSelectEvent],
+  );
 
   return (
     <View style={styles.container}>
@@ -81,27 +97,66 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
           animationDuration={800}
         />
 
-        <Images images={mapEventIcons} />
-
-        <ShapeSource id="discover-events" shape={shape} onPress={onPress}>
+        <ShapeSource
+          id="event-venues"
+          shape={shape}
+          onPress={onPress}
+          cluster
+          clusterRadius={80}
+          clusterMaxZoomLevel={16}
+          clusterProperties={CLUSTER_AVAILABILITY_PROPERTIES}>
           <CircleLayer
-            id="discover-event-instant"
-            filter={['==', ['get', 'instant'], 1]}
+            id="event-venues-clusters-halo"
+            filter={['has', 'point_count']}
             style={{
-              circleRadius: 20,
-              circleColor: '#16a34a',
-              circleBlur: 0.5,
-              circleOpacity: 0.5,
+              circleRadius: ['interpolate', ['linear'], ['get', 'total_events'], 1, 30, 5, 34, 15, 38, 40, 44],
+              circleColor: buildClusterStatusColorExpression(),
+              circleBlur: 1.1,
+              circleOpacity: 0.6,
+            }}
+          />
+          <CircleLayer
+            id="event-venues-clusters"
+            filter={['has', 'point_count']}
+            style={{
+              circleRadius: ['interpolate', ['linear'], ['get', 'total_events'], 1, 24, 5, 28, 15, 32, 40, 38],
+              circleColor: 'rgba(4,6,14,0.94)',
+              circleStrokeWidth: 4,
+              circleStrokeColor: buildClusterStatusColorExpression(),
             }}
           />
           <SymbolLayer
-            id="discover-event-icon"
+            id="event-venues-cluster-count"
+            filter={['has', 'point_count']}
             style={{
-              iconImage: ['get', 'icon'],
-              iconSize: 0.9,
-              iconAllowOverlap: true,
-              iconIgnorePlacement: true,
-              iconPitchAlignment: 'viewport',
+              textField: ['get', 'total_events'],
+              textSize: 15,
+              textColor: '#ffffff',
+              textAllowOverlap: true,
+              textIgnorePlacement: true,
+              textPitchAlignment: 'viewport',
+            }}
+          />
+          <CircleLayer
+            id="event-venue-ring"
+            filter={['!', ['has', 'point_count']]}
+            style={{
+              circleRadius: 22,
+              circleColor: 'rgba(4,6,14,0.94)',
+              circleStrokeWidth: 4,
+              circleStrokeColor: buildAvailabilityMatchExpression(),
+            }}
+          />
+          <SymbolLayer
+            id="event-venue-count"
+            filter={['!', ['has', 'point_count']]}
+            style={{
+              textField: ['get', 'event_count'],
+              textSize: 16,
+              textColor: '#ffffff',
+              textAllowOverlap: true,
+              textIgnorePlacement: true,
+              textPitchAlignment: 'viewport',
             }}
           />
         </ShapeSource>

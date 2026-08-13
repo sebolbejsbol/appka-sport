@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
+  Image,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -28,15 +29,18 @@ import {
   type EventSummary,
 } from '@/lib/events';
 import { formatCourtName, formatFieldSport, parseStoredFieldName } from '@/lib/field-display';
+import { bucketEventsBySport } from '@/lib/field-event-breakdown';
 import { reverseGeocode } from '@/lib/map-geocoding';
 import { previewEventNotes, previewEventTitle } from '@/lib/event-display';
 import { formatPlayersCount, formatRatingCount } from '@/lib/plural-pl';
 import { applyEventFilters } from '@/lib/event-filters';
-import type { FieldPoint } from '@/lib/fields';
+import type { CourtAvailability, FieldPoint } from '@/lib/fields';
 import { listMyFavoriteFieldIds, toggleFieldFavorite } from '@/lib/favorites';
+import { getAvailabilityColor, getAvailabilityLabel } from '@/lib/map-theme';
 import { requestMapFieldsRefresh } from '@/lib/map-field-sync';
 import { cancelEventReminders, scheduleEventReminders } from '@/lib/push-notifications';
 import { distanceMeters, formatDistance } from '@/lib/geo';
+import { fieldMarkerEmoji } from '@/lib/sports';
 import { notifyError, notifySuccess } from '@/lib/toast';
 
 type Props = {
@@ -213,6 +217,8 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
     return applyEventFilters(withCoords, filters, { userCoords });
   }, [events, field, filters, userCoords]);
 
+  const eventsByCategory = useMemo(() => bucketEventsBySport(visibleEvents), [visibleEvents]);
+
   if (!field) return null;
 
   const stored = parseStoredFieldName(field.name);
@@ -222,6 +228,7 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
     userCoords != null
       ? `${formatDistance(distanceMeters(userCoords, [field.lng, field.lat]))} ${t('field.fromYou')}`
       : null;
+  const availability: CourtAvailability = field.availability ?? 'empty';
 
   return (
     <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
@@ -229,6 +236,10 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
 
       <View style={[styles.sheet, { paddingBottom: insets.bottom + 16 }]}>
         <View style={styles.handle} />
+
+        {field.photo_url ? (
+          <Image source={{ uri: field.photo_url }} style={styles.photo} resizeMode="cover" />
+        ) : null}
 
         <View style={styles.titleRow}>
           <Text style={[styles.title, styles.titleFlex]} numberOfLines={1}>{placeName}</Text>
@@ -250,6 +261,25 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
           <Text style={styles.metaText}>{formatFieldSport(field.sport)}</Text>
           {distanceText ? <Text style={styles.metaText}>· {distanceText}</Text> : null}
         </View>
+
+        <View style={styles.statusBadge}>
+          <View style={[styles.statusDot, { backgroundColor: getAvailabilityColor(availability) }]} />
+          <Text style={[styles.statusBadgeText, { color: getAvailabilityColor(availability) }]}>
+            {getAvailabilityLabel(availability)}
+          </Text>
+        </View>
+
+        {eventsByCategory.length > 0 ? (
+          <View style={styles.categoryChips}>
+            {eventsByCategory.map((c) => (
+              <View key={c.sport} style={styles.categoryChip}>
+                <Text style={styles.categoryChipText}>
+                  {fieldMarkerEmoji(c.sport)} {c.count} {t('field.activeEvents')}
+                </Text>
+              </View>
+            ))}
+          </View>
+        ) : null}
 
         <Text style={styles.sectionTitle}>{t('field.eventsTitle')}</Text>
 
@@ -367,6 +397,46 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: Brand.border,
     marginBottom: 14,
+  },
+  photo: {
+    width: '100%',
+    aspectRatio: 16 / 9,
+    borderRadius: 14,
+    backgroundColor: Brand.surfaceMuted,
+    marginBottom: 12,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    alignSelf: 'flex-start',
+    marginTop: 2,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusBadgeText: {
+    fontSize: 13,
+    fontWeight: '700',
+  },
+  categoryChips: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginTop: 10,
+  },
+  categoryChip: {
+    backgroundColor: Brand.surfaceMuted,
+    borderRadius: 999,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+  },
+  categoryChipText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: Brand.textSecondary,
   },
   title: {
     fontSize: 20,

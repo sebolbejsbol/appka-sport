@@ -2,7 +2,6 @@ import Mapbox, {
   Camera,
   CircleLayer,
   FillLayer,
-  Images,
   LineLayer,
   LocationPuck,
   MapView,
@@ -32,6 +31,7 @@ import { useUserLocation, type LngLat } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
 import {
   fieldsToGeoJSON,
+  getEventCountsByCategoryInBbox,
   getEventCountsInBbox,
   getFieldsByIds,
   getFieldsInBbox,
@@ -40,6 +40,7 @@ import {
   lockedVoivodeshipsToGeoJSON,
   voivodeshipsToGeoJSON,
   type Bbox,
+  type FieldCategoryCount,
   type FieldEventStats,
   type FieldPoint,
   type FieldSort,
@@ -48,6 +49,7 @@ import { listMyFavoriteFieldIds } from '@/lib/favorites';
 import { formatCourtName } from '@/lib/field-display';
 import { distanceMeters } from '@/lib/geo';
 import { markInitialDiscoverReady, markInitialFieldsReady } from '@/lib/map-ready';
+import { buildAvailabilityMatchExpression, buildClusterStatusColorExpression } from '@/lib/map-theme';
 import { notifyInfo } from '@/lib/toast';
 import {
   applyDiscoverFilters,
@@ -57,16 +59,9 @@ import {
   type DiscoverEvent,
   type DiscoverFilters,
 } from '@/lib/discover-events';
-import {
-  categoryMeta,
-  eventMarkerIcon,
-  markerEmoji,
-  type CategoryFilter,
-} from '@/lib/event-categories';
+import { type CategoryFilter } from '@/lib/event-categories';
 import { fieldFilterForSelection } from '@/lib/venue-types';
 import type { PlaceSearchResult } from '@/lib/map-geocoding';
-import { mapFieldIcons } from '@/lib/map-field-icons';
-import { mapEventIcons } from '@/lib/map-event-icons';
 import {
   bboxAroundCenter,
   expandBbox,
@@ -123,17 +118,6 @@ const FADE_END = 7.3;
  * zielony (jest gdzie grać); inaczej mało miejsc? -> pomarańczowy; inaczej
  * pełne? -> czerwony; inaczej brak eventów -> szary.
  */
-/** Sporty pokazywane jako mini-ikonki w klastrze — z ustalonymi pozycjami (patrz CLUSTER_SPORT_ICON_OFFSETS). */
-const CLUSTER_ICON_SPORTS = ['basketball', 'football', 'tennis', 'volleyball', 'fitness'] as const;
-
-/** "fitness" jako ikonka obejmuje dwa typy boisk z OSM (siłownia plenerowa = też siłownia). */
-function clusterSportMatchExpr(sport: (typeof CLUSTER_ICON_SPORTS)[number]) {
-  if (sport === 'fitness') {
-    return ['case', ['in', ['get', 'sport'], ['literal', ['fitness', 'outdoor_gym']]], 1, 0];
-  }
-  return ['case', ['==', ['get', 'sport'], sport], 1, 0];
-}
-
 const CLUSTER_AVAILABILITY_PROPERTIES = {
   // Suma AKTYWNYCH EVENTÓW ze wszystkich boisk w klastrze — to jest liczba,
   // która ma się wyświetlać w bąblu, NIE liczba zgrupowanych punktów/boisk.
@@ -141,22 +125,6 @@ const CLUSTER_AVAILABILITY_PROPERTIES = {
   open_count: ['+', ['case', ['==', ['get', 'availability'], 'open'], 1, 0]],
   filling_count: ['+', ['case', ['==', ['get', 'availability'], 'filling'], 1, 0]],
   full_count: ['+', ['case', ['==', ['get', 'availability'], 'full'], 1, 0]],
-  ...Object.fromEntries(
-    CLUSTER_ICON_SPORTS.map((sport) => [`has_${sport}`, ['max', clusterSportMatchExpr(sport)]]),
-  ),
-};
-
-/**
- * Stałe pozycje mini-ikonek sportu w klastrze — siatka 2 rzędy (3 góra, 2 dół),
- * z odstępami dobranymi tak, by ikonki się nie nakładały (patrz CLUSTER_ICON_SIZE
- * niżej: ~15px szerokości przy max zoomie, więc odstęp środek-środek >= 16px).
- */
-const CLUSTER_SPORT_ICON_OFFSETS: Record<(typeof CLUSTER_ICON_SPORTS)[number], [number, number]> = {
-  basketball: [-16, -3],
-  football: [0, -3],
-  tennis: [16, -3],
-  volleyball: [-8, 14],
-  fitness: [8, 14],
 };
 
 type FieldSelection = { rpc: string | null; showFields: boolean };
@@ -168,36 +136,6 @@ function fieldSelectionFor(
 ): FieldSelection {
   return fieldFilterForSelection(category, subcategory);
 }
-
-function discoverEventsToGeoJSON(events: DiscoverEvent[]) {
-  return {
-    type: 'FeatureCollection' as const,
-    features: events
-      .filter((e) => e.lng != null && e.lat != null)
-      .map((e) => {
-        const meta = categoryMeta(e.category);
-        return {
-          type: 'Feature' as const,
-          id: e.id,
-          geometry: {
-            type: 'Point' as const,
-            coordinates: [e.lng as number, e.lat as number],
-          },
-          properties: {
-            id: e.id,
-            color: meta.color,
-            emoji: markerEmoji(e.category, e.subcategory),
-            icon: eventMarkerIcon(e.category, e.subcategory),
-            instant: e.is_instant ? 1 : 0,
-            stroke: e.is_instant ? '#16a34a' : '#ffffff',
-            strokeWidth: e.is_instant ? 4 : 2,
-          },
-        };
-      }),
-  };
-}
-
-const EMPTY_EVENT_SHAPE = discoverEventsToGeoJSON([]);
 
 function bboxFromMapState(state: MapState | undefined): Bbox | null {
   const bounds = state?.properties?.bounds;
@@ -264,6 +202,11 @@ function fieldFromMapFeature(feature: GeoJSON.Feature): FieldPoint | null {
           ? Number(props.avg_rating) || null
           : null,
     rating_count: 0,
+    photo_url: typeof props?.photo_url === 'string' ? props.photo_url : null,
+    availability:
+      props?.availability === 'open' || props?.availability === 'filling' || props?.availability === 'full'
+        ? props.availability
+        : 'empty',
   };
 }
 
@@ -277,19 +220,25 @@ function extractLeafFeatures(result: unknown): GeoJSON.Feature[] {
 }
 
 /** Konwertuje pojedynczą (nie-klastrową) cechę mapy na wiersz panelu "W pobliżu". */
-function featureToNearbyItem(feature: GeoJSON.Feature, coords: LngLat | null): NearbyFieldItem | null {
+function featureToNearbyItem(
+  feature: GeoJSON.Feature,
+  coords: LngLat | null,
+  categoryBreakdown: Map<string, FieldCategoryCount[]>,
+): NearbyFieldItem | null {
   if (feature.geometry?.type !== 'Point') return null;
   const props = (feature.properties ?? {}) as Record<string, unknown>;
   const [lng, lat] = feature.geometry.coordinates;
   const sport = typeof props.sport === 'string' ? props.sport : null;
+  const id = String(feature.id ?? props.id ?? '');
   return {
-    id: String(feature.id ?? props.id ?? ''),
+    id,
     name: formatCourtName(typeof props.name === 'string' ? props.name : null, sport),
     sport,
     emoji: typeof props.emoji === 'string' ? props.emoji : '📍',
     distanceMeters: coords ? distanceMeters(coords, [lng, lat]) : null,
     eventCount: Number(props.event_count) || 0,
     availability: (props.availability as NearbyFieldItem['availability']) ?? 'empty',
+    eventsByCategory: (categoryBreakdown.get(id) ?? []).map((c) => ({ sport: c.sport, count: c.count })),
   };
 }
 
@@ -322,6 +271,7 @@ export function AppMap() {
   const [fieldsLoading, setFieldsLoading] = useState(false);
   const [nearbyExpanded, setNearbyExpanded] = useState(false);
   const [clusterVenues, setClusterVenues] = useState<NearbyFieldItem[] | null>(null);
+  const [categoryBreakdown, setCategoryBreakdown] = useState<Map<string, FieldCategoryCount[]>>(new Map());
   const requestIdRef = useRef(0);
   const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const latestStateRef = useRef<MapState | undefined>(undefined);
@@ -346,14 +296,6 @@ export function AppMap() {
     [discoverEvents, filters, coords],
   );
 
-  const eventShape = useMemo(
-    () =>
-      visibleEvents.length === 0
-        ? EMPTY_EVENT_SHAPE
-        : discoverEventsToGeoJSON(visibleEvents),
-    [visibleEvents],
-  );
-
   const activeFilterCount = useMemo(
     () => countActiveDiscoverFilters(filters),
     [filters],
@@ -363,12 +305,12 @@ export function AppMap() {
   // i tylko z otwartymi (dołączalnymi) eventami, posortowana wg odległości.
   const nearbyFields = useMemo<NearbyFieldItem[]>(() => {
     const items = features.features.flatMap((feature) => {
-      const item = featureToNearbyItem(feature, coords);
+      const item = featureToNearbyItem(feature, coords, categoryBreakdown);
       return item && isNearbyListEligible(item) ? [item] : [];
     });
     items.sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity));
     return items.slice(0, 40);
-  }, [features, coords]);
+  }, [features, coords, categoryBreakdown]);
 
   // Liczba graczy / max na najbliższym (wg starts_at) evencie danego boiska —
   // niezależnie od aktualnych filtrów, żeby odznaka na mapie zawsze pokazywała
@@ -470,15 +412,19 @@ export function AppMap() {
       const requestId = ++requestIdRef.current;
       setFieldsLoading(true);
       const padded = expandBbox(bbox, BBOX_PADDING);
-      const [fieldsRes, countsRes] = await Promise.all([
+      const [fieldsRes, countsRes, categoryCountsRes] = await Promise.all([
         getFieldsInBbox(padded, maxRowsForZoom(mapZoom), sportFilter, FIELD_SORT),
         getEventCountsInBbox(padded, sportFilter),
+        getEventCountsByCategoryInBbox(padded),
       ]);
       if (fieldsRes.error || requestId !== requestIdRef.current) {
         if (requestId === requestIdRef.current) setFieldsLoading(false);
         return;
       }
 
+      if (!categoryCountsRes.error) {
+        setCategoryBreakdown(categoryCountsRes.data);
+      }
       const counts = countsRes.error ? new Map<string, FieldEventStats>() : countsRes.data;
       const merged = fieldsRes.data.map((field) => {
         const stats = counts.get(field.id);
@@ -674,7 +620,7 @@ export function AppMap() {
           .then((collection) => {
             const leaves = extractLeafFeatures(collection);
             const items = leaves.flatMap((leaf) => {
-              const item = featureToNearbyItem(leaf, coords);
+              const item = featureToNearbyItem(leaf, coords, categoryBreakdown);
               return item && isNearbyListEligible(item) ? [item] : [];
             });
             items.sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity));
@@ -695,18 +641,8 @@ export function AppMap() {
         fieldTapLockRef.current = false;
       }, 0);
     },
-    [coords],
+    [coords, categoryBreakdown],
   );
-
-  const onEventPress = useCallback((event: { features?: GeoJSON.Feature[] }) => {
-    const id = event.features?.[0]?.properties?.id;
-    if (typeof id !== 'string') return;
-    fieldTapLockRef.current = true;
-    router.push({ pathname: '/event/[id]', params: { id } });
-    setTimeout(() => {
-      fieldTapLockRef.current = false;
-    }, 0);
-  }, []);
 
   const onMapPress = useCallback(() => {
     if (fieldTapLockRef.current) return;
@@ -798,17 +734,18 @@ export function AppMap() {
           }}
         />
 
-        <Images images={mapFieldIcons} />
-        <Images images={mapEventIcons} />
-
         <ShapeSource
           ref={fieldsSourceRef}
           id="fields"
           shape={features}
           onPress={onFieldPress}
           cluster
-          clusterRadius={55}
-          clusterMaxZoomLevel={13}
+          clusterRadius={80}
+          // Poza tym zoomem Mapbox przestaje w ogóle liczyć klastry — każdy punkt
+          // renderuje się osobno, nawet gdy leży kilkadziesiąt metrów od sąsiada.
+          // 13 było za nisko (widać było pojedyncze markery obok dużego klastra
+          // przy przybliżeniu, w którym powinny się jeszcze łączyć).
+          clusterMaxZoomLevel={16}
           clusterProperties={CLUSTER_AVAILABILITY_PROPERTIES}>
           {/* Neonowa poświata klastra — kolor wg najlepszej dostępności (jest tu coś
               otwartego? -> zielony; inaczej mało miejsc? -> pomarańczowy; inaczej
@@ -827,13 +764,7 @@ export function AppMap() {
                 15, 38,
                 40, 44,
               ],
-              circleColor: [
-                'case',
-                ['>', ['get', 'open_count'], 0], Brand.success,
-                ['>', ['get', 'filling_count'], 0], Brand.warning,
-                ['>', ['get', 'full_count'], 0], Brand.danger,
-                '#94a3b8',
-              ],
+              circleColor: buildClusterStatusColorExpression(),
               circleBlur: 1.1,
               circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 0.6],
             }}
@@ -864,13 +795,7 @@ export function AppMap() {
                 FADE_START, 3,
                 13, 5,
               ],
-              circleStrokeColor: [
-                'case',
-                ['>', ['get', 'open_count'], 0], Brand.success,
-                ['>', ['get', 'filling_count'], 0], Brand.warning,
-                ['>', ['get', 'full_count'], 0], Brand.danger,
-                '#94a3b8',
-              ],
+              circleStrokeColor: buildClusterStatusColorExpression(),
               circleStrokeOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
             }}
           />
@@ -882,36 +807,12 @@ export function AppMap() {
               textField: ['get', 'total_events'],
               textSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 13, 10, 16, 13, 19],
               textColor: '#ffffff',
-              textOffset: [0, -0.55],
               textOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
               textAllowOverlap: true,
               textIgnorePlacement: true,
               textPitchAlignment: 'viewport',
             }}
           />
-          {/* Mini-ikonki sportów w klastrze — po jednej warstwie na sport, każda
-              na stałej pozycji, widoczna tylko gdy klaster zawiera ten sport
-              (patrz has_X w CLUSTER_AVAILABILITY_PROPERTIES). Rozmiar rośnie
-              płynnie z zoomem, żeby dorastać razem z klastrem. */}
-          <>
-            {CLUSTER_ICON_SPORTS.map((sport) => (
-              <SymbolLayer
-                key={`cluster-icon-${sport}`}
-                id={`cluster-icon-${sport}`}
-                filter={['all', ['has', 'point_count'], ['>', ['get', `has_${sport}`], 0]]}
-                minZoomLevel={FADE_START}
-                style={{
-                  iconImage: sport,
-                  iconSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 0.3, 10, 0.36, 13, 0.42],
-                  iconOffset: CLUSTER_SPORT_ICON_OFFSETS[sport],
-                  iconOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
-                  iconAllowOverlap: true,
-                  iconIgnorePlacement: true,
-                  iconPitchAlignment: 'viewport',
-                }}
-              />
-            ))}
-          </>
           {/* Miękka poświata obiektu — kolor wg dostępności (jak klaster), nie wg
               liczby eventów, żeby jeden spójny język wizualny opisywał "czy warto". */}
           <CircleLayer
@@ -929,14 +830,7 @@ export function AppMap() {
                 16, 38,
                 18, 44,
               ],
-              circleColor: [
-                'match',
-                ['get', 'availability'],
-                'full', Brand.danger,
-                'filling', Brand.warning,
-                'open', Brand.success,
-                '#94a3b8',
-              ],
+              circleColor: buildAvailabilityMatchExpression(),
               circleBlur: 1.1,
               circleOpacity: 0.55,
             }}
@@ -970,43 +864,11 @@ export function AppMap() {
                 14, 4,
                 18, 5,
               ],
-              circleStrokeColor: [
-                'match',
-                ['get', 'availability'],
-                'full', Brand.danger,
-                'filling', Brand.warning,
-                'open', Brand.success,
-                '#94a3b8',
-              ],
+              circleStrokeColor: buildAvailabilityMatchExpression(),
               circleStrokeOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
             }}
           />
-          {/* Ikonka sportu (górna połowa bąbla) — obrazek, bo Mapbox nie renderuje
-              emoji w warstwie tekstu (gł. Android). */}
-          <SymbolLayer
-            id="fields-icon"
-            filter={['!', ['has', 'point_count']]}
-            minZoomLevel={FADE_START}
-            style={{
-              iconImage: ['get', 'icon'],
-              iconSize: [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                7, 0.38,
-                12, 0.52,
-                14, 0.62,
-                16, 0.74,
-                18, 0.86,
-              ],
-              iconOffset: [0, -9],
-              iconOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
-              iconAllowOverlap: true,
-              iconIgnorePlacement: true,
-              iconPitchAlignment: 'viewport',
-            }}
-          />
-          {/* Liczba AKTYWNYCH EVENTÓW na tym konkretnym boisku (dolna połowa bąbla) —
+          {/* Liczba AKTYWNYCH EVENTÓW na tym konkretnym boisku, wyśrodkowana w bąblu —
               to jest to, co user ma widzieć od razu, nie licznik graczy jednego eventu. */}
           <SymbolLayer
             id="fields-count-text"
@@ -1025,7 +887,6 @@ export function AppMap() {
                 18, 21,
               ],
               textColor: '#ffffff',
-              textOffset: [0, 0.9],
               textOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
               textAllowOverlap: true,
               textIgnorePlacement: true,
@@ -1174,46 +1035,6 @@ export function AppMap() {
               textAllowOverlap: false,
               textIgnorePlacement: false,
               textPitchAlignment: 'viewport',
-            }}
-          />
-        </ShapeSource>
-
-        {/* Wydarzenia (sport + rozszerzone) — ikonka PNG z emoji wg podkategorii */}
-        <ShapeSource id="discover-events" shape={eventShape} onPress={onEventPress}>
-          {/* Zielona poświata dla „szukam teraz" (instant) */}
-          <CircleLayer
-            id="discover-event-instant"
-            filter={['==', ['get', 'instant'], 1]}
-            minZoomLevel={FADE_START}
-            style={{
-              circleRadius: [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                FADE_START, 14,
-                FADE_END, 20,
-              ],
-              circleColor: '#16a34a',
-              circleBlur: 0.5,
-              circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 0.5],
-            }}
-          />
-          <SymbolLayer
-            id="discover-event-icon"
-            minZoomLevel={FADE_START}
-            style={{
-              iconImage: ['get', 'icon'],
-              iconSize: [
-                'interpolate',
-                ['linear'],
-                ['zoom'],
-                FADE_START, 0.6,
-                FADE_END, 0.92,
-              ],
-              iconOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
-              iconAllowOverlap: true,
-              iconIgnorePlacement: true,
-              iconPitchAlignment: 'viewport',
             }}
           />
         </ShapeSource>
