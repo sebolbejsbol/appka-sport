@@ -1467,6 +1467,10 @@ export const pl = {
     transitionConfirmMessage: 'To przesunie turniej do następnego etapu.',
     transitionError: 'Nie udało się zmienić statusu. Spróbuj ponownie.',
     transitionNotEnoughTeams: 'Za mało zaakceptowanych drużyn, aby oznaczyć turniej jako gotowy.',
+    deleteAction: 'Usuń turniej na stałe',
+    deleteConfirmTitle: 'Usunąć turniej na stałe?',
+    deleteConfirmMessage: 'Tej operacji nie można cofnąć — turniej i wszystkie powiązane dane (drużyny, mecze) zostaną trwale usunięte.',
+    deleteError: 'Nie udało się usunąć turnieju. Spróbuj ponownie.',
   },
   tournamentDetail: {
     notFound: 'Nie znaleziono turnieju.',

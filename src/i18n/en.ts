@@ -1460,6 +1460,10 @@ export const en: DeepPartialWide<Translations> = {
     transitionConfirmMessage: 'This will move the tournament to the next stage.',
     transitionError: 'Could not change the status. Try again.',
     transitionNotEnoughTeams: 'Not enough approved teams yet to mark this tournament ready.',
+    deleteAction: 'Permanently delete tournament',
+    deleteConfirmTitle: 'Permanently delete this tournament?',
+    deleteConfirmMessage: 'This cannot be undone — the tournament and all related data (teams, matches) will be permanently deleted.',
+    deleteError: 'Could not delete the tournament. Try again.',
   },
   tournamentDetail: {
     notFound: 'Tournament not found.',

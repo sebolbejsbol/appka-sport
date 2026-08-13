@@ -20,6 +20,7 @@ import { goBack } from '@/lib/navigation';
 import { uploadTournamentLogo } from '@/lib/tournament-storage';
 import {
   TOURNAMENT_STATUS_TRANSITIONS,
+  deleteTournament,
   getTournamentDetail,
   setTournamentStatus,
   updateTournament,
@@ -155,6 +156,30 @@ export default function EditTournamentScreen() {
     void load();
   }
 
+  function confirmDelete() {
+    confirmAction(
+      t('tournamentForm.deleteConfirmTitle'),
+      t('tournamentForm.deleteConfirmMessage'),
+      t('tournamentForm.deleteAction'),
+      t('common.cancel'),
+      () => void handleDelete(),
+      true,
+    );
+  }
+
+  async function handleDelete() {
+    if (!tournamentId) return;
+    setBusy(true);
+    setError(null);
+    const result = await deleteTournament(tournamentId);
+    setBusy(false);
+    if (result !== 'ok') {
+      setError(t('tournamentForm.deleteError'));
+      return;
+    }
+    router.replace('/admin/tournaments' as Href);
+  }
+
   if (roleLoading) {
     return (
       <View style={[styles.flex, { paddingTop: insets.top + 12 }]}>
@@ -262,6 +287,18 @@ export default function EditTournamentScreen() {
                   style={styles.transitionBtn}
                 />
               ))}
+            </View>
+          ) : null}
+
+          {tournament && (tournament.status === 'draft' || tournament.status === 'cancelled') ? (
+            <View style={styles.transitions}>
+              <Button
+                label={t('tournamentForm.deleteAction')}
+                variant="danger"
+                onPress={confirmDelete}
+                disabled={busy}
+                style={styles.transitionBtn}
+              />
             </View>
           ) : null}
         </ScrollView>
