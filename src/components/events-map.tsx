@@ -42,6 +42,14 @@ type Props = {
 };
 
 /**
+ * Ikonka sportu NIE ma wyskakiwać razem z bąblem — kolorowa obwódka już mówi
+ * "coś się tu dzieje", ikonka to szczegół doprecyzowujący JAKI to sport, więc
+ * pokazuje się dopiero przy realnym przybliżeniu (zoom "ulicy"), nie na
+ * pierwszy rzut oka na widoku miasta.
+ */
+const ICON_FADE_START = 13;
+
+/**
  * Klaster/pojedynczy obiekt (nie pojedynczy event!) — dokładnie ten sam język
  * wizualny co główna mapa: czarne kółko, kolorowa obwódka statusu, siatka
  * ikon kategorii / jedna ikona sportu. Event to WYŁĄCZNIE dane zasilające
@@ -165,6 +173,7 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
                 key={`event-venues-cluster-icon-slot-${slot}`}
                 id={`event-venues-cluster-icon-slot-${slot}`}
                 filter={['all', ['has', 'point_count'], buildClusterIconSlotVisibleFilter(slot)]}
+                minZoomLevel={ICON_FADE_START}
                 style={{
                   iconImage: buildClusterIconSlotExpression(slot),
                   iconSize: 0.4,
@@ -189,6 +198,7 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
           <SymbolLayer
             id="event-venue-icon"
             filter={['!', ['has', 'point_count']]}
+            minZoomLevel={ICON_FADE_START}
             style={{
               iconImage: ['get', 'icon'],
               iconSize: 0.6,

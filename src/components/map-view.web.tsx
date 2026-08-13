@@ -104,6 +104,15 @@ const FADE_START = 6.5;
 const FADE_END = 7.3;
 
 /**
+ * Ikonka sportu NIE ma wyskakiwać razem z bąblem — kolorowa obwódka już mówi
+ * "coś się tu dzieje", ikonka to szczegół doprecyzowujący JAKI to sport, więc
+ * pokazuje się dopiero przy realnym przybliżeniu (zoom "ulicy"), nie na
+ * pierwszy rzut oka na widoku miasta.
+ */
+const ICON_FADE_START = 13;
+const ICON_FADE_END = 14;
+
+/**
  * Kolor klastra ma pokazywać, czy warto tam zajrzeć — nie liczebność grupy.
  * Agregujemy przy łączeniu punktów, ile w klastrze jest boisk w każdym stanie
  * dostępności, a potem wybieramy kolor wg priorytetu: jest coś otwartego? ->
@@ -791,12 +800,12 @@ export function AppMap() {
               key={`cluster-icon-slot-${slot}`}
               id={`cluster-icon-slot-${slot}`}
               filter={['all', ['has', 'point_count'], buildClusterIconSlotVisibleFilter(slot)]}
-              minZoomLevel={FADE_START}
+              minZoomLevel={ICON_FADE_START}
               style={{
                 iconImage: buildClusterIconSlotExpression(slot),
-                iconSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 0.36, 10, 0.4, 13, 0.44],
+                iconSize: ['interpolate', ['linear'], ['zoom'], ICON_FADE_START, 0.4, 16, 0.44],
                 iconOffset: buildClusterIconSlotOffsetExpression(slot),
-                iconOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
+                iconOpacity: ['interpolate', ['linear'], ['zoom'], ICON_FADE_START, 0, ICON_FADE_END, 1],
                 iconAllowOverlap: true,
                 iconIgnorePlacement: true,
                 iconPitchAlignment: 'viewport',
@@ -863,7 +872,7 @@ export function AppMap() {
           <SymbolLayer
             id="fields-icon"
             filter={['!', ['has', 'point_count']]}
-            minZoomLevel={FADE_START}
+            minZoomLevel={ICON_FADE_START}
             style={{
               iconImage: ['get', 'icon'],
               iconSize: [
@@ -877,7 +886,7 @@ export function AppMap() {
                 18, 0.86,
               ],
               iconOffset: [0, -9],
-              iconOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
+              iconOpacity: ['interpolate', ['linear'], ['zoom'], ICON_FADE_START, 0, ICON_FADE_END, 1],
               iconAllowOverlap: true,
               iconIgnorePlacement: true,
               iconPitchAlignment: 'viewport',
