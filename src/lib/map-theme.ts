@@ -111,16 +111,6 @@ export function buildClusterCategoryProperties(): Record<string, any> {
   return props;
 }
 
-/**
- * Ile ikonek maksymalnie mieści siatka wewnątrz jednego bąbla klastra:
- * 1 wyśrodkowana, 2 obok siebie, 3-4 w układzie 2x2. Więcej niż 4 obecne
- * kategorie -> pokazujemy pierwsze 3 (wg kolejności w CLUSTER_CATEGORY_KEYS)
- * + piktogram "more" na czwartej pozycji, nigdy więcej niż 4 elementy.
- */
-export const CLUSTER_GRID_MAX_SLOTS = 4;
-
-export type ClusterIconSlot = ClusterCategoryKey | 'more';
-
 /** Kategorie obecne w klastrze (liczba > 0), w stałej kolejności priorytetu. */
 export function presentCategories(
   counts: Partial<Record<ClusterCategoryKey, number>>,
@@ -129,97 +119,45 @@ export function presentCategories(
 }
 
 /**
- * Czysta logika przypisania kategorii do slotów siatki (0-3) — wydzielona
- * osobno od budowniczych wyrażeń Mapboxa poniżej, żeby dało się ją
- * przetestować bez atrapy silnika wyrażeń. Obie ścieżki MUSZĄ zwracać ten
- * sam wynik dla tych samych liczników, inaczej podgląd w testach rozjedzie
- * się z prawdziwą mapą — stąd zwracamy dokładnie to, co ma się wyrenderować,
- * pozycja po pozycji (indeks tablicy = slot), zamiast samej liczby.
+ * Jedna ikona na bąbel (obok liczby eventów), nie siatka — mały bąbel nie ma
+ * miejsca na kilka piktogramów naraz i musi być czytelny na pierwszy rzut
+ * oka. Wybieramy kategorię z NAJWIĘKSZĄ liczbą obiektów w klastrze; przy
+ * remisie wygrywa ta wcześniejsza w CLUSTER_CATEGORY_KEYS (deterministyczne,
+ * stabilne między odświeżeniami). "other" (poza siedmioma śledzonymi sportami)
+ * pokazuje neutralną ikonę 'generic', bo nie wskazuje jednego konkretnego typu.
+ *
+ * Czysta wersja do testów — MUSI zwracać ten sam wynik co
+ * buildClusterDominantIconExpression() dla tych samych liczników, inaczej
+ * podgląd w testach rozjedzie się z prawdziwą mapą.
  */
-export function clusterIconSlots(
+export function dominantCategory(
   counts: Partial<Record<ClusterCategoryKey, number>>,
-): ClusterIconSlot[] {
-  const present = presentCategories(counts);
-  if (present.length <= CLUSTER_GRID_MAX_SLOTS) return present;
-  return [...present.slice(0, CLUSTER_GRID_MAX_SLOTS - 1), 'more'];
+): ClusterCategoryKey | null {
+  let best: ClusterCategoryKey | null = null;
+  let bestCount = 0;
+  for (const key of CLUSTER_CATEGORY_KEYS) {
+    const count = counts[key] ?? 0;
+    if (count > bestCount) {
+      best = key;
+      bestCount = count;
+    }
+  }
+  return best;
 }
 
-function presentExpr(key: ClusterCategoryKey): any {
-  return ['>', ['get', `count_${key}`], 0];
+function countExpr(key: ClusterCategoryKey): any {
+  return ['get', `count_${key}`];
 }
 
-/** Liczba obecnych kategorii ze ŚCIŚLE wyższym priorytetem (wcześniejszych w CLUSTER_CATEGORY_KEYS) niż `key`. */
-function rankIndexExpr(key: ClusterCategoryKey): any {
-  const earlier = CLUSTER_CATEGORY_KEYS.slice(0, CLUSTER_CATEGORY_KEYS.indexOf(key));
-  if (earlier.length === 0) return 0;
-  return ['+', ...earlier.map((k) => ['case', presentExpr(k), 1, 0])];
-}
-
-function totalPresentExpr(): any {
-  return ['+', ...CLUSTER_CATEGORY_KEYS.map((k) => ['case', presentExpr(k), 1, 0])];
-}
-
-/** Ikona kategorii, której rangą (kolejność wśród obecnych) jest `slotIndex` — 'generic' dla "other". */
-function slotCategoryIconExpr(slotIndex: number): any {
+/** Ikona najliczniejszej kategorii w klastrze — 'generic' gdy brak danych lub wygrywa "other". */
+export function buildClusterDominantIconExpression(): any {
   const cases: any[] = ['case'];
   for (const key of CLUSTER_CATEGORY_KEYS) {
-    cases.push(
-      ['all', presentExpr(key), ['==', rankIndexExpr(key), slotIndex]],
-      key === 'other' ? 'generic' : key,
-    );
+    const others = CLUSTER_CATEGORY_KEYS.filter((k) => k !== key);
+    const isMax = ['all', ...others.map((k) => ['>=', countExpr(key), countExpr(k)])];
+    cases.push(isMax, key === 'other' ? 'generic' : key);
   }
   cases.push('generic');
   return cases;
-}
-
-/**
- * Obraz do wyświetlenia w danym slocie (0-3) siatki ikon klastra. Slot 3 to
- * piktogram "more", jeśli obecnych kategorii jest więcej niż 4 — w
- * przeciwnym razie (dokładnie 4) to zwykła 4. kategoria wg rangi.
- */
-export function buildClusterIconSlotExpression(slotIndex: 0 | 1 | 2 | 3): any {
-  if (slotIndex === 3) {
-    return ['case', ['>', totalPresentExpr(), CLUSTER_GRID_MAX_SLOTS], 'more', slotCategoryIconExpr(3)];
-  }
-  return slotCategoryIconExpr(slotIndex);
-}
-
-/** Czy dany slot w ogóle powinien się wyrenderować dla tego klastra (ma tyle obecnych kategorii). */
-export function buildClusterIconSlotVisibleFilter(slotIndex: 0 | 1 | 2 | 3): any {
-  return ['>=', totalPresentExpr(), slotIndex + 1];
-}
-
-/**
- * Stała, deterministyczna geometria siatki (px, względem środka bąbla):
- * 1 ikona -> wyśrodkowana w jednym rzędzie; 2 -> para w tym samym rzędzie;
- * 3-4 -> pełny układ 2x2. Liczba aktywnych eventów renderuje się NAD siatką
- * (ujemny textOffset w warstwie tekstu), więc oba rzędy siatki leżą poniżej
- * środka bąbla.
- */
-const CLUSTER_ICON_GRID = { gapX: 9, singleRowY: 13, topRowY: 6, bottomRowY: 20 } as const;
-
-/** Pozycja ikony w danym slocie — zależna od CAŁKOWITEJ liczby obecnych kategorii (1 vs 2 vs 3-4 zmienia układ). */
-export function buildClusterIconSlotOffsetExpression(slotIndex: 0 | 1 | 2 | 3): any {
-  const total = totalPresentExpr();
-  const g = CLUSTER_ICON_GRID;
-  if (slotIndex === 0) {
-    return [
-      'case',
-      ['==', total, 1], ['literal', [0, g.singleRowY]],
-      ['==', total, 2], ['literal', [-g.gapX, g.singleRowY]],
-      ['literal', [-g.gapX, g.topRowY]],
-    ];
-  }
-  if (slotIndex === 1) {
-    return [
-      'case',
-      ['==', total, 2], ['literal', [g.gapX, g.singleRowY]],
-      ['literal', [g.gapX, g.topRowY]],
-    ];
-  }
-  if (slotIndex === 2) {
-    return ['literal', [-g.gapX, g.bottomRowY]];
-  }
-  return ['literal', [g.gapX, g.bottomRowY]];
 }
 

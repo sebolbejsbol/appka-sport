@@ -19,9 +19,7 @@ import { mapFieldIcons } from '@/lib/map-field-icons';
 import {
   buildAvailabilityMatchExpression,
   buildClusterCategoryProperties,
-  buildClusterIconSlotExpression,
-  buildClusterIconSlotOffsetExpression,
-  buildClusterIconSlotVisibleFilter,
+  buildClusterDominantIconExpression,
   buildClusterStatusColorExpression,
 } from '@/lib/map-theme';
 import { fieldMarkerIcon } from '@/lib/sports';
@@ -42,19 +40,11 @@ type Props = {
 };
 
 /**
- * Ikonka sportu NIE ma wyskakiwać razem z bąblem — kolorowa obwódka już mówi
- * "coś się tu dzieje", ikonka to szczegół doprecyzowujący JAKI to sport, więc
- * pokazuje się dopiero przy realnym przybliżeniu (zoom "ulicy"), nie na
- * pierwszy rzut oka na widoku miasta.
- */
-const ICON_FADE_START = 13;
-
-/**
  * Klaster/pojedynczy obiekt (nie pojedynczy event!) — dokładnie ten sam język
- * wizualny co główna mapa: czarne kółko, kolorowa obwódka statusu, siatka
- * ikon kategorii / jedna ikona sportu. Event to WYŁĄCZNIE dane zasilające
- * wygląd punktu, do którego fizycznie należy (patrz groupEventsByVenue) —
- * nigdy własny, osobny marker na mapie.
+ * wizualny co główna mapa: czarne kółko, kolorowa obwódka statusu, ikona
+ * kategorii obok liczby eventów. Event to WYŁĄCZNIE dane zasilające wygląd
+ * punktu, do którego fizycznie należy (patrz groupEventsByVenue) — nigdy
+ * własny, osobny marker na mapie.
  */
 const CLUSTER_AVAILABILITY_PROPERTIES = {
   total_events: ['+', ['get', 'event_count']],
@@ -161,30 +151,28 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
               textField: ['get', 'total_events'],
               textSize: 15,
               textColor: '#ffffff',
-              textOffset: [0, -0.85],
+              textOffset: [0.7, 0],
               textAllowOverlap: true,
               textIgnorePlacement: true,
               textPitchAlignment: 'viewport',
             }}
           />
-          <>
-            {([0, 1, 2, 3] as const).map((slot) => (
-              <SymbolLayer
-                key={`event-venues-cluster-icon-slot-${slot}`}
-                id={`event-venues-cluster-icon-slot-${slot}`}
-                filter={['all', ['has', 'point_count'], buildClusterIconSlotVisibleFilter(slot)]}
-                minZoomLevel={ICON_FADE_START}
-                style={{
-                  iconImage: buildClusterIconSlotExpression(slot),
-                  iconSize: 0.4,
-                  iconOffset: buildClusterIconSlotOffsetExpression(slot),
-                  iconAllowOverlap: true,
-                  iconIgnorePlacement: true,
-                  iconPitchAlignment: 'viewport',
-                }}
-              />
-            ))}
-          </>
+          {/* Ikona najliczniejszej kategorii w klastrze, obok liczby eventów —
+              jedna ikona, nie siatka (patrz buildClusterDominantIconExpression
+              w map-theme.ts), bo mały bąbel nie mieści kilku piktogramów
+              naraz i musi zostać czytelny na pierwszy rzut oka. */}
+          <SymbolLayer
+            id="event-venues-cluster-icon"
+            filter={['has', 'point_count']}
+            style={{
+              iconImage: buildClusterDominantIconExpression(),
+              iconSize: 0.32,
+              iconOffset: [-10, 0],
+              iconAllowOverlap: true,
+              iconIgnorePlacement: true,
+              iconPitchAlignment: 'viewport',
+            }}
+          />
           <CircleLayer
             id="event-venue-ring"
             filter={['!', ['has', 'point_count']]}
@@ -198,11 +186,10 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
           <SymbolLayer
             id="event-venue-icon"
             filter={['!', ['has', 'point_count']]}
-            minZoomLevel={ICON_FADE_START}
             style={{
               iconImage: ['get', 'icon'],
-              iconSize: 0.6,
-              iconOffset: [0, -9],
+              iconSize: 0.42,
+              iconOffset: [-10, 0],
               iconAllowOverlap: true,
               iconIgnorePlacement: true,
               iconPitchAlignment: 'viewport',
@@ -215,7 +202,7 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
               textField: ['get', 'event_count'],
               textSize: 16,
               textColor: '#ffffff',
-              textOffset: [0, 0.9],
+              textOffset: [0.7, 0],
               textAllowOverlap: true,
               textIgnorePlacement: true,
               textPitchAlignment: 'viewport',
