@@ -307,6 +307,12 @@ export default function EventsScreen() {
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={Brand.primary} />
           }>
+          {featuredTournament ? (
+            <TournamentHeroCard tournament={featuredTournament} onPress={openTournament} />
+          ) : null}
+          {railTournaments.length > 0 ? (
+            <TournamentsRail tournaments={railTournaments} onOpenTournament={openTournament} />
+          ) : null}
           <View style={styles.emptyBlock}>
             <Text style={styles.emptyTitle}>{t('eventsList.emptyTitle')}</Text>
             <Text style={styles.emptyHint}>{t('eventsList.emptyCreateHint')}</Text>
