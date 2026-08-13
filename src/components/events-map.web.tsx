@@ -19,7 +19,10 @@ import { mapFieldIcons } from '@/lib/map-field-icons';
 import {
   buildAvailabilityMatchExpression,
   buildClusterCategoryProperties,
-  buildClusterDominantIconExpression,
+  buildClusterIconSizeExpression,
+  buildClusterIconSlotExpression,
+  buildClusterIconSlotOffsetExpression,
+  buildClusterIconSlotVisibleFilter,
   buildClusterStatusColorExpression,
 } from '@/lib/map-theme';
 import { fieldMarkerIcon } from '@/lib/sports';
@@ -146,28 +149,32 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
               textField: ['get', 'total_events'],
               textSize: 15,
               textColor: '#ffffff',
-              textOffset: [0.7, 0],
+              textOffset: [0, -0.95],
               textAllowOverlap: true,
               textIgnorePlacement: true,
               textPitchAlignment: 'viewport',
             }}
           />
-          {/* Ikona najliczniejszej kategorii w klastrze, obok liczby eventów —
-              jedna ikona, nie siatka (patrz buildClusterDominantIconExpression
-              w map-theme.ts), bo mały bąbel nie mieści kilku piktogramów
-              naraz i musi zostać czytelny na pierwszy rzut oka. */}
-          <SymbolLayer
-            id="event-venues-cluster-icon"
-            filter={['has', 'point_count']}
-            style={{
-              iconImage: buildClusterDominantIconExpression(),
-              iconSize: 0.32,
-              iconOffset: [-10, 0],
-              iconAllowOverlap: true,
-              iconIgnorePlacement: true,
-              iconPitchAlignment: 'viewport',
-            }}
-          />
+          {/* Siatka ikon kategorii pod liczbą — stała, deterministyczna geometria
+              (patrz CLUSTER_SIZE_TIERS w map-theme.ts): 1 wyśrodkowana, 2 obok
+              siebie, 3-4 w układzie 2x2, 5+ -> pierwsze 3 + piktogram "more".
+              Rozmiar rośnie razem z bąblem (więcej eventów w klastrze ->
+              większy bąbel -> większe ikony). */}
+          {([0, 1, 2, 3] as const).map((slot) => (
+            <SymbolLayer
+              key={`event-venues-cluster-icon-slot-${slot}`}
+              id={`event-venues-cluster-icon-slot-${slot}`}
+              filter={['all', ['has', 'point_count'], buildClusterIconSlotVisibleFilter(slot)]}
+              style={{
+                iconImage: buildClusterIconSlotExpression(slot),
+                iconSize: buildClusterIconSizeExpression(),
+                iconOffset: buildClusterIconSlotOffsetExpression(slot),
+                iconAllowOverlap: true,
+                iconIgnorePlacement: true,
+                iconPitchAlignment: 'viewport',
+              }}
+            />
+          ))}
           <CircleLayer
             id="event-venue-ring"
             filter={['!', ['has', 'point_count']]}

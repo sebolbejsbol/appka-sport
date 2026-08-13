@@ -4,10 +4,14 @@ import { Brand } from '@/constants/theme';
 import {
   buildAvailabilityMatchExpression,
   buildClusterCategoryProperties,
-  buildClusterDominantIconExpression,
+  buildClusterIconSizeExpression,
+  buildClusterIconSlotExpression,
+  buildClusterIconSlotOffsetExpression,
+  buildClusterIconSlotVisibleFilter,
   buildClusterStatusColorExpression,
+  CLUSTER_GRID_MAX_SLOTS,
   CLUSTER_ICON_SPORTS,
-  dominantCategory,
+  clusterIconSlots,
   getAvailabilityColor,
   MAP_STATUS_COLORS,
   presentCategories,
@@ -73,35 +77,90 @@ describe('presentCategories', () => {
   });
 });
 
-describe('dominantCategory', () => {
-  it('picks the category with the highest count', () => {
-    expect(dominantCategory({ basketball: 2, football: 5, tennis: 1 })).toBe('football');
+describe('clusterIconSlots', () => {
+  it('centers a single category', () => {
+    expect(clusterIconSlots({ basketball: 3 })).toEqual(['basketball']);
   });
 
-  it('breaks ties by priority order (earlier in CLUSTER_ICON_SPORTS wins)', () => {
-    expect(dominantCategory({ football: 3, basketball: 3 })).toBe('basketball');
-    expect(dominantCategory({ hockey: 4, tennis: 4, basketball: 4 })).toBe('basketball');
+  it('keeps 2, 3, and exactly 4 categories as real icons (no overflow glyph)', () => {
+    expect(clusterIconSlots({ basketball: 1, football: 1 })).toEqual(['basketball', 'football']);
+    expect(clusterIconSlots({ basketball: 1, football: 1, tennis: 1 })).toEqual([
+      'basketball',
+      'football',
+      'tennis',
+    ]);
+    expect(clusterIconSlots({ basketball: 1, football: 1, tennis: 1, volleyball: 1 })).toEqual([
+      'basketball',
+      'football',
+      'tennis',
+      'volleyball',
+    ]);
   });
 
-  it('returns null when nothing is present', () => {
-    expect(dominantCategory({})).toBeNull();
-    expect(dominantCategory({ basketball: 0, other: 0 })).toBeNull();
+  it('caps at 3 real icons + a "more" glyph for 5+ categories, never exceeding CLUSTER_GRID_MAX_SLOTS', () => {
+    const slots = clusterIconSlots({
+      basketball: 1,
+      football: 1,
+      tennis: 1,
+      volleyball: 1,
+      hockey: 1,
+    });
+    expect(slots).toEqual(['basketball', 'football', 'tennis', 'more']);
+    expect(slots).toHaveLength(CLUSTER_GRID_MAX_SLOTS);
   });
 
-  it('can resolve to "other" when it outnumbers every tracked sport', () => {
-    expect(dominantCategory({ basketball: 1, other: 5 })).toBe('other');
+  it('never returns more than CLUSTER_GRID_MAX_SLOTS entries for any input', () => {
+    const allPresent = Object.fromEntries(CLUSTER_ICON_SPORTS.map((s) => [s, 1]));
+    expect(clusterIconSlots({ ...allPresent, other: 1 }).length).toBeLessThanOrEqual(CLUSTER_GRID_MAX_SLOTS);
   });
 });
 
-describe('buildClusterDominantIconExpression', () => {
-  it('produces a case expression comparing every category against all others', () => {
-    const expr = buildClusterDominantIconExpression();
+describe('buildClusterIconSlotVisibleFilter', () => {
+  it('requires slot index + 1 present categories', () => {
+    expect(buildClusterIconSlotVisibleFilter(0)).toEqual(['>=', expect.anything(), 1]);
+    expect(buildClusterIconSlotVisibleFilter(3)).toEqual(['>=', expect.anything(), 4]);
+  });
+});
+
+describe('buildClusterIconSlotExpression', () => {
+  it('slot 3 falls back to the "more" glyph when the count exceeds CLUSTER_GRID_MAX_SLOTS', () => {
+    const expr = buildClusterIconSlotExpression(3);
     expect(expr[0]).toBe('case');
-    // 'case' + one [condition, output] pair per category + a trailing 'generic' fallback
-    expect(expr).toHaveLength(1 + 2 * (CLUSTER_ICON_SPORTS.length + 1) + 1);
-    expect(expr.at(-1)).toBe('generic');
-    // "other" resolves to the neutral 'generic' icon, not a literal "other" image key
-    const otherIndex = expr.findIndex((v: unknown) => v === 'other');
-    expect(otherIndex).toBe(-1);
+    // ['case', [>, total, 4], 'more', <slot-3-category-expr>]
+    expect(expr[1][0]).toBe('>');
+    expect(expr[2]).toBe('more');
+  });
+
+  it('slots 0-2 resolve to a plain case expression over present/rank checks', () => {
+    const expr = buildClusterIconSlotExpression(0);
+    expect(expr[0]).toBe('case');
+    expect(expr.at(-1)).toBe('generic'); // trailing fallback
+  });
+});
+
+describe('buildClusterIconSizeExpression', () => {
+  it('is a step expression over total_events, growing monotonically at each threshold', () => {
+    const expr = buildClusterIconSizeExpression();
+    expect(expr[0]).toBe('step');
+    expect(expr[1]).toEqual(['get', 'total_events']);
+    // ['step', input, base, stop1, val1, stop2, val2, stop3, val3] -> 9 entries
+    expect(expr).toHaveLength(9);
+    const sizes = [expr[2], expr[4], expr[6], expr[8]] as number[];
+    for (let i = 1; i < sizes.length; i++) {
+      expect(sizes[i]).toBeGreaterThan(sizes[i - 1]);
+    }
+  });
+});
+
+describe('buildClusterIconSlotOffsetExpression', () => {
+  it('returns a case expression keyed on the present-category count', () => {
+    const expr = buildClusterIconSlotOffsetExpression(0);
+    expect(expr[0]).toBe('case');
+  });
+
+  it('embeds a step expression (per size tier) as the offset value, not a bare literal', () => {
+    const expr = buildClusterIconSlotOffsetExpression(2); // slot 2 has no case branching, just the tiered step
+    expect(expr[0]).toBe('step');
+    expect(expr[1]).toEqual(['get', 'total_events']);
   });
 });

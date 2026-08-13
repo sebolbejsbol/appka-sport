@@ -53,7 +53,10 @@ import { markInitialDiscoverReady, markInitialFieldsReady } from '@/lib/map-read
 import {
   buildAvailabilityMatchExpression,
   buildClusterCategoryProperties,
-  buildClusterDominantIconExpression,
+  buildClusterIconSizeExpression,
+  buildClusterIconSlotExpression,
+  buildClusterIconSlotOffsetExpression,
+  buildClusterIconSlotVisibleFilter,
   buildClusterStatusColorExpression,
 } from '@/lib/map-theme';
 import { notifyInfo } from '@/lib/toast';
@@ -125,9 +128,10 @@ const FADE_END = 7.3;
  * zielony (jest gdzie grać); inaczej mało miejsc? -> pomarańczowy; inaczej
  * pełne? -> czerwony; inaczej brak eventów -> szary.
  *
- * Kategorię klastra (dla ikonki obok liczby) pokazujemy jako najliczniejszy
- * obecny sport, patrz buildClusterCategoryProperties/buildClusterDominantIconExpression
- * w src/lib/map-theme.ts (dzielone z map-view.web.tsx).
+ * Kategorie sportu w klastrze pokazujemy jako siatkę ikon (1/2/3-4/5+, patrz
+ * buildClusterCategoryProperties/buildClusterIconSlot* w src/lib/map-theme.ts,
+ * dzielone z map-view.web.tsx) — rosnącą razem z bąblem, patrz
+ * CLUSTER_SIZE_TIERS w map-theme.ts.
  */
 const CLUSTER_AVAILABILITY_PROPERTIES = {
   // Suma AKTYWNYCH EVENTÓW ze wszystkich boisk w klastrze — to jest liczba,
@@ -821,29 +825,37 @@ export function AppMap() {
               textField: ['get', 'total_events'],
               textSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 13, 10, 16, 13, 19],
               textColor: '#ffffff',
-              textOffset: [0.75, 0],
+              textOffset: [0, -0.95],
               textAllowOverlap: true,
               textIgnorePlacement: true,
               textPitchAlignment: 'viewport',
             }}
           />
-          {/* Ikona najliczniejszej kategorii w klastrze, obok liczby eventów —
-              jedna ikona, nie siatka (patrz buildClusterDominantIconExpression
-              w map-theme.ts), bo mały bąbel nie mieści kilku piktogramów
-              naraz i musi zostać czytelny na pierwszy rzut oka. */}
-          <SymbolLayer
-            id="cluster-icon"
-            filter={['has', 'point_count']}
-            minZoomLevel={FADE_START}
-            style={{
-              iconImage: buildClusterDominantIconExpression(),
-              iconSize: ['interpolate', ['linear'], ['zoom'], FADE_START, 0.26, 13, 0.34, 16, 0.4],
-              iconOffset: [-11, 0],
-              iconAllowOverlap: true,
-              iconIgnorePlacement: true,
-              iconPitchAlignment: 'viewport',
-            }}
-          />
+          {/* Siatka ikon kategorii pod liczbą — stała, deterministyczna geometria
+              (patrz CLUSTER_SIZE_TIERS w map-theme.ts): 1 wyśrodkowana, 2 obok
+              siebie, 3-4 w układzie 2x2, 5+ -> pierwsze 3 + piktogram "more".
+              Rozmiar rośnie razem z bąblem (więcej eventów w klastrze ->
+              większy bąbel -> większe ikony). Wszystkie 4 warstwy dzielą
+              DOKŁADNIE ten sam styl iconSize, więc ikony w jednym bąblu
+              zawsze mają identyczny rozmiar. */}
+          <>
+            {([0, 1, 2, 3] as const).map((slot) => (
+              <SymbolLayer
+                key={`cluster-icon-slot-${slot}`}
+                id={`cluster-icon-slot-${slot}`}
+                filter={['all', ['has', 'point_count'], buildClusterIconSlotVisibleFilter(slot)]}
+                minZoomLevel={FADE_START}
+                style={{
+                  iconImage: buildClusterIconSlotExpression(slot),
+                  iconSize: buildClusterIconSizeExpression(),
+                  iconOffset: buildClusterIconSlotOffsetExpression(slot),
+                  iconAllowOverlap: true,
+                  iconIgnorePlacement: true,
+                  iconPitchAlignment: 'viewport',
+                }}
+              />
+            ))}
+          </>
           {/* Miękka poświata obiektu — kolor wg dostępności (jak klaster), nie wg
               liczby eventów, żeby jeden spójny język wizualny opisywał "czy warto". */}
           <CircleLayer
