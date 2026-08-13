@@ -23,7 +23,6 @@ const STEP_TITLES = [
   'stepSchedule',
   'stepLocation',
   'sectionConfig',
-  'stepScoring',
   'stepReview',
 ] as const;
 
@@ -32,7 +31,6 @@ const STEP_HINTS = [
   'stepScheduleHint',
   'stepLocationHint',
   'stepTeamSetupHint',
-  'stepScoringHint',
   'stepReviewHint',
 ] as const;
 
@@ -55,7 +53,6 @@ export function TournamentFormWizard({ value, onChange, onSubmit, disabled }: Pr
     sections.schedule,
     sections.location,
     sections.teamSetup,
-    sections.scoring,
     <ReviewSummary key="review" value={value} />,
   ];
 
