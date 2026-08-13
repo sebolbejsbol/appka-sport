@@ -4,18 +4,16 @@ import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { CreateTeamModal } from '@/components/create-team-modal';
 import { ScreenHeader } from '@/components/screen-header';
 import { Brand, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
-import { confirmAction } from '@/lib/confirm';
 import { goBack } from '@/lib/navigation';
 import { formatTeamSport } from '@/lib/sports';
 import { listMyTeams, type TeamListItem } from '@/lib/teams';
 import {
   getMyTeamRegistrationStatus,
   listTournamentTeamRegistrations,
-  registerTeamForTournament,
-  withdrawTeamRegistration,
   type TournamentTeamRegistration,
   type TournamentTeamStatus,
 } from '@/lib/tournament-teams';
@@ -90,9 +88,7 @@ export default function TournamentDetailScreen() {
   const [registrations, setRegistrations] = useState<TournamentTeamRegistration[]>([]);
   const [myTeams, setMyTeams] = useState<TeamListItem[]>([]);
   const [myStatuses, setMyStatuses] = useState<Record<string, TournamentTeamStatus>>({});
-  const [selectedTeamId, setSelectedTeamId] = useState<string | null>(null);
-  const [regBusy, setRegBusy] = useState(false);
-  const [regError, setRegError] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [matches, setMatches] = useState<TournamentMatch[]>([]);
   const [standings, setStandings] = useState<TournamentStanding[]>([]);
@@ -137,7 +133,6 @@ export default function TournamentDetailScreen() {
         map[team.team_id] = statuses[i];
       });
       setMyStatuses(map);
-      setSelectedTeamId((prev) => prev ?? eligible.find((t) => map[t.team_id] === 'none')?.team_id ?? null);
     } else {
       setMyTeams([]);
       setMyStatuses({});
@@ -152,41 +147,14 @@ export default function TournamentDetailScreen() {
     }, [load]),
   );
 
-  async function handleRegister() {
-    if (!tournamentId || !selectedTeamId) return;
-    setRegBusy(true);
-    setRegError(null);
-    const result = await registerTeamForTournament(tournamentId, selectedTeamId);
-    setRegBusy(false);
-    if (result !== 'ok') {
-      setRegError(t('tournamentTeams.registerError'));
-      return;
-    }
-    void load();
-  }
-
-  function confirmWithdraw(teamId: string) {
-    confirmAction(
-      t('tournamentTeams.withdrawConfirmTitle'),
-      t('tournamentTeams.withdrawConfirmMessage'),
-      t('tournamentTeams.withdrawAction'),
-      t('common.cancel'),
-      () => void handleWithdraw(teamId),
-      true,
-    );
-  }
-
-  async function handleWithdraw(teamId: string) {
+  function goToTeam(teamId: string) {
     if (!tournamentId) return;
-    setRegBusy(true);
-    setRegError(null);
-    const result = await withdrawTeamRegistration(tournamentId, teamId);
-    setRegBusy(false);
-    if (result !== 'ok') {
-      setRegError(t('tournamentTeams.withdrawError'));
-      return;
-    }
-    void load();
+    router.push({ pathname: '/tournament/[id]/team/[teamId]', params: { id: tournamentId, teamId } });
+  }
+
+  function handleTeamCreated(teamId: string) {
+    setShowCreateModal(false);
+    goToTeam(teamId);
   }
 
   if (loading) {
@@ -260,76 +228,46 @@ export default function TournamentDetailScreen() {
         {(myTeams.length > 0 || canAddTeam) && tournament.status === 'registration_open' ? (
           <View style={styles.registerBlock}>
             <Text style={styles.sectionHeading}>{t('tournamentTeams.registerSectionTitle')}</Text>
-            {(() => {
-              const unregistered = myTeams.filter((team) => {
-                const s = myStatuses[team.team_id];
-                return s === 'none' || s === 'rejected' || s === 'withdrawn';
-              });
-              const registeredTeam = myTeams.find((team) => {
-                const s = myStatuses[team.team_id];
-                return s === 'pending' || s === 'approved';
-              });
-
-              if (registeredTeam) {
-                const s = myStatuses[registeredTeam.team_id];
-                return (
-                  <View style={styles.myRegRow}>
-                    <Text style={styles.myRegText}>
-                      {registeredTeam.name} — {s === 'approved' ? t('tournamentTeams.statusApproved') : t('tournamentTeams.statusPending')}
-                    </Text>
-                    <Button
-                      label={t('tournamentTeams.withdrawAction')}
-                      variant="secondary"
-                      onPress={() => confirmWithdraw(registeredTeam.team_id)}
-                      disabled={regBusy}
-                    />
-                  </View>
-                );
-              }
-
-              if (unregistered.length === 0) return null;
-
+            {myTeams.map((team) => {
+              const s = myStatuses[team.team_id];
+              const statusText =
+                s === 'approved'
+                  ? t('tournamentTeams.statusApproved')
+                  : s === 'pending'
+                    ? t('tournamentTeams.statusPending')
+                    : null;
               return (
-                <>
-                  <Text style={styles.pickHint}>{t('tournamentTeams.pickTeamHint')}</Text>
-                  <View style={styles.teamChipsRow}>
-                    {unregistered.map((team) => (
-                      <Pressable
-                        key={team.team_id}
-                        onPress={() => setSelectedTeamId(team.team_id)}
-                        style={[styles.teamChip, selectedTeamId === team.team_id && styles.teamChipActive]}>
-                        <Text
-                          style={[
-                            styles.teamChipText,
-                            selectedTeamId === team.team_id && styles.teamChipTextActive,
-                          ]}>
-                          {team.name}
-                        </Text>
-                      </Pressable>
-                    ))}
+                <Pressable key={team.team_id} onPress={() => goToTeam(team.team_id)} style={styles.teamLinkRow}>
+                  <View style={styles.teamLinkText}>
+                    <Text style={styles.teamLinkName}>{team.name}</Text>
+                    <Text style={styles.teamLinkMeta}>
+                      {t('tournamentTeamRoster.progressLabel')
+                        .replace('{count}', String(team.member_count))
+                        .replace('{required}', String(tournament.players_per_team))}
+                      {statusText ? ` · ${statusText}` : ''}
+                    </Text>
                   </View>
-                  <Button
-                    label={t('tournamentTeams.registerAction')}
-                    onPress={handleRegister}
-                    disabled={regBusy || !selectedTeamId}
-                    style={styles.registerBtn}
-                  />
-                </>
+                  <Text style={styles.teamLinkChevron}>›</Text>
+                </Pressable>
               );
-            })()}
+            })}
             {canAddTeam ? (
               <Button
-                label={t('tournamentTeamBuilder.addTeamCta')}
+                label={t('tournamentTeamRoster.createTeamCta')}
                 variant="secondary"
-                onPress={() =>
-                  router.push({ pathname: '/tournament/[id]/build-team', params: { id: tournamentId ?? '' } })
-                }
+                onPress={() => setShowCreateModal(true)}
                 style={styles.registerBtn}
               />
             ) : null}
-            {regError ? <Text style={styles.regErrorText}>{regError}</Text> : null}
           </View>
         ) : null}
+
+        <CreateTeamModal
+          visible={showCreateModal}
+          sport={tournament.sport}
+          onClose={() => setShowCreateModal(false)}
+          onCreated={handleTeamCreated}
+        />
 
         <View style={styles.teamsBlock}>
           <Text style={styles.sectionHeading}>{t('tournamentTeams.sectionTitle')}</Text>
@@ -338,7 +276,7 @@ export default function TournamentDetailScreen() {
             <Text style={styles.emptyText}>{t('tournamentTeams.empty')}</Text>
           ) : (
             registrations.map((reg) => (
-              <View key={reg.id} style={styles.teamRow}>
+              <Pressable key={reg.id} onPress={() => goToTeam(reg.team_id)} style={styles.teamRow}>
                 {reg.team_logo_url ? (
                   <Image source={{ uri: reg.team_logo_url }} style={styles.teamLogo} />
                 ) : (
@@ -346,7 +284,8 @@ export default function TournamentDetailScreen() {
                 )}
                 <Text style={styles.teamRowName}>{reg.team_name}</Text>
                 {reg.group_name ? <Text style={styles.teamRowGroup}>{reg.group_name}</Text> : null}
-              </View>
+                <Text style={styles.teamRowChevron}>›</Text>
+              </Pressable>
             ))
           )}
         </View>
@@ -452,26 +391,28 @@ const styles = StyleSheet.create({
   infoLine: { fontSize: 14, color: Brand.textSecondary },
   sectionHeading: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 10 },
   registerBlock: { marginTop: 24 },
-  pickHint: { fontSize: 13, color: Brand.textMuted, marginBottom: 8 },
-  teamChipsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginBottom: 12 },
-  teamChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: 999,
+  registerBtn: { marginTop: 4 },
+  regErrorText: { fontSize: 13, color: Brand.danger, marginTop: 8 },
+  teamLinkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    borderRadius: Radius.lg,
     backgroundColor: Brand.surface,
     borderWidth: 1,
     borderColor: Brand.border,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    marginBottom: 10,
   },
-  teamChipActive: { backgroundColor: Brand.primary, borderColor: Brand.primary },
-  teamChipText: { fontSize: 13, fontWeight: '600', color: Brand.textPrimary },
-  teamChipTextActive: { color: Brand.primaryText },
-  registerBtn: { marginTop: 4 },
-  myRegRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 },
-  myRegText: { flex: 1, fontSize: 14, color: Brand.textPrimary },
-  regErrorText: { fontSize: 13, color: Brand.danger, marginTop: 8 },
+  teamLinkText: { flex: 1, gap: 2 },
+  teamLinkName: { fontSize: 15, fontWeight: '700', color: Brand.textPrimary },
+  teamLinkMeta: { fontSize: 13, color: Brand.textSecondary },
+  teamLinkChevron: { fontSize: 20, color: Brand.textMuted },
   teamsBlock: { marginTop: 24 },
   emptyText: { fontSize: 14, color: Brand.textMuted },
   teamRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
+  teamRowChevron: { fontSize: 18, color: Brand.textMuted },
   teamLogo: { width: 32, height: 32, borderRadius: 8, backgroundColor: Brand.surface },
   teamLogoFallback: { width: 32, height: 32, borderRadius: 8, backgroundColor: Brand.surfaceMuted },
   teamRowName: { flex: 1, fontSize: 14, color: Brand.textPrimary, fontWeight: '600' },

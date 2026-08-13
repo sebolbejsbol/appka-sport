@@ -1,49 +1,52 @@
 import { router, useFocusEffect } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { TextField } from '@/components/text-field';
 import { UserAvatar } from '@/components/user-avatar';
 import { Brand } from '@/constants/theme';
 import { t } from '@/i18n';
-import { searchProfiles, type ProfileSearchHit } from '@/lib/social';
+import { listFriends, type SocialUserRow } from '@/lib/social';
 import { inviteToTeam } from '@/lib/teams';
 
 type Props = {
   teamId: string;
-  /** Wywołane po udanym wysłaniu zaproszenia — np. do odświeżenia statusu składu w rodzicu. */
+  /** user_id-y do wykluczenia z listy — już w drużynie albo już zaproszeni. */
+  excludeUserIds: string[];
   onInvited?: (userId: string) => void;
-  /**
-   * false gdy lista jest osadzona wewnątrz zewnętrznego ScrollView (np. karta
-   * drużyny na ekranie turnieju) — wyłącza własne przewijanie FlatList, scroll
-   * przejmuje wtedy rodzic. Domyślnie true (użycie standalone).
-   */
   scrollEnabled?: boolean;
 };
 
-/** Wyszukiwarka graczy po nicku + wysyłanie zaproszeń do drużyny. */
-export function PlayerSearchInviteList({ teamId, onInvited, scrollEnabled = true }: Props) {
+export function FriendInviteList({ teamId, excludeUserIds, onInvited, scrollEnabled = true }: Props) {
+  const [friends, setFriends] = useState<SocialUserRow[]>([]);
+  const [loading, setLoading] = useState(true);
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<ProfileSearchHit[]>([]);
-  const [loading, setLoading] = useState(false);
   const [sentTo, setSentTo] = useState<Set<string>>(new Set());
-
-  const runSearch = useCallback(async (q: string) => {
-    if (q.trim().length < 2) {
-      setResults([]);
-      return;
-    }
-    setLoading(true);
-    const { data } = await searchProfiles(q);
-    setResults(data);
-    setLoading(false);
-  }, []);
 
   useFocusEffect(
     useCallback(() => {
-      if (query.trim().length >= 2) void runSearch(query);
-    }, [query, runSearch]),
+      let cancelled = false;
+      setLoading(true);
+      void listFriends().then(({ data }) => {
+        if (!cancelled) {
+          setFriends(data);
+          setLoading(false);
+        }
+      });
+      return () => {
+        cancelled = true;
+      };
+    }, []),
   );
+
+  const excluded = useMemo(() => new Set(excludeUserIds), [excludeUserIds]);
+  const visible = friends.filter((f) => {
+    if (excluded.has(f.user_id)) return false;
+    if (query.trim().length >= 2) {
+      return (f.nick ?? '').toLowerCase().includes(query.trim().toLowerCase());
+    }
+    return true;
+  });
 
   async function handleInvite(userId: string) {
     const result = await inviteToTeam(teamId, userId);
@@ -59,10 +62,7 @@ export function PlayerSearchInviteList({ teamId, onInvited, scrollEnabled = true
         label={t('social.searchPlaceholder')}
         placeholder={t('social.searchPlaceholder')}
         value={query}
-        onChangeText={(text) => {
-          setQuery(text);
-          void runSearch(text);
-        }}
+        onChangeText={setQuery}
         autoCapitalize="none"
       />
 
@@ -70,13 +70,13 @@ export function PlayerSearchInviteList({ teamId, onInvited, scrollEnabled = true
         <ActivityIndicator color={Brand.primary} style={styles.loader} />
       ) : (
         <FlatList
-          data={results}
+          data={visible}
           keyExtractor={(item) => item.user_id}
           style={styles.list}
           scrollEnabled={scrollEnabled}
           ListEmptyComponent={
             <Text style={styles.empty}>
-              {query.trim().length < 2 ? t('social.searchHint') : t('social.emptySearch')}
+              {friends.length === 0 ? t('tournamentTeamRoster.noFriends') : t('social.emptySearch')}
             </Text>
           }
           renderItem={({ item }) => {

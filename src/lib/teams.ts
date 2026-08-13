@@ -38,6 +38,16 @@ export type TeamJoinRequest = {
   created_at: string;
 };
 
+export type TeamInvitationRow = {
+  invitation_id: string;
+  user_id: string;
+  nick: string | null;
+  avatar_url: string | null;
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+  responded_at: string | null;
+};
+
 function mapDiscoverTeam(r: Record<string, unknown>): DiscoverTeam {
   const status = typeof r.request_status === 'string' ? r.request_status : null;
   return {
@@ -107,6 +117,26 @@ export async function respondTeamJoinRequest(
   });
   if (error) return 'error';
   return (data as TeamActionResult | null) ?? 'error';
+}
+
+export async function listTeamInvitationsForTeam(teamId: string): Promise<{
+  data: TeamInvitationRow[];
+  error: { message: string } | null;
+}> {
+  const { data, error } = await supabase.rpc('list_team_invitations_for_team', { p_team_id: teamId });
+  if (error) return { data: [], error };
+  return {
+    data: ((data as Record<string, unknown>[] | null) ?? []).map((r) => ({
+      invitation_id: String(r.invitation_id ?? ''),
+      user_id: String(r.user_id ?? ''),
+      nick: typeof r.nick === 'string' ? r.nick : null,
+      avatar_url: typeof r.avatar_url === 'string' ? r.avatar_url : null,
+      status: r.status === 'accepted' || r.status === 'rejected' ? r.status : 'pending',
+      created_at: String(r.created_at ?? ''),
+      responded_at: typeof r.responded_at === 'string' ? r.responded_at : null,
+    })),
+    error: null,
+  };
 }
 
 export async function getActiveTeams(limit = 5): Promise<ActiveTeam[]> {
