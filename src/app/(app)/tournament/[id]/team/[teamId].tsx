@@ -1,5 +1,5 @@
 import { useLocalSearchParams, type Href } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -64,6 +64,10 @@ export default function TournamentTeamRosterScreen() {
       setLoading(false);
     }
   }, [tournamentId, teamId]);
+
+  useEffect(() => {
+    void load();
+  }, [load]);
 
   const onInviteSent = useCallback(() => {
     void load();
