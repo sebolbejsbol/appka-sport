@@ -248,7 +248,7 @@ export default function TournamentDetailScreen() {
                       {statusText ? ` · ${statusText}` : ''}
                     </Text>
                   </View>
-                  <Text style={styles.teamLinkChevron}>›</Text>
+                  <Text style={styles.teamLinkChevron}>{t('tournamentTeamRoster.detailsLabel')}</Text>
                 </Pressable>
               );
             })}
@@ -286,7 +286,7 @@ export default function TournamentDetailScreen() {
                 )}
                 <Text style={styles.teamRowName}>{reg.team_name}</Text>
                 {reg.group_name ? <Text style={styles.teamRowGroup}>{reg.group_name}</Text> : null}
-                <Text style={styles.teamRowChevron}>›</Text>
+                <Text style={styles.teamRowChevron}>{t('tournamentTeamRoster.detailsLabel')}</Text>
               </Pressable>
             ))
           )}
@@ -410,11 +410,11 @@ const styles = StyleSheet.create({
   teamLinkText: { flex: 1, gap: 2 },
   teamLinkName: { fontSize: 15, fontWeight: '700', color: Brand.textPrimary },
   teamLinkMeta: { fontSize: 13, color: Brand.textSecondary },
-  teamLinkChevron: { fontSize: 20, color: Brand.textMuted },
+  teamLinkChevron: { fontSize: 13, fontWeight: '700', color: Brand.primary },
   teamsBlock: { marginTop: 24 },
   emptyText: { fontSize: 14, color: Brand.textMuted },
   teamRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
-  teamRowChevron: { fontSize: 18, color: Brand.textMuted },
+  teamRowChevron: { fontSize: 13, fontWeight: '700', color: Brand.primary },
   teamLogo: { width: 32, height: 32, borderRadius: 8, backgroundColor: Brand.surface },
   teamLogoFallback: { width: 32, height: 32, borderRadius: 8, backgroundColor: Brand.surfaceMuted },
   teamRowName: { flex: 1, fontSize: 14, color: Brand.textPrimary, fontWeight: '600' },

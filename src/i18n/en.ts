@@ -1532,6 +1532,18 @@ export const en: DeepPartialWide<Translations> = {
     submitAction: 'Send registration request',
     tournamentFullError: 'The tournament has reached its team limit.',
     loadError: 'Could not load the team. Try again.',
+    shareLinkCta: 'Share link',
+    shareLinkMessage: 'Join my team "{team}"',
+    linkCopied: 'Link copied to clipboard!',
+    shareLinkError: 'Could not prepare the link. Try again.',
+    detailsLabel: 'Details',
+  },
+  joinTeam: {
+    success: 'You joined "{team}"!',
+    alreadyMember: 'You\'re already in "{team}".',
+    notFound: 'This invite link is invalid or expired.',
+    goToTeam: 'Go to the team',
+    goHome: 'Back to home',
   },
   tournamentMatches: {
     standingsTitle: 'Standings',

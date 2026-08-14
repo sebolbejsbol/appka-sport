@@ -1,6 +1,7 @@
+import * as Linking from 'expo-linking';
 import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
@@ -11,7 +12,14 @@ import { Brand, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
 import { confirmAction } from '@/lib/confirm';
 import { goBack } from '@/lib/navigation';
-import { getTeamDetail, listTeamInvitationsForTeam, type TeamDetail, type TeamInvitationRow } from '@/lib/teams';
+import { notifyError, notifySuccess } from '@/lib/toast';
+import {
+  ensureTeamInviteCode,
+  getTeamDetail,
+  listTeamInvitationsForTeam,
+  type TeamDetail,
+  type TeamInvitationRow,
+} from '@/lib/teams';
 import {
   getMyTeamRegistrationStatus,
   registerTeamForTournament,
@@ -72,6 +80,30 @@ export default function TournamentTeamRosterScreen() {
   const onInviteSent = useCallback(() => {
     void load();
   }, [load]);
+
+  async function handleShareLink(teamName: string) {
+    if (!teamId) return;
+    const code = await ensureTeamInviteCode(teamId);
+    if (!code) {
+      notifyError(t('tournamentTeamRoster.shareLinkError'));
+      return;
+    }
+    const url = Linking.createURL(`/join-team/${code}`);
+    if (Platform.OS === 'web') {
+      try {
+        await navigator.clipboard.writeText(url);
+        notifySuccess(t('tournamentTeamRoster.linkCopied'));
+      } catch {
+        notifyError(t('tournamentTeamRoster.shareLinkError'));
+      }
+      return;
+    }
+    try {
+      await Share.share({ message: `${t('tournamentTeamRoster.shareLinkMessage').replace('{team}', teamName)} ${url}` });
+    } catch {
+      notifyError(t('tournamentTeamRoster.shareLinkError'));
+    }
+  }
 
   async function handleSubmitRegistration() {
     if (!tournamentId || !teamId) return;
@@ -235,6 +267,12 @@ export default function TournamentTeamRosterScreen() {
 
         {team.can_manage && canSubmit ? (
           <>
+            <Button
+              label={t('tournamentTeamRoster.shareLinkCta')}
+              variant="secondary"
+              onPress={() => void handleShareLink(team.name)}
+              style={styles.actionBtn}
+            />
             {showInvite ? (
               <>
                 <Text style={styles.sectionHeading}>{t('tournamentTeamRoster.inviteFriendsTitle')}</Text>

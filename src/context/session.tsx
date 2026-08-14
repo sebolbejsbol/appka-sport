@@ -12,6 +12,7 @@ import {
 } from 'react';
 
 import { createSessionFromAuthUrl, subscribeToAuthDeepLinks } from '@/lib/auth-linking';
+import { consumePendingJoinCode, extractJoinCodeFromUrl, savePendingJoinCode } from '@/lib/pending-team-join';
 import { supabase } from '@/lib/supabase';
 
 /**
@@ -102,6 +103,8 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
     const unsubscribeLinks = subscribeToAuthDeepLinks((url) => {
       void handleRecoveryUrl(url);
+      const joinCode = extractJoinCodeFromUrl(url);
+      if (joinCode) void savePendingJoinCode(joinCode);
     });
 
     return () => {
@@ -109,6 +112,15 @@ export function SessionProvider({ children }: PropsWithChildren) {
       unsubscribeLinks();
     };
   }, []);
+
+  // Jeśli ktoś otworzył link zapraszający do drużyny przed zalogowaniem,
+  // kod czeka w AsyncStorage — jak tylko pojawi się sesja, dokańczamy dołączenie.
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    void consumePendingJoinCode().then((code) => {
+      if (code) router.push(`/join-team/${code}` as Href);
+    });
+  }, [session?.user?.id]);
 
   // Sprawdzamy brak nicku raz na sesję (nie przy każdym odświeżeniu tokenu).
   useEffect(() => {

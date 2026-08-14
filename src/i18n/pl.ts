@@ -1539,6 +1539,18 @@ export const pl = {
     submitAction: 'Wyślij prośbę o zapisy',
     tournamentFullError: 'Turniej osiągnął limit drużyn.',
     loadError: 'Nie udało się wczytać drużyny. Spróbuj ponownie.',
+    shareLinkCta: 'Udostępnij link',
+    shareLinkMessage: 'Dołącz do mojej drużyny "{team}"',
+    linkCopied: 'Link skopiowany do schowka!',
+    shareLinkError: 'Nie udało się przygotować linku. Spróbuj ponownie.',
+    detailsLabel: 'Szczegóły',
+  },
+  joinTeam: {
+    success: 'Dołączyłeś do drużyny "{team}"!',
+    alreadyMember: 'Jesteś już w drużynie "{team}".',
+    notFound: 'Ten link zaproszenia jest nieprawidłowy albo wygasł.',
+    goToTeam: 'Przejdź do drużyny',
+    goHome: 'Wróć do strony głównej',
   },
   tournamentMatches: {
     standingsTitle: 'Tabela',

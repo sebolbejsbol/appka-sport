@@ -139,6 +139,37 @@ export async function listTeamInvitationsForTeam(teamId: string): Promise<{
   };
 }
 
+export async function ensureTeamInviteCode(teamId: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc('ensure_team_invite_code', { p_team_id: teamId });
+  if (error) return null;
+  return typeof data === 'string' ? data : null;
+}
+
+export type JoinTeamViaCodeResult = {
+  result: 'ok' | 'already_member' | 'not_found' | 'not_authenticated' | 'error';
+  teamId: string | null;
+  teamName: string | null;
+  tournamentId: string | null;
+};
+
+export async function joinTeamViaCode(code: string): Promise<JoinTeamViaCodeResult> {
+  const { data, error } = await supabase.rpc('join_team_via_code', { p_code: code });
+  const row = Array.isArray(data) ? (data[0] as Record<string, unknown> | undefined) : undefined;
+  if (error || !row) {
+    return { result: 'error', teamId: null, teamName: null, tournamentId: null };
+  }
+  const result = row.result;
+  return {
+    result:
+      result === 'ok' || result === 'already_member' || result === 'not_found' || result === 'not_authenticated'
+        ? result
+        : 'error',
+    teamId: typeof row.team_id === 'string' ? row.team_id : null,
+    teamName: typeof row.team_name === 'string' ? row.team_name : null,
+    tournamentId: typeof row.tournament_id === 'string' ? row.tournament_id : null,
+  };
+}
+
 export async function getActiveTeams(limit = 5): Promise<ActiveTeam[]> {
   const { data, error } = await supabase.rpc('active_teams', { p_limit: limit });
   if (error) return [];
