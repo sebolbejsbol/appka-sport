@@ -35,6 +35,7 @@ export default function TournamentTeamRosterScreen() {
   const [showInvite, setShowInvite] = useState(false);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState(false);
 
   const load = useCallback(async () => {
     if (!tournamentId || !teamId) {
@@ -43,18 +44,25 @@ export default function TournamentTeamRosterScreen() {
       return;
     }
     setLoading(true);
-    const [{ data: tournamentData }, { data: teamData }, teamStatus, invitesResult] = await Promise.all([
-      getTournamentDetail(tournamentId),
-      getTeamDetail(teamId),
-      getMyTeamRegistrationStatus(tournamentId, teamId),
-      listTeamInvitationsForTeam(teamId),
-    ]);
-    setTournament(tournamentData);
-    setTeam(teamData);
-    setStatus(teamStatus);
-    setInvites(invitesResult.data);
-    setNotFound(!tournamentData || !teamData);
-    setLoading(false);
+    setLoadError(false);
+    try {
+      const [{ data: tournamentData }, { data: teamData }, teamStatus, invitesResult] = await Promise.all([
+        getTournamentDetail(tournamentId),
+        getTeamDetail(teamId),
+        getMyTeamRegistrationStatus(tournamentId, teamId),
+        listTeamInvitationsForTeam(teamId),
+      ]);
+      setTournament(tournamentData);
+      setTeam(teamData);
+      setStatus(teamStatus);
+      setInvites(invitesResult.data);
+      setNotFound(!tournamentData || !teamData);
+    } catch (err) {
+      console.error('[TournamentTeamRosterScreen] load failed', err);
+      setLoadError(true);
+    } finally {
+      setLoading(false);
+    }
   }, [tournamentId, teamId]);
 
   const onInviteSent = useCallback(() => {
@@ -108,6 +116,16 @@ export default function TournamentTeamRosterScreen() {
     return (
       <View style={[styles.flex, { paddingTop: insets.top + 12 }]}>
         <ActivityIndicator color={Brand.primary} style={styles.loader} />
+      </View>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <View style={styles.flex}>
+        <ScreenHeader insetTop={insets.top} onBack={() => goBack(`/tournament/${tournamentId ?? ''}` as Href)} />
+        <Text style={styles.muted}>{t('tournamentTeamRoster.loadError')}</Text>
+        <Button label={t('common.retry')} onPress={() => void load()} style={styles.retryBtn} />
       </View>
     );
   }
@@ -246,6 +264,7 @@ const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Brand.screenBackground },
   loader: { marginTop: 32 },
   muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
+  retryBtn: { marginHorizontal: 20, marginTop: 16 },
   content: { paddingHorizontal: 20, paddingTop: 12, gap: 4 },
   progressCard: {
     flexDirection: 'row',

@@ -179,7 +179,9 @@ export default function TournamentDetailScreen() {
     return s === 'pending' || s === 'approved';
   });
   const spotsAvailable = registrations.length < tournament.max_teams;
-  const canAddTeam = tournament.status === 'registration_open' && !myRegisteredTeam && spotsAvailable;
+  // Jedna drużyna na turniej per osoba — jeśli ma już jakąkolwiek (nawet dopiero
+  // budowaną, jeszcze niezgłoszoną), nie pokazujemy opcji stworzenia kolejnej.
+  const canAddTeam = tournament.status === 'registration_open' && myTeams.length === 0 && spotsAvailable;
 
   return (
     <View style={styles.flex}>

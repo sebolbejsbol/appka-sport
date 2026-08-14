@@ -19,6 +19,7 @@ export const en: DeepPartialWide<Translations> = {
     cancel: 'Cancel',
     close: 'Close',
     save: 'Save',
+    retry: 'Try again',
     soon: 'Soon',
     loading: 'Loading…',
     showPassword: 'Show password',
@@ -1530,6 +1531,7 @@ export const en: DeepPartialWide<Translations> = {
     noFriends: "You don't have any friends to invite yet.",
     submitAction: 'Send registration request',
     tournamentFullError: 'The tournament has reached its team limit.',
+    loadError: 'Could not load the team. Try again.',
   },
   tournamentMatches: {
     standingsTitle: 'Standings',

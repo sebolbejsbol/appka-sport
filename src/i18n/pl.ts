@@ -13,6 +13,7 @@ export const pl = {
     cancel: 'Anuluj',
     close: 'Zamknij',
     save: 'Zapisz',
+    retry: 'Spróbuj ponownie',
     soon: 'Wkrótce',
     loading: 'Ładowanie…',
     showPassword: 'Pokaż hasło',
@@ -1537,6 +1538,7 @@ export const pl = {
     noFriends: 'Nie masz jeszcze żadnych znajomych do zaproszenia.',
     submitAction: 'Wyślij prośbę o zapisy',
     tournamentFullError: 'Turniej osiągnął limit drużyn.',
+    loadError: 'Nie udało się wczytać drużyny. Spróbuj ponownie.',
   },
   tournamentMatches: {
     standingsTitle: 'Tabela',
