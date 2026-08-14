@@ -77,12 +77,26 @@ export default function TeamChatScreen() {
     void load();
   }, [load]);
 
+  const refreshMessages = useCallback(async () => {
+    if (!conversationId) return;
+    const msgRes = await listMessages(conversationId);
+    setMessages(msgRes.data);
+    await markConversationRead(conversationId);
+  }, [conversationId]);
+
   useEffect(() => {
     if (!conversationId) return;
-    return subscribeToConversationMessages(conversationId, () => {
-      void load();
+    const unsubscribe = subscribeToConversationMessages(conversationId, () => {
+      void refreshMessages();
     });
-  }, [conversationId, load]);
+    // Zabezpieczenie na wypadek gdyby realtime nie dotarł — krótkie
+    // odpytywanie w tle, żeby wiadomości pojawiały się bez odświeżania strony.
+    const pollId = setInterval(() => void refreshMessages(), 3000);
+    return () => {
+      unsubscribe();
+      clearInterval(pollId);
+    };
+  }, [conversationId, refreshMessages]);
 
   async function handleSend() {
     if (!conversationId || !draft.trim() || sending) return;
@@ -91,7 +105,7 @@ export default function TeamChatScreen() {
     setDraft('');
     const { error: sendErr } = await sendMessage(conversationId, text);
     if (sendErr) setDraft(text);
-    else await load();
+    else await refreshMessages();
     setSending(false);
   }
 

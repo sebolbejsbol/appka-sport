@@ -144,9 +144,14 @@ export default function ChatScreen() {
       },
     });
     channelRef.current = ch;
+    // Zabezpieczenie na wypadek gdyby realtime nie dotarł (np. WebSocket
+    // przycięty przez sieć/proxy) — krótkie odpytywanie w tle, żeby
+    // wiadomości i tak pojawiały się bez ręcznego odświeżania strony.
+    const pollId = setInterval(() => void reloadLatest(), 3000);
     return () => {
       ch.unsubscribe();
       channelRef.current = null;
+      clearInterval(pollId);
     };
   }, [conversationId, myUserId, reloadLatest, resolveNick]);
 

@@ -63,9 +63,12 @@ export default function MessagesListScreen() {
     const reload = debounce(() => void refresh(true), 300);
     const unsubMessages = subscribeToTable('messages', reload, { event: 'INSERT' });
     const unsubMembers = subscribeToTable('conversation_members', reload, { event: 'UPDATE' });
+    // Zabezpieczenie na wypadek gdyby realtime nie dotarł.
+    const pollId = setInterval(() => void refresh(true), 4000);
     return () => {
       unsubMessages();
       unsubMembers();
+      clearInterval(pollId);
     };
   }, [refresh]);
 
