@@ -1,5 +1,6 @@
 import type { LngLat } from '@/hooks/use-user-location';
 import type { Bbox } from '@/lib/fields';
+import { distanceMeters } from '@/lib/geo';
 
 /** Przybliżony prostokąt widoczny wokół centrum mapy (gdy SDK nie zwraca bounds). */
 export function bboxAroundCenter(center: LngLat, zoom: number): Bbox {
@@ -59,3 +60,19 @@ export const POLAND_CENTER: LngLat = [19.48, 52.07];
 
 /** @deprecated Użyj POLAND_BBOX — zachowane dla kompatybilności importów. */
 export const TRICITY_BBOX: Bbox = POLAND_BBOX;
+
+/**
+ * Centroid Gdańsk/Gdynia/Sopot — środek promienia, którym ograniczamy tworzenie
+ * wydarzeń do jedynego odblokowanego regionu (patrz też
+ * supabase/migrations/0092_lock_event_creation_to_tricity.sql, ten sam
+ * środek/promień po stronie bazy — TU zmiana jest tylko wcześniejszym,
+ * przyjaznym ostrzeżeniem; prawdziwe wymuszenie jest w triggerze).
+ */
+export const TRICITY_CENTER: LngLat = [18.579, 54.438];
+/** 25 km — z zapasem obejmuje Gdańsk+Gdynię+Sopot i najbliższe okolice (Rumia, Reda, Pruszcz Gdański). */
+export const TRICITY_RADIUS_KM = 25;
+
+/** Czy punkt leży w promieniu odblokowanego regionu (Trójmiasto + okolice). */
+export function isWithinTricity(coords: LngLat): boolean {
+  return distanceMeters(coords, TRICITY_CENTER) <= TRICITY_RADIUS_KM * 1000;
+}

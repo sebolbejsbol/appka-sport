@@ -214,6 +214,8 @@ export const pl = {
     errCategory: 'Wybierz kategorię wydarzenia.',
     errSubcategory: 'Wybierz podkategorię wydarzenia.',
     errLocation: 'Wybierz lokalizację wydarzenia (z listy lub pinezką na mapie).',
+    errLocationOutsideTricity:
+      'Aplikacja działa obecnie tylko na terenie Trójmiasta. Wybierz lokalizację w Gdańsku, Gdyni, Sopocie lub okolicach.',
     errDate: 'Sprawdź datę (RRRR-MM-DD) i godzinę startu (GG:MM).',
     errPast: 'Wydarzenie musi zaczynać się w przyszłości.',
     errEndTime: 'Sprawdź godzinę zakończenia (GG:MM).',

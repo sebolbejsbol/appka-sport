@@ -57,6 +57,7 @@ import { formatCourtName, formatFieldTitle } from '@/lib/field-display';
 import {
   bboxAroundCenter,
   expandBbox,
+  isWithinTricity,
   maxRowsForZoom,
   POLAND_BBOX,
   POLAND_CENTER,
@@ -452,6 +453,9 @@ export default function CreateEventScreen() {
     if (id === 'subcategory' && subcats.length > 0 && !subcategory)
       return t('createEvent.errSubcategory');
     if (id === 'location' && !location) return t('createEvent.errLocation');
+    if (id === 'location' && location && !isWithinTricity(location.center)) {
+      return t('createEvent.errLocationOutsideTricity');
+    }
     if (
       id === 'location' &&
       location?.fieldSport &&
@@ -613,6 +617,11 @@ export default function CreateEventScreen() {
       if (msg.includes('EVENT_LOCATION_REQUIRED')) {
         setStepId('location');
         setStepError(t('createEvent.errLocation'));
+        return;
+      }
+      if (msg.includes('EVENT_LOCATION_OUTSIDE_TRICITY')) {
+        setStepId('location');
+        setStepError(t('createEvent.errLocationOutsideTricity'));
         return;
       }
       notifyError(msg || t('createEvent.errGeneric'));

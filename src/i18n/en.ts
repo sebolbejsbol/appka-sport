@@ -220,6 +220,8 @@ export const en: DeepPartialWide<Translations> = {
     errCategory: 'Choose an event category.',
     errSubcategory: 'Choose an event subcategory.',
     errLocation: 'Choose the event location (from the list or with a map pin).',
+    errLocationOutsideTricity:
+      'The app currently only works in the Tri-City area. Choose a location in Gdańsk, Gdynia, Sopot, or nearby.',
     errDate: 'Check the date (YYYY-MM-DD) and start time (HH:MM).',
     errPast: 'The event must start in the future.',
     errEndTime: 'Check the end time (HH:MM).',
