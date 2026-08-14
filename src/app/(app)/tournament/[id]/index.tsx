@@ -10,7 +10,7 @@ import { Brand, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
 import { formatTeamSport } from '@/lib/sports';
-import { listMyTeams, type TeamListItem } from '@/lib/teams';
+import { listMyTeamsForTournament, type TeamListItem } from '@/lib/teams';
 import {
   getMyTeamRegistrationStatus,
   listTournamentTeamRegistrations,
@@ -104,7 +104,7 @@ export default function TournamentDetailScreen() {
     const [{ data }, regsResult, teamsResult, matchesResult, standingsResult, bracketResult] = await Promise.all([
       getTournamentDetail(tournamentId),
       listTournamentTeamRegistrations(tournamentId, false),
-      listMyTeams(),
+      listMyTeamsForTournament(tournamentId),
       listTournamentMatches(tournamentId),
       getTournamentStandings(tournamentId),
       listTournamentPlayoffBracket(tournamentId),
@@ -121,8 +121,7 @@ export default function TournamentDetailScreen() {
 
     if (data) {
       const eligible = teamsResult.data.filter(
-        (team) =>
-          (team.my_role === 'owner' || team.my_role === 'admin') && team.sport === data.sport,
+        (team) => team.my_role === 'owner' || team.my_role === 'admin',
       );
       setMyTeams(eligible);
       const statuses = await Promise.all(
@@ -267,6 +266,7 @@ export default function TournamentDetailScreen() {
         <CreateTeamModal
           visible={showCreateModal}
           sport={tournament.sport}
+          tournamentId={tournamentId ?? ''}
           onClose={() => setShowCreateModal(false)}
           onCreated={handleTeamCreated}
         />

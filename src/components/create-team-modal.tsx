@@ -11,11 +11,12 @@ import { createTeam } from '@/lib/teams';
 type Props = {
   visible: boolean;
   sport: string;
+  tournamentId: string;
   onClose: () => void;
   onCreated: (teamId: string) => void;
 };
 
-export function CreateTeamModal({ visible, sport, onClose, onCreated }: Props) {
+export function CreateTeamModal({ visible, sport, tournamentId, onClose, onCreated }: Props) {
   const insets = useSafeAreaInsets();
   const [name, setName] = useState('');
   const [busy, setBusy] = useState(false);
@@ -34,7 +35,7 @@ export function CreateTeamModal({ visible, sport, onClose, onCreated }: Props) {
     }
     setBusy(true);
     setError(null);
-    const { teamId, error: createErr } = await createTeam({ name: name.trim(), sport });
+    const { teamId, error: createErr } = await createTeam({ name: name.trim(), sport, tournamentId });
     setBusy(false);
     if (!teamId || createErr) {
       setError(t('tournamentTeamRoster.teamCreateError'));

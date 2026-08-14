@@ -272,6 +272,18 @@ export async function listMyTeams(): Promise<{
   return { data: (data as TeamListItem[] | null) ?? [], error: null };
 }
 
+/** Moje drużyny stworzone specjalnie dla danego turnieju (nie widoczne w listMyTeams). */
+export async function listMyTeamsForTournament(tournamentId: string): Promise<{
+  data: TeamListItem[];
+  error: { message: string } | null;
+}> {
+  const { data, error } = await supabase.rpc('list_my_teams_for_tournament', {
+    p_tournament_id: tournamentId,
+  });
+  if (error) return { data: [], error };
+  return { data: (data as TeamListItem[] | null) ?? [], error: null };
+}
+
 export async function getTeamDetail(
   teamId: string,
 ): Promise<{ data: TeamDetail | null; error: { message: string } | null }> {
@@ -289,12 +301,16 @@ export async function createTeam(input: {
   description?: string;
   sport: string;
   logoUrl?: string | null;
+  /** Ustaw, jeśli drużyna powstaje tylko po to, by zapisać ją na ten turniej —
+   * taka drużyna nie pojawia się w ogólnej zakładce Drużyny. */
+  tournamentId?: string | null;
 }): Promise<{ teamId: string | null; error: { message: string } | null }> {
   const { data, error } = await supabase.rpc('create_team', {
     p_name: input.name.trim(),
     p_description: input.description?.trim() || null,
     p_sport: input.sport,
     p_logo_url: input.logoUrl?.trim() || null,
+    p_tournament_id: input.tournamentId || null,
   });
   if (error) return { teamId: null, error };
   if (data == null || data === '') {
