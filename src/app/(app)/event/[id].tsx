@@ -14,6 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 
+import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { EventBlockedCoPlayerBanner } from '@/components/event-blocked-co-player-banner';
 import { FieldRatingPromptModal } from '@/components/field-rating-prompt-modal';
 import { EventMetaBadges } from '@/components/event-meta-badges';
@@ -481,7 +482,7 @@ export default function EventDetailScreen() {
     <ScrollView
       contentContainerStyle={[
         styles.content,
-        { paddingTop: insets.top + 60, paddingBottom: insets.bottom + 24 },
+        { paddingTop: insets.top + 60, paddingBottom: insets.bottom + BOTTOM_NAV_HEIGHT + 24 },
       ]}>
       <Text style={styles.title}>{t('event.detailTitle')}</Text>
 

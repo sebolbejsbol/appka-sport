@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { EventCard } from '@/components/event-card';
 import { EventsMap } from '@/components/events-map';
 import { TeamAvatar } from '@/components/team-avatar';
@@ -289,7 +290,10 @@ export default function EventsScreen() {
           data={visibleEvents}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[
+            styles.listContent,
+            { paddingBottom: insets.bottom + BOTTOM_NAV_HEIGHT + 24 },
+          ]}
           removeClippedSubviews
           initialNumToRender={6}
           maxToRenderPerBatch={6}

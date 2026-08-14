@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { ChatListItem } from '@/components/chat-list-item';
 import { ConversationAvatar } from '@/components/conversation-avatar';
 import { ScreenHeader } from '@/components/screen-header';
@@ -158,7 +159,7 @@ export default function MessagesListScreen() {
         <FlatList
           data={results}
           keyExtractor={(item) => item.conversation_id}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + BOTTOM_NAV_HEIGHT + 16 }}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           ListEmptyComponent={
             searching ? (
@@ -195,7 +196,7 @@ export default function MessagesListScreen() {
           data={rows}
           keyExtractor={(item) => item.conversation_id}
           style={styles.list}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 16 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + BOTTOM_NAV_HEIGHT + 16 }}
           refreshControl={
             <RefreshControl
               refreshing={refreshing}

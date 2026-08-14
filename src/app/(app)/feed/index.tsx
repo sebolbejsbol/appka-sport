@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { PostCard } from '@/components/post-card';
 import { PostComposer } from '@/components/post-composer';
 import { ScreenHeader } from '@/components/screen-header';
@@ -175,7 +176,7 @@ export default function FeedScreen() {
                 tintColor={Brand.primary}
               />
             }
-            contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+            contentContainerStyle={{ paddingBottom: insets.bottom + BOTTOM_NAV_HEIGHT + 24 }}
             renderItem={({ item }) => (
               <PostCard
                 postId={item.post_id}

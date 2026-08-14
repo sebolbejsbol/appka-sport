@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { ScreenHeader } from '@/components/screen-header';
 import { TeamAvatar } from '@/components/team-avatar';
 import { Brand } from '@/constants/theme';
@@ -61,7 +62,7 @@ export default function ShareEventToTeamScreen() {
         <FlatList
           data={teams}
           keyExtractor={(item) => item.team_id}
-          contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+          contentContainerStyle={{ paddingBottom: insets.bottom + BOTTOM_NAV_HEIGHT + 24 }}
           ListEmptyComponent={<Text style={styles.empty}>{t('teams.empty')}</Text>}
           renderItem={({ item }) => {
             const done = sent.has(item.team_id);

@@ -16,6 +16,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { FieldDetailSheet } from '@/components/field-detail-sheet';
 import { FieldsLoadingHint } from '@/components/fields-loading-hint';
 import { MapPlaySearchBar } from '@/components/map-play-search-bar';
@@ -1177,7 +1178,11 @@ export function AppMap() {
 
       {!selectedField ? (
         <MapPlaySearchBar
-          topOffset={insets.top + 64}
+          bottomOffset={
+            insets.bottom +
+            BOTTOM_NAV_HEIGHT +
+            (nearbyFields.length > 0 ? NEARBY_SHEET_COLLAPSED_HEIGHT + 12 : 12)
+          }
           activeCount={activeFilterCount}
           loading={fieldsLoading}
           onPress={() => setFiltersOpen(true)}
@@ -1208,6 +1213,7 @@ export function AppMap() {
             {
               bottom:
                 insets.bottom +
+                BOTTOM_NAV_HEIGHT +
                 (nearbyFields.length > 0 ? NEARBY_SHEET_COLLAPSED_HEIGHT + 12 : 24),
             },
             pressed && styles.playNowFabPressed,
@@ -1227,7 +1233,7 @@ export function AppMap() {
               return !v;
             })
           }
-          bottomOffset={insets.bottom}
+          bottomOffset={insets.bottom + BOTTOM_NAV_HEIGHT}
         />
       ) : null}
 

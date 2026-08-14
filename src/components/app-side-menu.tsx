@@ -48,9 +48,14 @@ import {
 import { notifyError, notifyInfo } from '@/lib/toast';
 
 const DRAWER_WIDTH = 288;
+
+/** Wysokość zawartości dolnego paska nawigacji (bez insets.bottom) — do
+ * użycia przez ekrany, które mają własne elementy zakotwiczone przy dole
+ * mapy/listy (np. panel „W pobliżu" na mapie), żeby nie chowały się pod paskiem. */
+export const BOTTOM_NAV_HEIGHT = 64;
 const SIDEBAR_WIDTH = 264;
 
-const HIDDEN_EXACT = ['/event/new', '/event/edit'];
+const HIDDEN_EXACT = ['/event/new', '/event/edit', '/event/create'];
 const HIDDEN_PREFIXES = ['/field'];
 /** Podstrony admina (np. weryfikacja) — własny wstecz, bez hamburgera. */
 const MENU_HIDDEN_EXACT = ['/social/search', '/social/friends', '/profile/edit', '/teams/create'];
@@ -159,7 +164,7 @@ export function AppMenuProvider({ children }: PropsWithChildren) {
     <AppMenuContext.Provider value={value}>
       {children}
       <AppDrawer />
-      <AppMenuButton />
+      <BottomNavBar />
     </AppMenuContext.Provider>
   );
 }
@@ -688,29 +693,126 @@ function NotificationsBell({
   );
 }
 
-function AppMenuButton() {
+/**
+ * Nawigacja "pod kciuk": zamiast hamburgera schowanego w rogu na górze
+ * (gdzie na dużym telefonie trzeba sięgać kciukiem albo drugą ręką), stały
+ * pasek na dole ekranu z najważniejszymi celami (Mapa/Eventy/Profil),
+ * wyniesionym przyciskiem "Utwórz" na środku i zakładką "Menu", która
+ * otwiera dotychczasowy AppDrawer (Feed/Ranking/Drużyny/Znajomi/
+ * Wiadomości/Ustawienia/Admin) — więc CAŁA istniejąca nawigacja zostaje
+ * osiągalna, tylko najczęstsze cele nie wymagają już otwierania szuflady.
+ */
+function BottomNavBar() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
-  const { openMenu } = useAppMenu();
+  const { open, openMenu } = useAppMenu();
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  // Ten sam licznik nieprzeczytanych co w AppDrawer/DesktopSidebar (patrz
+  // komentarz tam) — tutaj tylko po to, żeby na zakładce "Menu" był widoczny
+  // odznaczek, nawet gdy szuflada jest zamknięta.
+  useEffect(() => {
+    void getUnreadNotificationCount().then(setUnreadNotifications);
+    const unsubscribe = subscribeToMyNotifications(() => {
+      setUnreadNotifications((prev) => prev + 1);
+    });
+    return unsubscribe;
+  }, []);
 
   if (!isMenuVisibleRoute(pathname)) return null;
 
+  function navigate(path: Href) {
+    if (pathname === path) return;
+    router.replace(path);
+  }
+
+  return (
+    <View
+      style={[styles.bottomNav, { paddingBottom: insets.bottom }]}
+      pointerEvents="box-none">
+      <View style={styles.bottomNavRow}>
+        <BottomNavTab
+          icon="🗺️"
+          label={t('nav.map')}
+          active={isNavActive(pathname, '/')}
+          onPress={() => navigate('/')}
+        />
+        <BottomNavTab
+          icon="🎉"
+          label={t('nav.events')}
+          active={isNavActive(pathname, '/events')}
+          onPress={() => navigate('/events')}
+        />
+
+        <View style={styles.bottomNavCreateSlot}>
+          <Pressable
+            onPress={() => router.push('/event/create')}
+            hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={t('eventsList.create')}
+            style={({ pressed }) => [styles.bottomNavCreate, pressed && styles.pressed]}>
+            <Text style={styles.bottomNavCreateIcon}>＋</Text>
+          </Pressable>
+        </View>
+
+        <BottomNavTab
+          icon="👤"
+          label={t('nav.profile')}
+          active={isNavActive(pathname, '/profile')}
+          onPress={() => navigate('/profile')}
+        />
+        <BottomNavTab
+          icon="menu"
+          label={t('nav.menu')}
+          active={open || ADVANCED_PATHS.includes(pathname)}
+          badge={unreadNotifications}
+          onPress={openMenu}
+        />
+      </View>
+    </View>
+  );
+}
+
+function BottomNavTab({
+  icon,
+  label,
+  active,
+  badge,
+  onPress,
+}: {
+  icon: string;
+  label: string;
+  active: boolean;
+  badge?: number;
+  onPress: () => void;
+}) {
   return (
     <Pressable
-      onPress={openMenu}
-      hitSlop={8}
+      onPress={onPress}
+      hitSlop={4}
       accessibilityRole="button"
-      accessibilityLabel={t('nav.openMenu')}
-      style={({ pressed }) => [
-        styles.menuButton,
-        { top: insets.top + 12 },
-        pressed && styles.pressed,
-      ]}>
-      <View style={styles.menuIcon}>
-        <View style={styles.menuLine} />
-        <View style={styles.menuLine} />
-        <View style={styles.menuLine} />
+      accessibilityLabel={label}
+      style={({ pressed }) => [styles.bottomNavTab, pressed && styles.pressed]}>
+      <View style={styles.bottomNavIconWrap}>
+        {icon === 'menu' ? (
+          <View style={styles.menuIcon}>
+            <View style={[styles.menuLine, active && styles.menuLineActive]} />
+            <View style={[styles.menuLine, active && styles.menuLineActive]} />
+            <View style={[styles.menuLine, active && styles.menuLineActive]} />
+          </View>
+        ) : (
+          <Text style={styles.bottomNavIcon}>{icon}</Text>
+        )}
+        {badge ? (
+          <Animated.View
+            key={badge}
+            entering={ZoomIn.springify().damping(10).stiffness(300)}
+            style={styles.navBadge}>
+            <Text style={styles.navBadgeText}>{badge > 9 ? '9+' : badge}</Text>
+          </Animated.View>
+        ) : null}
       </View>
+      <Text style={[styles.bottomNavLabel, active && styles.bottomNavLabelActive]}>{label}</Text>
     </Pressable>
   );
 }
@@ -974,6 +1076,82 @@ const styles = StyleSheet.create({
   },
   pressed: {
     opacity: 0.8,
+  },
+  bottomNav: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 30,
+    backgroundColor: Brand.surface,
+    borderTopWidth: 1,
+    borderTopColor: Brand.border,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0f172a',
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.1,
+        shadowRadius: 12,
+      },
+      android: { elevation: 14 },
+      default: {},
+    }),
+  },
+  bottomNavRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    paddingTop: 8,
+    paddingHorizontal: 4,
+  },
+  bottomNavTab: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    paddingVertical: 6,
+  },
+  bottomNavIconWrap: {
+    width: 26,
+    height: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bottomNavIcon: {
+    fontSize: 20,
+  },
+  bottomNavLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: Brand.textMuted,
+  },
+  bottomNavLabelActive: {
+    color: Brand.primary,
+    fontWeight: '800',
+  },
+  bottomNavCreateSlot: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  bottomNavCreate: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    marginTop: -22,
+    backgroundColor: Brand.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 3,
+    borderColor: Brand.surface,
+    ...shadow('lg'),
+  },
+  bottomNavCreateIcon: {
+    fontSize: 24,
+    lineHeight: 26,
+    color: Brand.primaryText,
+    fontWeight: '700',
+  },
+  menuLineActive: {
+    backgroundColor: Brand.primary,
   },
 });
 

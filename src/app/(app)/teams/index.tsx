@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { ScreenHeader } from '@/components/screen-header';
 import { TeamAvatar } from '@/components/team-avatar';
 import { Brand, Layout, Radius } from '@/constants/theme';
@@ -199,7 +200,7 @@ export default function TeamsListScreen() {
         <FlatList
           data={results}
           keyExtractor={(item) => item.team_id}
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + BOTTOM_NAV_HEIGHT + 24 }]}
           keyboardShouldPersistTaps="handled"
           ListHeaderComponent={
             <Text style={styles.sectionTitle}>
@@ -227,7 +228,7 @@ export default function TeamsListScreen() {
               tintColor={Brand.primary}
             />
           }
-          contentContainerStyle={styles.listContent}
+          contentContainerStyle={[styles.listContent, { paddingBottom: insets.bottom + BOTTOM_NAV_HEIGHT + 24 }]}
           ListHeaderComponent={
             <View>
               {invites.length > 0 ? (

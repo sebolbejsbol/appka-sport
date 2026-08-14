@@ -5,7 +5,7 @@ import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 
 type Props = {
-  topOffset: number;
+  bottomOffset: number;
   activeCount: number;
   loading?: boolean;
   onPress: () => void;
@@ -15,11 +15,13 @@ type Props = {
  * Zastępuje dawny poziomy pasek kategorii (Sport/Hobby/Rekreacja/...) —
  * apka skupia się teraz na sporcie, więc zamiast wyboru kategorii jest jeden,
  * wyraźny pasek wyszukiwania otwierający pełny arkusz filtrów (dyscyplina,
- * lokalizacja, promień, data, liczba graczy, poziom).
+ * lokalizacja, promień, data, liczba graczy, poziom). Zakotwiczony na dole
+ * (nad dolnym paskiem nawigacji) — to główna akcja na mapie, więc ma być
+ * pod kciukiem, a nie u góry ekranu.
  */
-export function MapPlaySearchBar({ topOffset, activeCount, loading, onPress }: Props) {
+export function MapPlaySearchBar({ bottomOffset, activeCount, loading, onPress }: Props) {
   return (
-    <View style={[styles.anchor, { top: topOffset }]} pointerEvents="box-none">
+    <View style={[styles.anchor, { bottom: bottomOffset }]} pointerEvents="box-none">
       <Pressable
         onPress={onPress}
         style={({ pressed }) => [styles.bar, pressed && styles.barPressed]}

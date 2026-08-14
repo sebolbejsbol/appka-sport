@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { Button } from '@/components/button';
 import { LegalFooterLinks } from '@/components/legal-footer-links';
 import { ScreenScaffold } from '@/components/screen-scaffold';
@@ -157,7 +158,7 @@ export default function SettingsScreen() {
     <ScreenScaffold
       title={t('settings.title')}
       insetTop={insets.top}
-      insetBottom={insets.bottom}>
+      insetBottom={insets.bottom + BOTTOM_NAV_HEIGHT}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>

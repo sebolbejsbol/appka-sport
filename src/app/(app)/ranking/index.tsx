@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { RankCard } from '@/components/rank-card';
 import { ScreenHeader } from '@/components/screen-header';
 import { UserAvatar } from '@/components/user-avatar';
@@ -79,7 +80,10 @@ export default function RankingScreen() {
         <FlatList
           data={rest}
           keyExtractor={(item) => item.user_id}
-          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
+          contentContainerStyle={[
+            styles.content,
+            { paddingBottom: insets.bottom + BOTTOM_NAV_HEIGHT + 24 },
+          ]}
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <View>

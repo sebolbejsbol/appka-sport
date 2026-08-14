@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { ScreenHeader } from '@/components/screen-header';
 import { UserAvatar } from '@/components/user-avatar';
 import { Brand, Layout, Radius } from '@/constants/theme';
@@ -152,7 +153,7 @@ export default function FriendsScreen() {
         : `${friends.length} ${friends.length === 1 ? 'znajomy' : 'znajomych'}`;
 
   return (
-    <View style={[styles.container, { paddingBottom: insets.bottom }]}>
+    <View style={[styles.container, { paddingBottom: insets.bottom + BOTTOM_NAV_HEIGHT }]}>
       <ScreenHeader
         insetTop={insets.top}
         title={t('social.friendsTitle')}
