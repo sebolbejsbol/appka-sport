@@ -301,6 +301,10 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
                 key={event.id}
                 event={event}
                 busy={busyId === event.id}
+                onOpenDetail={() => {
+                  onClose();
+                  router.push({ pathname: '/event/[id]', params: { id: event.id } });
+                }}
                 onJoin={() => handleJoin(event)}
                 onLeave={() => handleLeave(event)}
                 onLeaveWaitlist={() => handleLeaveWaitlist(event)}
@@ -322,19 +326,22 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
 type EventRowProps = {
   event: EventSummary;
   busy: boolean;
+  onOpenDetail: () => void;
   onJoin: () => void;
   onLeave: () => void;
   onLeaveWaitlist?: () => void;
 };
 
-function EventRow({ event, busy, onJoin, onLeave, onLeaveWaitlist }: EventRowProps) {
+function EventRow({ event, busy, onOpenDetail, onJoin, onLeave, onLeaveWaitlist }: EventRowProps) {
   const isFull =
     event.max_players != null && event.participant_count >= event.max_players && !event.is_joined;
 
   const playersText = formatPlayersCount(event.participant_count, event.max_players);
 
   return (
-    <View style={styles.eventRow}>
+    <Pressable
+      style={({ pressed }) => [styles.eventRow, pressed && styles.pressed]}
+      onPress={onOpenDetail}>
       <View style={styles.eventInfo}>
         <Text style={styles.eventTime}>{formatEventDateTime(event.starts_at)}</Text>
         {event.title ? <Text style={styles.eventTitle}>{event.title}</Text> : null}
@@ -363,7 +370,7 @@ function EventRow({ event, busy, onJoin, onLeave, onLeaveWaitlist }: EventRowPro
           <Text style={styles.joinBtnText}>{t('event.join')}</Text>
         </Pressable>
       )}
-    </View>
+    </Pressable>
   );
 }
 

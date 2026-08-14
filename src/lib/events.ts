@@ -66,6 +66,7 @@ export type FilterableEventListItem = EventListItem;
 export type EventParticipant = {
   user_id: string;
   nick: string | null;
+  avatar_url: string | null;
   joined_at: string;
   checked_in_at: string | null;
   check_in_method: 'gps' | 'manual' | null;
@@ -450,6 +451,7 @@ function normalizeEventDetail(raw: Record<string, unknown>): EventDetail {
         return {
           user_id: String(p.user_id ?? ''),
           nick: typeof p.nick === 'string' ? p.nick : null,
+          avatar_url: typeof p.avatar_url === 'string' ? p.avatar_url : null,
           joined_at: String(p.joined_at ?? ''),
           checked_in_at:
             typeof p.checked_in_at === 'string' ? p.checked_in_at : null,

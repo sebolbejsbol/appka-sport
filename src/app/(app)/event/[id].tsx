@@ -72,6 +72,7 @@ import {
 import { FieldOpinionsSheet } from '@/components/field-opinions-sheet';
 import { InviteSeekersSheet } from '@/components/invite-seekers-sheet';
 import { TeamAvatar } from '@/components/team-avatar';
+import { UserAvatar } from '@/components/user-avatar';
 import { categoryLabel, categoryMeta, subcategoryLabel } from '@/lib/event-categories';
 
 export default function EventDetailScreen() {
@@ -704,26 +705,39 @@ export default function EventDetailScreen() {
                     exiting={FadeOut.duration(160)}
                     layout={LinearTransition.springify().damping(24).stiffness(220)}
                     style={styles.participantRow}>
-                    <View style={styles.participantMain}>
-                      <Text style={styles.participantName}>
-                        {p.is_blocked_by_me && p.user_id !== userId
-                          ? t('event.blockedParticipantNick')
-                          : (p.nick ?? t('event.you'))}
-                        {p.user_id === userId ? ` (${t('event.you')})` : ''}
-                      </Text>
-                      <Text
-                        style={[
-                          styles.participantStatus,
-                          isCheckedIn ? styles.participantPresent : styles.participantAbsent,
-                        ]}>
-                        {isCheckedIn
-                          ? p.check_in_method === 'manual'
-                            ? t('event.checkInManualDone')
-                            : t('event.checkInParticipantPresent')
-                          : t('event.checkInParticipantAbsent')}
-                        {p.is_late ? ` · ${t('event.checkInLate')}` : ''}
-                      </Text>
-                    </View>
+                    <Pressable
+                      style={({ pressed }) => [styles.participantMain, pressed && styles.pressed]}
+                      onPress={() =>
+                        p.user_id === userId
+                          ? router.push('/profile')
+                          : router.push({ pathname: '/user/[id]', params: { id: p.user_id } })
+                      }>
+                      <UserAvatar
+                        nick={p.is_blocked_by_me && p.user_id !== userId ? null : p.nick}
+                        avatarUrl={p.avatar_url}
+                        size={36}
+                      />
+                      <View style={styles.participantMainText}>
+                        <Text style={styles.participantName}>
+                          {p.is_blocked_by_me && p.user_id !== userId
+                            ? t('event.blockedParticipantNick')
+                            : (p.nick ?? t('event.you'))}
+                          {p.user_id === userId ? ` (${t('event.you')})` : ''}
+                        </Text>
+                        <Text
+                          style={[
+                            styles.participantStatus,
+                            isCheckedIn ? styles.participantPresent : styles.participantAbsent,
+                          ]}>
+                          {isCheckedIn
+                            ? p.check_in_method === 'manual'
+                              ? t('event.checkInManualDone')
+                              : t('event.checkInParticipantPresent')
+                            : t('event.checkInParticipantAbsent')}
+                          {p.is_late ? ` · ${t('event.checkInLate')}` : ''}
+                        </Text>
+                      </View>
+                    </Pressable>
                     <View style={styles.participantActions}>
                       {showManual ? (
                         <Pressable
@@ -1248,6 +1262,12 @@ const styles = StyleSheet.create({
     borderBottomColor: Brand.border,
   },
   participantMain: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  participantMainText: {
     flex: 1,
     gap: 2,
   },
