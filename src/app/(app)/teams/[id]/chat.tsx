@@ -98,6 +98,15 @@ export default function TeamChatScreen() {
     };
   }, [conversationId, refreshMessages]);
 
+  // Enter wysyła (jak w większości czatów na webie), Shift+Enter robi nową linię.
+  function handleComposerKeyPress(e: { nativeEvent: { key?: string; shiftKey?: boolean }; preventDefault?: () => void }) {
+    if (Platform.OS !== 'web') return;
+    if (e.nativeEvent.key === 'Enter' && !e.nativeEvent.shiftKey) {
+      e.preventDefault?.();
+      void handleSend();
+    }
+  }
+
   async function handleSend() {
     if (!conversationId || !draft.trim() || sending) return;
     setSending(true);
@@ -198,6 +207,7 @@ export default function TeamChatScreen() {
         <TextInput
           value={draft}
           onChangeText={setDraft}
+          onKeyPress={handleComposerKeyPress}
           placeholder={t('messages.inputPlaceholder')}
           placeholderTextColor={Brand.textMuted}
           style={styles.input}
