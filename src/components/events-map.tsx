@@ -127,7 +127,11 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
           onPress={onPress}
           cluster
           clusterRadius={80}
-          clusterMaxZoomLevel={16}
+          // Podniesione z 16 — przy bliższym zoomie punkty tej samej lokalizacji
+          // (np. kilka eventów różnych dyscyplin na jednym Orliku) rozpadały się
+          // na osobne, zachodzące na siebie bąble zamiast jednego klastra
+          // z siatką ikon. Patrz map-view.tsx dla tej samej zmiany na głównej mapie.
+          clusterMaxZoomLevel={19}
           clusterProperties={CLUSTER_AVAILABILITY_PROPERTIES}>
           <CircleLayer
             id="event-venues-clusters-halo"

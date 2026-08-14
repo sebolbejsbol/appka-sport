@@ -829,8 +829,12 @@ export function AppMap() {
           // Poza tym zoomem Mapbox przestaje w ogóle liczyć klastry — każdy punkt
           // renderuje się osobno, nawet gdy leży kilkadziesiąt metrów od sąsiada.
           // 13 było za nisko (widać było pojedyncze markery obok dużego klastra
-          // przy przybliżeniu, w którym powinny się jeszcze łączyć).
-          clusterMaxZoomLevel={16}
+          // przy przybliżeniu, w którym powinny się jeszcze łączyć). 16 wciąż za
+          // nisko: wielosportowe kompleksy (np. Orlik przy szkole — kilka różnych
+          // dyscyplin kilka metrów od siebie, więc dedupeNearbyFields ich NIE scala,
+          // bo scala tylko TEN SAM sport) przy bliższym zoomie rozpadały się na kilka
+          // zachodzących na siebie bąbli zamiast zostać jednym klastrem z siatką ikon.
+          clusterMaxZoomLevel={19}
           clusterProperties={CLUSTER_AVAILABILITY_PROPERTIES}>
           {/* Neonowa poświata klastra — kolor wg najlepszej dostępności (jest tu coś
               otwartego? -> zielony; inaczej mało miejsc? -> pomarańczowy; inaczej
