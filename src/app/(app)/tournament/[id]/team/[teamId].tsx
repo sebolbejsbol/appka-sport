@@ -1,4 +1,4 @@
-import { useLocalSearchParams, type Href } from 'expo-router';
+import { router, useLocalSearchParams, type Href } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -156,6 +156,18 @@ export default function TournamentTeamRosterScreen() {
         insetTop={insets.top}
         title={team.name}
         onBack={() => goBack(`/tournament/${tournamentId}` as Href)}
+        rightActions={
+          team.can_manage
+            ? [
+                {
+                  key: 'settings',
+                  icon: '⚙',
+                  accessibilityLabel: t('teams.settings'),
+                  onPress: () => router.push({ pathname: '/teams/[id]/settings', params: { id: team.team_id } }),
+                },
+              ]
+            : undefined
+        }
       />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
         <View style={styles.progressCard}>
