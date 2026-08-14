@@ -65,7 +65,15 @@ import {
 import type { Bbox } from '@/lib/fields';
 import { reverseGeocode, searchMapPlaces, type PlaceSearchResult } from '@/lib/map-geocoding';
 import { fieldTypesForSelection, eventSubcategoryForFieldSport, fieldSportMatchesEvent } from '@/lib/venue-types';
-import { mapFieldIcons } from '@/lib/map-field-icons';
+import { mapBubbleIcons } from '@/lib/map-bubble-icons';
+import {
+  BUBBLE_CENTER_COLOR,
+  buildClusterCategoryProperties,
+  buildClusterIconSizeExpression,
+  buildClusterIconSlotExpression,
+  buildClusterIconSlotOffsetExpression,
+  buildClusterIconSlotVisibleFilter,
+} from '@/lib/map-theme';
 import { pickImagesFromLibrary, type PickedImage } from '@/lib/pick-image';
 import type { LngLat } from '@/hooks/use-user-location';
 
@@ -785,14 +793,15 @@ export default function CreateEventScreen() {
                         zoomLevel: location ? 14 : coords ? 11 : 6,
                       }}
                     />
-                    <Images images={mapFieldIcons} />
+                    <Images images={mapBubbleIcons} />
                     <ShapeSource
                       id="create-fields"
                       shape={fieldFeatures}
                       onPress={onFieldPress}
                       cluster
                       clusterRadius={55}
-                      clusterMaxZoomLevel={13}>
+                      clusterMaxZoomLevel={13}
+                      clusterProperties={FIELD_PICKER_CLUSTER_PROPERTIES}>
                       <FieldLayers prefix="inline" />
                     </ShapeSource>
                     {location ? (
@@ -1144,14 +1153,15 @@ export default function CreateEventScreen() {
                   zoomLevel: location ? 15 : coords ? 11 : 6,
                 }}
               />
-              <Images images={mapFieldIcons} />
+              <Images images={mapBubbleIcons} />
               <ShapeSource
                 id="create-fields-full"
                 shape={fieldFeatures}
                 onPress={onFieldPress}
                 cluster
                 clusterRadius={55}
-                clusterMaxZoomLevel={13}>
+                clusterMaxZoomLevel={13}
+                clusterProperties={FIELD_PICKER_CLUSTER_PROPERTIES}>
                 <FieldLayers prefix="full" />
               </ShapeSource>
               {location ? (
@@ -1254,7 +1264,21 @@ const SKILL_OPTIONS: { id: SkillLevel; labelKey: TKeyish }[] = [
 ];
 
 /**
- * Warstwy klastrów + pojedynczych obiektów dla mapy w kreatorze (jak na głównej mapie).
+ * Te same bąble co na głównej mapie (ciemnoniebieskie kółko + biały glif
+ * sportu z mapBubbleIcons, ta sama siatka ikon w klastrze) — bez pierścienia
+ * dostępności/licznika eventów przy ikonie, bo w kreatorze nie mamy (i nie
+ * potrzebujemy) danych o żywych eventach na boisku, tylko listę miejsc do
+ * wyboru. `total_events` tutaj to zwykła liczba zgrupowanych boisk (per
+ * punkt +1), nie suma eventów — potrzebna wyłącznie po to, żeby dało się
+ * użyć TYCH SAMYCH builderów siatki ikon klastra z map-theme.ts (rosną wraz
+ * z tą wartością), zamiast duplikować ich logikę.
+ */
+const FIELD_PICKER_CLUSTER_PROPERTIES = {
+  total_events: ['+', 1],
+  ...buildClusterCategoryProperties(),
+};
+
+/**
  * `sourceID` jest wstrzykiwany przez ShapeSource (cloneReactChildrenWithProps) i MUSI
  * być przekazany dalej do każdej warstwy, inaczej nic się nie renderuje.
  */
@@ -1266,10 +1290,9 @@ function FieldLayers({ prefix, sourceID }: { prefix: string; sourceID?: string }
         sourceID={sourceID}
         filter={['has', 'point_count']}
         style={{
-          circleRadius: ['interpolate', ['linear'], ['get', 'point_count'], 1, 14, 25, 18, 100, 24, 500, 30],
-          circleColor: Brand.primary,
-          circleOpacity: 0.96,
-          circleStrokeWidth: 2,
+          circleRadius: ['interpolate', ['linear'], ['get', 'total_events'], 1, 24, 5, 28, 15, 32, 40, 38],
+          circleColor: BUBBLE_CENTER_COLOR,
+          circleStrokeWidth: 4,
           circleStrokeColor: '#ffffff',
         }}
       />
@@ -1278,21 +1301,50 @@ function FieldLayers({ prefix, sourceID }: { prefix: string; sourceID?: string }
         sourceID={sourceID}
         filter={['has', 'point_count']}
         style={{
-          textField: ['get', 'point_count_abbreviated'],
-          textSize: ['step', ['get', 'point_count'], 12, 100, 14, 500, 16],
+          textField: ['get', 'total_events'],
+          textSize: 15,
           textColor: '#ffffff',
+          textOffset: [0, -0.95],
           textAllowOverlap: true,
           textIgnorePlacement: true,
         }}
       />
-      {/* Pojedynczy obiekt: gotowa ikonka z wypalonym emoji wg kategorii. */}
-      <SymbolLayer
-        id={`${prefix}-dot-icon`}
+      {/* Siatka ikon kategorii w klastrze — dokładnie ten sam builder co na
+          głównej mapie/mapie eventów (map-theme.ts), więc te same ikony
+          niezależnie od tego, gdzie w apce jest ta mapa. */}
+      {([0, 1, 2, 3] as const).map((slot) => (
+        <SymbolLayer
+          key={`${prefix}-cluster-icon-slot-${slot}`}
+          id={`${prefix}-cluster-icon-slot-${slot}`}
+          sourceID={sourceID}
+          filter={['all', ['has', 'point_count'], buildClusterIconSlotVisibleFilter(slot)]}
+          style={{
+            iconImage: buildClusterIconSlotExpression(slot),
+            iconSize: buildClusterIconSizeExpression(),
+            iconOffset: buildClusterIconSlotOffsetExpression(slot),
+            iconAllowOverlap: true,
+            iconIgnorePlacement: true,
+          }}
+        />
+      ))}
+      <CircleLayer
+        id={`${prefix}-ring`}
         sourceID={sourceID}
         filter={['!', ['has', 'point_count']]}
         style={{
-          iconImage: ['coalesce', ['get', 'icon'], 'generic'],
-          iconSize: ['interpolate', ['linear'], ['zoom'], 7, 0.5, 12, 0.72, 16, 1.0, 18, 1.2],
+          circleRadius: 22,
+          circleColor: BUBBLE_CENTER_COLOR,
+          circleStrokeWidth: 4,
+          circleStrokeColor: '#ffffff',
+        }}
+      />
+      <SymbolLayer
+        id={`${prefix}-icon`}
+        sourceID={sourceID}
+        filter={['!', ['has', 'point_count']]}
+        style={{
+          iconImage: ['get', 'bubbleIcon'],
+          iconSize: 1.1,
           iconAllowOverlap: true,
           iconIgnorePlacement: true,
         }}

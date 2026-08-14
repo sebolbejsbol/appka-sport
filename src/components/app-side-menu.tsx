@@ -356,7 +356,13 @@ function AppDrawer() {
     [closeMenu, pathname],
   );
 
-  if (!open) return null;
+  // WAŻNE: żadnego "if (!open) return null" tutaj — Modal poniżej sam
+  // pokazuje/chowa się przez visible={open}. Wcześniejszy early-return
+  // unmountował całe AppDrawer (razem z NotificationsBell) w momencie
+  // zamknięcia szuflady, co ubijało panel powiadomień w tym samym ticku,
+  // w którym dzwoneczek próbował go otworzyć (onBeforeOpen={closeMenu}
+  // w NotificationsBell) — dzwoneczek w menu na telefonie/wąskim widoku
+  // wizualnie "nic nie robił", bo jego panel nigdy nie zdążył się pokazać.
 
   return (
     <Modal
@@ -732,16 +738,17 @@ function BottomNavBar() {
       pointerEvents="box-none">
       <View style={styles.bottomNavRow}>
         <BottomNavTab
+          icon="menu"
+          label={t('nav.menu')}
+          active={open || ADVANCED_PATHS.includes(pathname)}
+          badge={unreadNotifications}
+          onPress={openMenu}
+        />
+        <BottomNavTab
           icon="🗺️"
           label={t('nav.map')}
           active={isNavActive(pathname, '/')}
           onPress={() => navigate('/')}
-        />
-        <BottomNavTab
-          icon="🎉"
-          label={t('nav.events')}
-          active={isNavActive(pathname, '/events')}
-          onPress={() => navigate('/events')}
         />
 
         <View style={styles.bottomNavCreateSlot}>
@@ -756,17 +763,16 @@ function BottomNavBar() {
         </View>
 
         <BottomNavTab
+          icon="🎉"
+          label={t('nav.events')}
+          active={isNavActive(pathname, '/events')}
+          onPress={() => navigate('/events')}
+        />
+        <BottomNavTab
           icon="👤"
           label={t('nav.profile')}
           active={isNavActive(pathname, '/profile')}
           onPress={() => navigate('/profile')}
-        />
-        <BottomNavTab
-          icon="menu"
-          label={t('nav.menu')}
-          active={open || ADVANCED_PATHS.includes(pathname)}
-          badge={unreadNotifications}
-          onPress={openMenu}
         />
       </View>
     </View>
