@@ -1529,6 +1529,8 @@ export const pl = {
     teamCreateError: 'Nie udało się utworzyć drużyny. Spróbuj ponownie.',
     createAction: 'Utwórz',
     progressLabel: '{count} / {required} graczy',
+    playersProgressLabel: 'Graczy: {count} / {required}',
+    substitutesProgressLabel: 'Rezerwowych: {count} / {required}',
     statusFull: 'Pełna',
     statusIncomplete: 'Niepełna',
     membersTitle: 'Skład drużyny',

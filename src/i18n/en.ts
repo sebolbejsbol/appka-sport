@@ -1522,6 +1522,8 @@ export const en: DeepPartialWide<Translations> = {
     teamCreateError: 'Could not create the team. Try again.',
     createAction: 'Create',
     progressLabel: '{count} / {required} players',
+    playersProgressLabel: 'Players: {count} / {required}',
+    substitutesProgressLabel: 'Substitutes: {count} / {required}',
     statusFull: 'Full',
     statusIncomplete: 'Incomplete',
     membersTitle: 'Team roster',

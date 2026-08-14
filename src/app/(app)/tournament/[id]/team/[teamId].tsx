@@ -176,7 +176,10 @@ export default function TournamentTeamRosterScreen() {
   }
 
   const required = tournament.players_per_team;
-  const rosterReady = team.member_count >= required;
+  const substitutesRequired = tournament.substitutes_per_team;
+  const playersCount = Math.min(team.member_count, required);
+  const substitutesCount = Math.min(Math.max(team.member_count - required, 0), substitutesRequired);
+  const rosterReady = playersCount >= required;
   const canSubmit = status === 'none' || status === 'rejected' || status === 'withdrawn';
   const memberIds = team.members.map((m) => m.user_id);
   const pendingInviteIds = invites.filter((i) => i.status === 'pending').map((i) => i.user_id);
@@ -203,16 +206,42 @@ export default function TournamentTeamRosterScreen() {
       />
       <ScrollView contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 32 }]}>
         <View style={styles.progressCard}>
-          <Text style={styles.progressCount}>
-            {t('tournamentTeamRoster.progressLabel')
-              .replace('{count}', String(team.member_count))
-              .replace('{required}', String(required))}
-          </Text>
-          <View style={[styles.statusPill, rosterReady ? styles.statusPillFull : styles.statusPillIncomplete]}>
-            <Text style={[styles.statusPillText, rosterReady ? styles.statusPillTextFull : styles.statusPillTextIncomplete]}>
-              {rosterReady ? t('tournamentTeamRoster.statusFull') : t('tournamentTeamRoster.statusIncomplete')}
+          <View style={styles.progressRow}>
+            <Text style={styles.progressCount}>
+              {t('tournamentTeamRoster.playersProgressLabel')
+                .replace('{count}', String(playersCount))
+                .replace('{required}', String(required))}
             </Text>
+            <View style={[styles.statusPill, rosterReady ? styles.statusPillFull : styles.statusPillIncomplete]}>
+              <Text style={[styles.statusPillText, rosterReady ? styles.statusPillTextFull : styles.statusPillTextIncomplete]}>
+                {rosterReady ? t('tournamentTeamRoster.statusFull') : t('tournamentTeamRoster.statusIncomplete')}
+              </Text>
+            </View>
           </View>
+          {substitutesRequired > 0 ? (
+            <View style={[styles.progressRow, styles.progressRowSecond]}>
+              <Text style={styles.progressCount}>
+                {t('tournamentTeamRoster.substitutesProgressLabel')
+                  .replace('{count}', String(substitutesCount))
+                  .replace('{required}', String(substitutesRequired))}
+              </Text>
+              <View
+                style={[
+                  styles.statusPill,
+                  substitutesCount >= substitutesRequired ? styles.statusPillFull : styles.statusPillIncomplete,
+                ]}>
+                <Text
+                  style={[
+                    styles.statusPillText,
+                    substitutesCount >= substitutesRequired ? styles.statusPillTextFull : styles.statusPillTextIncomplete,
+                  ]}>
+                  {substitutesCount >= substitutesRequired
+                    ? t('tournamentTeamRoster.statusFull')
+                    : t('tournamentTeamRoster.statusIncomplete')}
+                </Text>
+              </View>
+            </View>
+          ) : null}
         </View>
 
         {status === 'pending' || status === 'approved' ? (
@@ -321,9 +350,6 @@ const styles = StyleSheet.create({
   retryBtn: { marginHorizontal: 20, marginTop: 16 },
   content: { paddingHorizontal: 20, paddingTop: 12, gap: 4 },
   progressCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     borderRadius: Radius.lg,
     backgroundColor: Brand.surface,
     borderWidth: 1,
@@ -332,6 +358,8 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     marginBottom: 16,
   },
+  progressRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  progressRowSecond: { marginTop: 10, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Brand.border },
   progressCount: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary },
   statusPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
   statusPillFull: { backgroundColor: Brand.primaryLight },
