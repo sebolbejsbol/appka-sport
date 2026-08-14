@@ -553,7 +553,7 @@ const styles = StyleSheet.create({
   },
   searchBtn: {
     marginTop: 20,
-    backgroundColor: '#16a34a',
+    backgroundColor: Brand.success,
     paddingVertical: 14,
     borderRadius: Radius.pill,
     alignItems: 'center',
@@ -573,7 +573,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     marginTop: 8,
   },
-  queueDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: '#16a34a' },
+  queueDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: Brand.success },
   queueText: { flex: 1, fontSize: 14, fontWeight: '700', color: '#166534' },
   leaveText: { fontSize: 13, fontWeight: '700', color: Brand.danger },
   listHeaderRow: {

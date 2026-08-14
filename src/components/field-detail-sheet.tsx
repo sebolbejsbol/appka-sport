@@ -15,7 +15,8 @@ import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring } 
 import { EventMetaBadges } from '@/components/event-meta-badges';
 import { FieldOpinionsSheet } from '@/components/field-opinions-sheet';
 import { FieldRatingStars } from '@/components/field-rating-stars';
-import { Brand } from '@/constants/theme';
+import { Brand, Radius } from '@/constants/theme';
+import { shadow } from '@/constants/ui';
 import { useEventFilters } from '@/context/event-filters';
 import { useSession } from '@/context/session';
 import type { LngLat } from '@/hooks/use-user-location';
@@ -378,15 +379,11 @@ const styles = StyleSheet.create({
     bottom: 0,
     maxHeight: '85%',
     backgroundColor: Brand.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
     paddingHorizontal: 20,
     paddingTop: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 12,
-    elevation: 12,
+    ...shadow('up'),
   },
   sheetScroll: {
     flexGrow: 0,

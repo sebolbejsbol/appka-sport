@@ -21,6 +21,7 @@ import { EventMetaBadges } from '@/components/event-meta-badges';
 import { NavigateToFieldButton } from '@/components/navigate-to-field-button';
 import { Button } from '@/components/button';
 import { Brand } from '@/constants/theme';
+import { Typography } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { useWatchingLocation } from '@/hooks/use-watching-location';
 import { t } from '@/i18n';
@@ -969,9 +970,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.screenBackground,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: Brand.textPrimary,
+    ...Typography.screenTitle,
     marginTop: 8,
     marginBottom: 16,
   },
@@ -986,7 +985,7 @@ const styles = StyleSheet.create({
     gap: 16,
   },
   adminBadge: {
-    backgroundColor: '#fff4ec',
+    backgroundColor: Brand.primaryLight,
     borderWidth: 1,
     borderColor: Brand.primary,
     borderRadius: 12,
@@ -1095,7 +1094,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   stillGoingCard: {
-    backgroundColor: '#fff4ec',
+    backgroundColor: Brand.primaryLight,
     borderWidth: 1,
     borderColor: Brand.primary,
     borderRadius: 12,
@@ -1266,7 +1265,7 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   participantPresent: {
-    color: '#1a7f4b',
+    color: Brand.success,
   },
   participantAbsent: {
     color: Brand.textMuted,
@@ -1275,7 +1274,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: '#fff4ec',
+    backgroundColor: Brand.primaryLight,
     borderWidth: 1,
     borderColor: Brand.primary,
   },
@@ -1288,7 +1287,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderRadius: 8,
-    backgroundColor: '#fff0f0',
+    backgroundColor: Brand.dangerLight,
     borderWidth: 1,
     borderColor: Brand.danger,
   },
@@ -1299,17 +1298,17 @@ const styles = StyleSheet.create({
   },
   friendsOnlyBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#eef3ff',
+    backgroundColor: Brand.infoLight,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderWidth: 1,
-    borderColor: '#4a6fa5',
+    borderColor: Brand.info,
   },
   friendsOnlyBadgeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#4a6fa5',
+    color: Brand.info,
   },
   checkInCard: {
     backgroundColor: Brand.surface,
@@ -1325,7 +1324,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   checkInHintWarning: {
-    color: '#b54708',
+    color: Brand.warning,
     fontWeight: '600',
   },
   checkInDistanceRow: {
@@ -1348,13 +1347,13 @@ const styles = StyleSheet.create({
   checkInDone: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#1a7f4b',
+    color: Brand.success,
   },
   checkInLateBadge: {
     fontSize: 12,
     fontWeight: '600',
-    color: '#b54708',
-    backgroundColor: '#fff4ec',
+    color: Brand.warning,
+    backgroundColor: Brand.warningLight,
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,

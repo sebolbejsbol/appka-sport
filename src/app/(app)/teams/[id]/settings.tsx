@@ -180,7 +180,9 @@ export default function TeamSettingsScreen() {
           <View style={styles.card}>
             <Text style={styles.sectionTitle}>{t('teams.settingsProfile')}</Text>
 
-            <Pressable onPress={() => void pickLogo()} style={styles.logoPicker}>
+            <Pressable
+              onPress={() => void pickLogo()}
+              style={({ pressed }) => [styles.logoPicker, pressed && styles.logoPickerPressed]}>
               {logoUri ? (
                 <>
                   <Image source={{ uri: logoUri }} style={styles.logoPreview} />
@@ -307,6 +309,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
+  },
+  logoPickerPressed: {
+    opacity: 0.85,
   },
   logoPreview: { width: '100%', height: '100%' },
   logoPlaceholder: { color: Brand.primary, fontWeight: '700', fontSize: 32 },

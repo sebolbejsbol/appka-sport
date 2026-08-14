@@ -286,7 +286,8 @@ export default function TeamDetailScreen() {
                       <Pressable
                         disabled={busy}
                         onPress={() => void handleRespondRequest(req.request_id, false)}
-                        hitSlop={6}>
+                        hitSlop={6}
+                        style={({ pressed }) => pressed && styles.pressed}>
                         <Text style={styles.dangerLink}>{t('teams.rejectRequest')}</Text>
                       </Pressable>
                     </View>

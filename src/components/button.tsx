@@ -35,9 +35,19 @@ export function Button({
   const isSmall = size === 'sm';
 
   const pressed = useSharedValue(0);
+  // Tylko web: dotyk nigdy nie odpala onHoverIn/Out, więc na natywnych
+  // platformach ta wartość zostaje 0 przez cały czas — czysty no-op.
+  const hovered = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: withSpring(1 - pressed.value * 0.04, { damping: 18, stiffness: 260 }) }],
+    transform: [
+      {
+        scale: withSpring(1 - pressed.value * 0.04 + hovered.value * 0.012, {
+          damping: 18,
+          stiffness: 260,
+        }),
+      },
+    ],
     opacity: withTiming(1 - pressed.value * 0.12, { duration: 90 }),
   }));
 
@@ -49,6 +59,12 @@ export function Button({
       }}
       onPressOut={() => {
         pressed.value = 0;
+      }}
+      onHoverIn={() => {
+        hovered.value = 1;
+      }}
+      onHoverOut={() => {
+        hovered.value = 0;
       }}
       disabled={disabled}
       accessibilityRole="button"

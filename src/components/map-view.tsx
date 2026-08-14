@@ -1287,7 +1287,7 @@ const styles = StyleSheet.create({
   playNowFab: {
     position: 'absolute',
     alignSelf: 'center',
-    backgroundColor: '#16a34a',
+    backgroundColor: Brand.success,
     paddingHorizontal: 22,
     paddingVertical: 14,
     borderRadius: 999,

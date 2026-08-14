@@ -184,7 +184,7 @@ const styles = StyleSheet.create({
     paddingVertical: 13,
     borderRadius: Radius.pill,
     alignItems: 'center',
-    backgroundColor: '#16a34a',
+    backgroundColor: Brand.success,
   },
   acceptText: { color: '#ffffff', fontWeight: '800', fontSize: 15 },
   disabled: { opacity: 0.6 },

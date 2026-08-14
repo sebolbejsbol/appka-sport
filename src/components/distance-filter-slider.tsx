@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 
 import { Brand } from '@/constants/theme';
+import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { distanceFilterLabel } from '@/lib/event-filter-display';
 
@@ -167,11 +168,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primary,
     borderWidth: 2,
     borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.15,
-    shadowRadius: 2,
-    elevation: 2,
+    ...shadow('sm'),
   },
   scale: {
     flexDirection: 'row',

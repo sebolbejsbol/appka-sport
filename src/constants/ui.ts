@@ -2,7 +2,7 @@ import { Platform, StyleSheet, type TextStyle, type ViewStyle } from 'react-nati
 
 import { Brand, Layout, Radius } from '@/constants/theme';
 
-type ShadowLevel = 'sm' | 'md' | 'lg' | 'float';
+type ShadowLevel = 'sm' | 'md' | 'lg' | 'float' | 'up';
 
 const SHADOW_COLOR = '#0f172a';
 
@@ -40,6 +40,21 @@ export function shadow(level: ShadowLevel): ViewStyle {
         shadowRadius: 20,
       },
       android: { elevation: 8 },
+      default: {},
+    }) as ViewStyle;
+  }
+  if (level === 'up') {
+    // Cień "w górę" — dla paneli/pasków zadokowanych na dole ekranu (bottom
+    // sheet, dolny pasek nawigacji), które mają wyglądać na unoszące się NAD
+    // treścią pod nimi, a nie odwrotnie.
+    return Platform.select({
+      ios: {
+        shadowColor: SHADOW_COLOR,
+        shadowOffset: { width: 0, height: -4 },
+        shadowOpacity: 0.12,
+        shadowRadius: 12,
+      },
+      android: { elevation: 12 },
       default: {},
     }) as ViewStyle;
   }

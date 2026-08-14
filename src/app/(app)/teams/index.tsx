@@ -186,7 +186,10 @@ export default function TeamsListScreen() {
           returnKeyType="search"
         />
         {query.length > 0 ? (
-          <Pressable onPress={() => handleQueryChange('')} hitSlop={8}>
+          <Pressable
+            onPress={() => handleQueryChange('')}
+            hitSlop={8}
+            style={({ pressed }) => pressed && styles.pressed}>
             <Text style={styles.searchClear}>✕</Text>
           </Pressable>
         ) : null}
@@ -246,12 +249,12 @@ export default function TeamsListScreen() {
                     <View style={styles.inviteActions}>
                       <Pressable
                         onPress={() => void handleRespond(inv.invitation_id, true)}
-                        style={styles.acceptBtn}>
+                        style={({ pressed }) => [styles.acceptBtn, pressed && styles.pressed]}>
                         <Text style={styles.acceptText}>{t('teams.acceptInvite')}</Text>
                       </Pressable>
                       <Pressable
                         onPress={() => void handleRespond(inv.invitation_id, false)}
-                        style={styles.rejectBtn}>
+                        style={({ pressed }) => [styles.rejectBtn, pressed && styles.pressed]}>
                         <Text style={styles.rejectText}>{t('teams.rejectInvite')}</Text>
                       </Pressable>
                     </View>

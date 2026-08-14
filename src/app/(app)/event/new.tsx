@@ -18,6 +18,7 @@ import { DatePickerField } from '@/components/date-picker-field';
 import { TimePickerField } from '@/components/time-picker-field';
 import { TextField } from '@/components/text-field';
 import { Brand } from '@/constants/theme';
+import { Typography } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { useEventFilters } from '@/context/event-filters';
 import { t } from '@/i18n';
@@ -349,9 +350,7 @@ const styles = StyleSheet.create({
     color: Brand.textSecondary,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: Brand.textPrimary,
+    ...Typography.screenTitle,
     marginTop: 8,
     marginBottom: 16,
   },

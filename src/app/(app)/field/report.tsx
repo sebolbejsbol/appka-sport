@@ -19,6 +19,7 @@ import {
 } from '@/components/field-report-map-picker';
 import { TextField } from '@/components/text-field';
 import { Brand } from '@/constants/theme';
+import { Typography } from '@/constants/ui';
 import { t } from '@/i18n';
 import { submitFieldReport } from '@/lib/field-reports';
 import { goBack } from '@/lib/navigation';
@@ -205,9 +206,7 @@ const styles = StyleSheet.create({
     color: Brand.textSecondary,
   },
   title: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: Brand.textPrimary,
+    ...Typography.screenTitle,
     marginTop: 8,
     marginBottom: 8,
   },

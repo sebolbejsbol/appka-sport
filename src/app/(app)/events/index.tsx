@@ -189,7 +189,8 @@ export default function EventsScreen() {
           {filters.search.length > 0 ? (
             <Pressable
               onPress={() => setFilters((prev) => ({ ...prev, search: '' }))}
-              hitSlop={8}>
+              hitSlop={8}
+              style={({ pressed }) => pressed && styles.pressed}>
               <Text style={styles.clearSearch}>✕</Text>
             </Pressable>
           ) : null}
@@ -221,7 +222,11 @@ export default function EventsScreen() {
             {SORT_IDS.map((id) => (
               <Pressable
                 key={id}
-                style={[styles.sortChip, filters.sort === id && styles.sortChipActive]}
+                style={({ pressed }) => [
+                  styles.sortChip,
+                  filters.sort === id && styles.sortChipActive,
+                  pressed && styles.pressed,
+                ]}
                 onPress={() => setFilters((prev) => ({ ...prev, sort: id }))}>
                 <Text
                   style={[
@@ -236,14 +241,22 @@ export default function EventsScreen() {
 
           <View style={styles.viewToggle}>
             <Pressable
-              style={[styles.viewBtn, view === 'list' && styles.viewBtnActive]}
+              style={({ pressed }) => [
+                styles.viewBtn,
+                view === 'list' && styles.viewBtnActive,
+                pressed && styles.pressed,
+              ]}
               onPress={() => setView('list')}>
               <Text style={[styles.viewBtnText, view === 'list' && styles.viewBtnTextActive]}>
                 {t('eventsList.viewList')}
               </Text>
             </Pressable>
             <Pressable
-              style={[styles.viewBtn, view === 'map' && styles.viewBtnActive]}
+              style={({ pressed }) => [
+                styles.viewBtn,
+                view === 'map' && styles.viewBtnActive,
+                pressed && styles.pressed,
+              ]}
               onPress={() => setView('map')}>
               <Text style={[styles.viewBtnText, view === 'map' && styles.viewBtnTextActive]}>
                 {t('eventsList.viewMap')}
@@ -492,7 +505,7 @@ const styles = StyleSheet.create({
   },
   playNowBtn: {
     flex: 1,
-    backgroundColor: '#16a34a',
+    backgroundColor: Brand.success,
     paddingVertical: 12,
     borderRadius: Radius.pill,
     alignItems: 'center',
@@ -681,7 +694,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#16a34a',
+    backgroundColor: Brand.success,
     borderWidth: 2,
     borderColor: '#ffffff',
   },

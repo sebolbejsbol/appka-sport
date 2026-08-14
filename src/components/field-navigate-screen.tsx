@@ -12,7 +12,8 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Brand } from '@/constants/theme';
+import { Brand, Radius } from '@/constants/theme';
+import { shadow } from '@/constants/ui';
 import { useWatchingLocation } from '@/hooks/use-watching-location';
 import { t } from '@/i18n';
 import { formatCourtName } from '@/lib/field-display';
@@ -227,15 +228,11 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     backgroundColor: Brand.surface,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    borderTopLeftRadius: Radius.xl,
+    borderTopRightRadius: Radius.xl,
     paddingHorizontal: 20,
     paddingTop: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 10,
+    ...shadow('up'),
   },
   title: {
     fontSize: 13,

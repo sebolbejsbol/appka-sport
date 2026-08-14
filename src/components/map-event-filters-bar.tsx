@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventFiltersForm } from '@/components/event-filters-form';
 import { EventQuickFilterChips } from '@/components/event-quick-filter-chips';
 import { Brand } from '@/constants/theme';
+import { shadow } from '@/constants/ui';
 import { useEventFilters } from '@/context/event-filters';
 import { t } from '@/i18n';
 import { formatMapLiveCount } from '@/lib/plural-pl';
@@ -101,11 +102,7 @@ const styles = StyleSheet.create({
     borderRadius: 999,
     backgroundColor: Brand.primary,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.15,
-    shadowRadius: 6,
-    elevation: 6,
+    ...shadow('float'),
   },
   liveBadgeText: {
     fontSize: 14,
@@ -122,11 +119,7 @@ const styles = StyleSheet.create({
     borderRadius: 18,
     borderWidth: 1,
     borderColor: Brand.border,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.12,
-    shadowRadius: 10,
-    elevation: 8,
+    ...shadow('lg'),
     overflow: 'hidden',
   },
   trigger: {

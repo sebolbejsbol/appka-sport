@@ -1,3 +1,4 @@
+import { Brand } from '@/constants/theme';
 import type { LngLat } from '@/hooks/use-user-location';
 import { supabase } from '@/lib/supabase';
 
@@ -109,6 +110,6 @@ export async function getMyPlayStatus(): Promise<PlayStatus> {
 
 export const PLAY_STATUS_META: Record<PlayStatus, { label: string; color: string; dot: string }> = {
   offline: { label: 'Offline', color: '#94a3b8', dot: '#94a3b8' },
-  looking: { label: 'Szukam gry', color: '#16a34a', dot: '#16a34a' },
+  looking: { label: 'Szukam gry', color: Brand.success, dot: Brand.success },
   playing_today: { label: 'Gram dzisiaj', color: '#1f6bff', dot: '#1f6bff' },
 };
