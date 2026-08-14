@@ -192,7 +192,7 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
             filter={['!', ['has', 'point_count']]}
             style={{
               iconImage: ['get', 'bubbleIcon'],
-              iconSize: 1,
+              iconSize: 1.15,
               iconOffset: [-10, 0],
               iconAllowOverlap: true,
               iconIgnorePlacement: true,

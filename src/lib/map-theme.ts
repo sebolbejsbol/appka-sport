@@ -166,16 +166,24 @@ function totalPresentExpr(): any {
   return ['+', ...CLUSTER_CATEGORY_KEYS.map((k) => ['case', presentExpr(k), 1, 0])];
 }
 
+// Musi pasować do KEY_PREFIX w src/lib/map-bubble-icons.ts — siatka ikon
+// klastra renderuje się z TEGO SAMEGO zestawu (biały glif na bąblu) co
+// pojedyncze ikony sportu, żeby nie było dwóch różnych stylów zależnie od
+// zoomu (2026-08-14: to był realny raport — "z daleka inne loga niż z
+// bliska", bo siatka klastra wcześniej używała starego, kolorowego zestawu
+// odznak mapFieldIcons, a pojedyncze ikony już nowego).
+const BUBBLE_ICON_PREFIX = 'bubble_';
+
 /** Ikona kategorii, której rangą (kolejność wśród obecnych) jest `slotIndex` — 'generic' dla "other". */
 function slotCategoryIconExpr(slotIndex: number): any {
   const cases: any[] = ['case'];
   for (const key of CLUSTER_CATEGORY_KEYS) {
     cases.push(
       ['all', presentExpr(key), ['==', rankIndexExpr(key), slotIndex]],
-      key === 'other' ? 'generic' : key,
+      `${BUBBLE_ICON_PREFIX}${key === 'other' ? 'generic' : key}`,
     );
   }
-  cases.push('generic');
+  cases.push(`${BUBBLE_ICON_PREFIX}generic`);
   return cases;
 }
 
@@ -186,7 +194,12 @@ function slotCategoryIconExpr(slotIndex: number): any {
  */
 export function buildClusterIconSlotExpression(slotIndex: 0 | 1 | 2 | 3): any {
   if (slotIndex === 3) {
-    return ['case', ['>', totalPresentExpr(), CLUSTER_GRID_MAX_SLOTS], 'more', slotCategoryIconExpr(3)];
+    return [
+      'case',
+      ['>', totalPresentExpr(), CLUSTER_GRID_MAX_SLOTS],
+      `${BUBBLE_ICON_PREFIX}more`,
+      slotCategoryIconExpr(3),
+    ];
   }
   return slotCategoryIconExpr(slotIndex);
 }
@@ -208,11 +221,18 @@ export function buildClusterIconSlotVisibleFilter(slotIndex: 0 | 1 | 2 | 3): any
  * runtime (`icon-offset` przyjmuje tylko literalne stałe) — stąd skończony
  * zestaw progów zamiast płynnej interpolacji rozstawu.
  */
+// `icon` przeliczone ×1.5 względem poprzednich wartości (0.5/0.62/0.74/0.86):
+// mapBubbleIcons ma o połowę mniejszy natywny rozmiar (72px@3x=24px) niż
+// stary zestaw mapFieldIcons (108px@3x=36px), na który te progi były
+// dobrane — bez przeliczenia siatka wyszłaby wizualnie mniejsza niż
+// wcześniej. gapX/rowY zostają, bo docelowy rozmiar w pikselach na ekranie
+// wychodzi taki sam jak wcześniej (24×1.5=36=stary rozmiar), więc rozstaw
+// się nie rozjeżdża.
 const CLUSTER_SIZE_TIERS = [
-  { total: 1, icon: 0.5, gapX: 12, singleRowY: 16, topRowY: 8, bottomRowY: 26 },
-  { total: 5, icon: 0.62, gapX: 15, singleRowY: 20, topRowY: 10, bottomRowY: 32 },
-  { total: 15, icon: 0.74, gapX: 18, singleRowY: 24, topRowY: 12, bottomRowY: 38 },
-  { total: 40, icon: 0.86, gapX: 21, singleRowY: 28, topRowY: 14, bottomRowY: 44 },
+  { total: 1, icon: 0.75, gapX: 12, singleRowY: 16, topRowY: 8, bottomRowY: 26 },
+  { total: 5, icon: 0.93, gapX: 15, singleRowY: 20, topRowY: 10, bottomRowY: 32 },
+  { total: 15, icon: 1.11, gapX: 18, singleRowY: 24, topRowY: 12, bottomRowY: 38 },
+  { total: 40, icon: 1.29, gapX: 21, singleRowY: 28, topRowY: 14, bottomRowY: 44 },
 ] as const;
 
 /** Rozmiar ikon w siatce klastra — rośnie z `total_events`, tymi samymi progami co bąbel. */

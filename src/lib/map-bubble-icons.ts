@@ -2,11 +2,12 @@ import type { ImageEntry } from '@rnmapbox/maps';
 
 /**
  * @3x — biały glif renderowany WEWNĄTRZ istniejącego kolorowego bąbla
- * (BUBBLE_CENTER_COLOR — events-map.tsx/.web.tsx "event-venue-icon" I
- * map-view.tsx/.web.tsx "fields-icon"), nie samodzielny znacznik — dlatego
- * bez własnego tła/obwódki, w przeciwieństwie do map-field-icons.ts (ten
- * drugi zestaw zostaje w użyciu tylko dla siatki ikon w klastrach, gdzie
- * kilka sportów stoi obok siebie bez wspólnego tła).
+ * (BUBBLE_CENTER_COLOR — events-map.tsx/.web.tsx "event-venue-icon",
+ * map-view.tsx/.web.tsx "fields-icon" ORAZ siatka ikon w klastrach obu map,
+ * patrz slotCategoryIconExpr w map-theme.ts), nie samodzielny znacznik —
+ * dlatego bez własnego tła/obwódki, w przeciwieństwie do map-field-icons.ts
+ * (ten drugi zestaw zostaje w kodzie, ale nie jest już nigdzie renderowany
+ * na mapie — patrz historia commitów, 2026-08-14).
  * Generowane: scripts/generate-bubble-icons.mjs.
  */
 const BUBBLE_ICON_SCALE = 3;
@@ -22,7 +23,25 @@ function icon(moduleId: number): ImageEntry {
 // pod tą samą nazwą nadpisałyby się nawzajem.
 const KEY_PREFIX = 'bubble_';
 
-/** Klucze (bez prefiksu) muszą pokrywać dokładnie FIELD_SPORTS w sports.ts. */
+/** Dokładnie FIELD_SPORTS w sports.ts — jedyne wartości, jakie `sport` faktycznie przyjmuje. */
+const KNOWN_SPORTS = new Set([
+  'basketball',
+  'football',
+  'volleyball',
+  'tennis',
+  'running',
+  'swimming',
+  'climbing',
+  'skatepark',
+  'padel',
+  'badminton',
+  'fitness',
+  'outdoor_gym',
+  'handball',
+  'hockey',
+  'music_club',
+]);
+
 export const mapBubbleIcons = {
   [`${KEY_PREFIX}basketball`]: icon(require('../../assets/map-bubble-icons/basketball.png')),
   [`${KEY_PREFIX}football`]: icon(require('../../assets/map-bubble-icons/football.png')),
@@ -41,11 +60,11 @@ export const mapBubbleIcons = {
   [`${KEY_PREFIX}music_club`]: icon(require('../../assets/map-bubble-icons/music_club.png')),
   /** Sport/typ bez rozpoznanej dyscypliny (null/nieznana wartość) — puchar zamiast kropki. */
   [`${KEY_PREFIX}generic`]: icon(require('../../assets/map-bubble-icons/generic.png')),
+  /** Nadmiar kategorii w siatce ikon klastra (więcej niż mieści slot). */
+  [`${KEY_PREFIX}more`]: icon(require('../../assets/map-bubble-icons/more.png')),
 } as const;
 
 export type BubbleIconKey = keyof typeof mapBubbleIcons;
-
-const KNOWN_SPORTS = new Set(Object.keys(mapBubbleIcons).map((key) => key.slice(KEY_PREFIX.length)));
 
 /** Klucz ikony bąbla dla danego sportu — nierozpoznane/puste trafiają na domyślny puchar. */
 export function bubbleIconKey(sport: string | null | undefined): BubbleIconKey {

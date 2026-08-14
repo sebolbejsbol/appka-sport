@@ -62,9 +62,13 @@ function shell(glyph) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${SIZE}" height="${SIZE}" viewBox="0 0 100 100">${glyph}</svg>`;
 }
 
-/** Material Symbols: viewBox 960x960 (center 480,-480), skalujemy do ~64px. */
+/**
+ * Material Symbols: viewBox 960x960 (center 480,-480), skalujemy do ~80px —
+ * większy niż wcześniejsze 64px (2026-08-14: "muszą być bardziej wyraźne"),
+ * glif ma wypełniać bąbel wyraźnie, nie zostawiać dużo pustego marginesu.
+ */
 function materialGlyph(pathD) {
-  const scale = 64 / 960;
+  const scale = 80 / 960;
   return `<g transform="translate(50,50) scale(${scale}) translate(-480,480)">
     <path d="${pathD}" fill="#ffffff"/>
   </g>`;
@@ -92,7 +96,7 @@ for (const [key, materialFile] of Object.entries(MATERIAL_ICONS)) {
 // (Material Symbols sports_tennis czyta się jak lizak w tym rozmiarze), tylko
 // bez kolorowej tarczy pod spodem.
 const TENNIS_SVG = shell(
-  `<g transform="translate(40,38) rotate(-25)" fill="none" stroke="#ffffff" stroke-width="6" stroke-linecap="round">
+  `<g transform="translate(40,38) rotate(-25)" fill="none" stroke="#ffffff" stroke-width="7.5" stroke-linecap="round">
      <ellipse cx="0" cy="-19" rx="14.5" ry="18.5"/>
      <line x1="-7" y1="-29" x2="7" y2="-9"/>
      <line x1="7" y1="-29" x2="-7" y2="-9"/>
@@ -100,7 +104,7 @@ const TENNIS_SVG = shell(
      <line x1="-12" y1="-19" x2="12" y2="-19"/>
      <line x1="0" y1="0" x2="0" y2="22"/>
    </g>
-   <circle cx="73" cy="68" r="11" fill="#ffffff"/>`,
+   <circle cx="73" cy="68" r="13" fill="#ffffff"/>`,
 );
 writeFileSync(
   join(OUT_DIR, 'tennis.png'),
@@ -111,9 +115,9 @@ writeFileSync(
 // bez kolorowej tarczy pod spodem.
 const FITNESS_SVG = shell(
   `<g fill="#ffffff">
-     <rect x="16" y="41" width="14" height="18" rx="3.5"/>
-     <rect x="70" y="41" width="14" height="18" rx="3.5"/>
-     <rect x="28" y="47" width="44" height="7" rx="3.5"/>
+     <rect x="13" y="38" width="17" height="24" rx="4"/>
+     <rect x="70" y="38" width="17" height="24" rx="4"/>
+     <rect x="26" y="46" width="48" height="8" rx="4"/>
    </g>`,
 );
 writeFileSync(
@@ -134,4 +138,19 @@ writeFileSync(
     .asPng(),
 );
 
-console.log(`Wygenerowano ${Object.keys(MATERIAL_ICONS).length + 3} ikon bąbli w ${OUT_DIR}`);
+// "Więcej" — piktogram nadmiaru kategorii w siatce klastra (gdy jest ich
+// więcej niż mieści slot), te same 3 kropki co assets/map-field-icons/
+// more.png, białe zamiast na szarej tarczy.
+const MORE_SVG = shell(
+  `<g fill="#ffffff">
+     <circle cx="26" cy="50" r="9"/>
+     <circle cx="50" cy="50" r="9"/>
+     <circle cx="74" cy="50" r="9"/>
+   </g>`,
+);
+writeFileSync(
+  join(OUT_DIR, 'more.png'),
+  new Resvg(MORE_SVG, { fitTo: { mode: 'width', value: SIZE } }).render().asPng(),
+);
+
+console.log(`Wygenerowano ${Object.keys(MATERIAL_ICONS).length + 4} ikon bąbli w ${OUT_DIR}`);
