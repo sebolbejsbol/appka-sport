@@ -24,7 +24,6 @@ import { NearbyEventsSheet } from '@/components/nearby-events-sheet';
 import {
   MapNearbySheet,
   NEARBY_SHEET_COLLAPSED_HEIGHT,
-  NEARBY_SHEET_SKELETON_HEIGHT,
   type NearbyFieldItem,
 } from '@/components/map-nearby-sheet';
 import { MapFiltersSheet } from '@/components/map-filters-sheet';
@@ -751,18 +750,10 @@ export function AppMap() {
     [loadFields],
   );
 
-  // Zanim jest jakikolwiek fetch dla widocznego obszaru (ani preładowanie, ani
-  // bbox), panel "W pobliżu" pokazuje szkielet zamiast nic — więc elementy
-  // skumulowane nad nim (wyszukiwarka, "Szukaj teraz" FAB) muszą liczyć
-  // clearance względem JEGO wysokości, nie tylko względem zwiniętego panelu
-  // z prawdziwymi danymi.
-  const nearbySkeletonVisible = showFields && fieldsLoading && features.features.length === 0;
-  const nearbyClearance =
-    nearbyFields.length > 0
-      ? NEARBY_SHEET_COLLAPSED_HEIGHT + 12
-      : nearbySkeletonVisible
-        ? NEARBY_SHEET_SKELETON_HEIGHT + 12
-        : null;
+  // Panel "W pobliżu" jest widoczny tylko gdy naprawdę ma boiska do pokazania
+  // (patrz MapNearbySheet) — elementy skumulowane nad nim liczą clearance
+  // tylko dla tego realnego przypadku.
+  const nearbyClearance = nearbyFields.length > 0 ? NEARBY_SHEET_COLLAPSED_HEIGHT + 12 : null;
 
   return (
     <View style={styles.map}>
@@ -1235,7 +1226,6 @@ export function AppMap() {
             })
           }
           bottomOffset={insets.bottom + BOTTOM_NAV_HEIGHT}
-          loading={nearbySkeletonVisible}
         />
       ) : null}
 
