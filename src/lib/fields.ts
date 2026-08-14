@@ -1,4 +1,5 @@
 import { courtAvailability, type CourtAvailability } from '@/lib/court-availability';
+import { bubbleIconKey } from '@/lib/map-bubble-icons';
 import { fieldMarkerColor, fieldMarkerEmoji, fieldMarkerIcon } from '@/lib/sports';
 import { supabase } from '@/lib/supabase';
 
@@ -278,6 +279,7 @@ export function fieldsToGeoJSON(fields: FieldPoint[]) {
           color: fieldMarkerColor(f.sport),
           emoji: fieldMarkerEmoji(f.sport),
           icon: fieldMarkerIcon(f.sport),
+          bubbleIcon: bubbleIconKey(f.sport),
           count_label: playersLabel(playersCurrent, playersMax),
           players_current: playersCurrent,
           players_max: playersMax ?? -1,

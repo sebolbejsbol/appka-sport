@@ -15,7 +15,7 @@ import { Brand } from '@/constants/theme';
 import type { DiscoverEvent } from '@/lib/discover-events';
 import { groupEventsByVenue, soonestEvent } from '@/lib/discover-events-venue-points';
 import { POLAND_CENTER } from '@/lib/map-bbox';
-import { eventBubbleIconKey, mapEventBubbleIcons } from '@/lib/map-event-bubble-icons';
+import { bubbleIconKey, mapBubbleIcons } from '@/lib/map-bubble-icons';
 import { mapFieldIcons } from '@/lib/map-field-icons';
 import {
   buildAvailabilityMatchExpression,
@@ -64,7 +64,7 @@ function venuePointsToGeoJSON(points: ReturnType<typeof groupEventsByVenue>['poi
         sport: p.sport,
         event_count: p.eventCount,
         availability: p.availability,
-        bubbleIcon: eventBubbleIconKey(p.sport),
+        bubbleIcon: bubbleIconKey(p.sport),
       },
       geometry: { type: 'Point' as const, coordinates: [p.lng, p.lat] },
     })),
@@ -114,7 +114,7 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
         />
 
         <Images images={mapFieldIcons} />
-        <Images images={mapEventBubbleIcons} />
+        <Images images={mapBubbleIcons} />
 
         <ShapeSource
           id="event-venues"

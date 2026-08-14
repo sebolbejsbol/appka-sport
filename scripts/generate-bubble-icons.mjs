@@ -1,12 +1,19 @@
-// Generates the sport glyphs shown INSIDE a single (non-clustered) event
-// bubble on the events map (src/components/events-map.tsx/.web.tsx,
-// SymbolLayer "event-venue-icon"). Unlike assets/map-field-icons/ (a
-// colored circle badge per sport, meant to stand alone on a plain map) or
-// assets/map-event-icons/ (a colored ring badge, unused today), these are
-// WHITE, glyph-only, TRANSPARENT-background PNGs — meant to be composited
-// on top of the bubble's own colored circle (BUBBLE_CENTER_COLOR, blue),
-// so a colored badge-within-a-badge doesn't fight the bubble for attention
-// and the glyph reads with maximum contrast against the blue fill.
+// Generates the sport glyphs shown INSIDE a single colored bubble —
+// used on BOTH the events map (src/components/events-map.tsx/.web.tsx,
+// SymbolLayer "event-venue-icon") AND the main courts map
+// (src/components/map-view.tsx/.web.tsx, SymbolLayer "fields-icon").
+// Unlike assets/map-field-icons/ (a colored circle badge per sport, meant
+// to stand alone on a plain map — that set is still used for the CLUSTER
+// icon grid, where multiple sports sit side by side with no shared
+// background) or assets/map-event-icons/ (a colored ring badge, unused
+// today), these are WHITE, glyph-only, TRANSPARENT-background PNGs — meant
+// to be composited on top of a bubble that's ALREADY colored
+// (BUBBLE_CENTER_COLOR, blue), so a colored badge-within-a-badge doesn't
+// fight the bubble for attention and the glyph reads with maximum
+// contrast. (This is exactly the "little person" bug reported 2026-08-14:
+// the main map's single-court "fields-icon" layer was still using the
+// old colored-badge set shrunk to ~30-60% size inside the blue bubble —
+// unreadable. Fixed by switching it to this set too.)
 //
 // Glyphs come from Google's Material Symbols (@material-symbols/svg-400,
 // Apache-2.0) — the same library already used for assets/map-field-icons/,
@@ -14,24 +21,25 @@
 // where available: filled glyphs stay legible at the ~20px display size a
 // bubble icon renders at, where thin outlined strokes disappear.
 //
-// Run: node scripts/generate-event-bubble-icons.mjs
+// Run: node scripts/generate-bubble-icons.mjs
 import { Resvg } from '@resvg/resvg-js';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
-const OUT_DIR = join(ROOT, 'assets', 'map-event-bubble-icons');
+const OUT_DIR = join(ROOT, 'assets', 'map-bubble-icons');
 const MATERIAL_DIR = join(ROOT, 'node_modules', '@material-symbols', 'svg-400', 'rounded');
 
-// @3x, natural display size 24px (72/3) — matches the ~44px bubble
-// (circleRadius 22 in events-map.tsx) with room for the event-count text
-// offset to the same side.
+// @3x, natural display size 24px (72/3) — matches the ~44px bubbles both
+// maps use (circleRadius 22) with room for the count text offset to the
+// same side.
 const SIZE = 72;
 
-// Musi obejmować dokładnie SUBCATEGORIES.sport z src/lib/event-categories.ts
-// (jedyne wartości, jakie DiscoverEvent.sport faktycznie przyjmuje —
-// patrz discover-events.ts: `sport: category === 'sport' ? subcategory : null`).
+// Musi obejmować dokładnie FIELD_SPORTS z src/lib/sports.ts (wszystkie
+// sportowe typy obiektów na mapie — nadzbiór SUBCATEGORIES.sport z
+// event-categories.ts, bo boiska/obiekty mają też hockey i music_club,
+// których jako TYPU EVENTU nie ma).
 // key -> plik ikony w @material-symbols/svg-400/rounded (bez .svg)
 const MATERIAL_ICONS = {
   basketball: 'sports_basketball-fill',
@@ -45,6 +53,8 @@ const MATERIAL_ICONS = {
   badminton: 'badminton-fill',
   outdoor_gym: 'fitness_center-fill',
   handball: 'sports_handball-fill',
+  hockey: 'sports_hockey-fill',
+  music_club: 'music_note-fill',
 };
 
 /** Bez tła/obwódki — tylko biały glif, wyśrodkowany w przezroczystym kwadracie. */
@@ -111,8 +121,8 @@ writeFileSync(
   new Resvg(FITNESS_SVG, { fitTo: { mode: 'width', value: SIZE } }).render().asPng(),
 );
 
-// Domyślna ikona dla eventów bez rozpoznanej dyscypliny (sport=null/nieznany) —
-// puchar, zamiast dawnej "kropki".
+// Domyślna ikona dla eventów/boisk bez rozpoznanej dyscypliny (sport=null/
+// nieznany typ) — puchar, zamiast dawnej "kropki".
 const trophySvg = readFileSync(join(MATERIAL_DIR, 'trophy-fill.svg'), 'utf8');
 writeFileSync(
   join(OUT_DIR, 'generic.png'),
@@ -124,6 +134,4 @@ writeFileSync(
     .asPng(),
 );
 
-console.log(
-  `Wygenerowano ${Object.keys(MATERIAL_ICONS).length + 3} ikon bąbli eventów w ${OUT_DIR}`,
-);
+console.log(`Wygenerowano ${Object.keys(MATERIAL_ICONS).length + 3} ikon bąbli w ${OUT_DIR}`);

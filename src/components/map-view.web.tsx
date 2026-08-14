@@ -79,6 +79,7 @@ import {
 import { type CategoryFilter } from '@/lib/event-categories';
 import { fieldFilterForSelection } from '@/lib/venue-types';
 import type { PlaceSearchResult } from '@/lib/map-geocoding';
+import { mapBubbleIcons } from '@/lib/map-bubble-icons';
 import { mapFieldIcons } from '@/lib/map-field-icons';
 import {
   bboxAroundCenter,
@@ -776,6 +777,7 @@ export function AppMap() {
         />
 
         <Images images={mapFieldIcons} />
+        <Images images={mapBubbleIcons} />
 
         <ShapeSource
           ref={fieldsSourceRef}
@@ -928,23 +930,26 @@ export function AppMap() {
               circleStrokeOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
             }}
           />
-          {/* Ikonka sportu, obok liczby eventów — obrazek, bo Mapbox nie renderuje
-              emoji w warstwie tekstu (gł. Android). */}
+          {/* Ikonka sportu, obok liczby eventów — biały glif na kolorowym tle
+              bąbla (mapBubbleIcons), NIE kolorowa odznaka mapFieldIcons (ta
+              zostaje tylko dla siatki ikon w klastrach) — dwie kolorowe
+              plamki jedna na drugiej, dodatkowo skurczone do ułamka
+              rozmiaru, czytały się jak nierozpoznawalna kropka/ludzik. */}
           <SymbolLayer
             id="fields-icon"
             filter={['!', ['has', 'point_count']]}
             minZoomLevel={FADE_START}
             style={{
-              iconImage: ['get', 'icon'],
+              iconImage: ['get', 'bubbleIcon'],
               iconSize: [
                 'interpolate',
                 ['linear'],
                 ['zoom'],
-                7, 0.3,
-                12, 0.4,
-                14, 0.46,
-                16, 0.54,
-                18, 0.62,
+                7, 0.45,
+                12, 0.6,
+                14, 0.7,
+                16, 0.8,
+                18, 0.95,
               ],
               iconOffset: [-11, 0],
               iconAllowOverlap: true,
