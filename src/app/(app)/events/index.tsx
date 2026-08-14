@@ -20,15 +20,11 @@ import { Brand, Layout, Radius } from '@/constants/theme';
 import { shadow, Typography } from '@/constants/ui';
 import { useUserLocation } from '@/hooks/use-user-location';
 import {
-  EVENT_CATEGORIES,
-  CATEGORY_META,
   categoryLabel,
   categoryMeta,
   markerEmoji,
   subcategoryLabel,
   subcategoriesFor,
-  type CategoryFilter,
-  type EventCategory,
 } from '@/lib/event-categories';
 import { getActiveTeams, type ActiveTeam } from '@/lib/teams';
 import { formatTeamSport } from '@/lib/sports';
@@ -141,13 +137,6 @@ export default function EventsScreen() {
     [tournaments, featuredTournament],
   );
 
-  function selectCategory(category: CategoryFilter) {
-    setFilters((prev) => ({ ...prev, category, subcategory: null }));
-    if (category !== 'all') {
-      void logInteraction({ kind: 'search_category', category });
-    }
-  }
-
   const openEvent = useCallback((event: DiscoverEvent) => {
     void logInteraction({
       kind: 'view_event',
@@ -204,29 +193,6 @@ export default function EventsScreen() {
             </Pressable>
           ) : null}
         </View>
-
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.chipsRow}>
-          <CategoryChip
-            label={t('eventCategories.all')}
-            emoji="✦"
-            color={Brand.primary}
-            active={filters.category === 'all'}
-            onPress={() => selectCategory('all')}
-          />
-          {EVENT_CATEGORIES.map((cat) => (
-            <CategoryChip
-              key={cat}
-              label={categoryLabel(cat)}
-              emoji={CATEGORY_META[cat].emoji}
-              color={CATEGORY_META[cat].color}
-              active={filters.category === cat}
-              onPress={() => selectCategory(cat as EventCategory)}
-            />
-          ))}
-        </ScrollView>
 
         {subcats.length > 0 ? (
           <ScrollView
@@ -463,33 +429,6 @@ function PopularCard({ event, onPress }: { event: DiscoverEvent; onPress: () => 
   );
 }
 
-function CategoryChip({
-  label,
-  emoji,
-  color,
-  active,
-  onPress,
-}: {
-  label: string;
-  emoji: string;
-  color: string;
-  active: boolean;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable
-      style={[
-        styles.catChip,
-        active && { backgroundColor: color, borderColor: color },
-      ]}
-      onPress={onPress}>
-      <Text style={[styles.catChipText, active && styles.catChipTextActive]}>
-        {emoji} {label}
-      </Text>
-    </Pressable>
-  );
-}
-
 function SubChip({
   label,
   active,
@@ -609,28 +548,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Brand.textMuted,
     paddingHorizontal: 4,
-  },
-  chipsRow: {
-    gap: 8,
-    paddingVertical: 12,
-    paddingRight: 8,
-  },
-  catChip: {
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Brand.border,
-    backgroundColor: Brand.surface,
-    ...shadow('sm'),
-  },
-  catChipText: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Brand.textSecondary,
-  },
-  catChipTextActive: {
-    color: '#ffffff',
   },
   subChipsRow: {
     gap: 8,

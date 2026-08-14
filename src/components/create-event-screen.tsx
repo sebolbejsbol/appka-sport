@@ -35,7 +35,6 @@ import { useSession } from '@/context/session';
 import { useUserLocation } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
 import {
-  EVENT_CATEGORIES,
   CATEGORY_META,
   categoryLabel,
   markerEmoji,
@@ -138,8 +137,10 @@ export default function CreateEventScreen() {
 
   const fieldSportLocked = Boolean(presetField && lockedSubcategory);
 
-  const [stepId, setStepId] = useState<StepId>(fieldSportLocked ? 'location' : 'category');
-  const [category, setCategory] = useState<EventCategory | null>(presetField ? 'sport' : null);
+  const [stepId, setStepId] = useState<StepId>(fieldSportLocked ? 'location' : 'subcategory');
+  // Apka skupia się wyłącznie na Sporcie (patrz DEFAULT_DISCOVER_FILTERS) — kategoria
+  // jest zawsze 'sport', krok jej wyboru został ukryty.
+  const [category, setCategory] = useState<EventCategory | null>('sport');
   const [subcategory, setSubcategory] = useState<string | null>(
     presetField?.subcategory ?? null,
   );
@@ -201,7 +202,6 @@ export default function CreateEventScreen() {
   // lub gdy dyscyplina wynika z wybranego boiska.
   const steps = useMemo<StepId[]>(() => {
     const list: StepId[] = [];
-    if (!fieldSportLocked) list.push('category');
     if (!fieldSportLocked && subcats.length > 0) list.push('subcategory');
     list.push('location', 'details', 'summary');
     return list;
@@ -448,7 +448,6 @@ export default function CreateEventScreen() {
   );
 
   function validateStep(id: StepId): string | null {
-    if (id === 'category' && !category) return t('createEvent.errCategory');
     if (id === 'subcategory' && subcats.length > 0 && !subcategory)
       return t('createEvent.errSubcategory');
     if (id === 'location' && !location) return t('createEvent.errLocation');
@@ -504,15 +503,6 @@ export default function CreateEventScreen() {
     }
     const prev = steps[stepIndex - 1];
     if (prev) setStepId(prev);
-  }
-
-  function selectCategory(cat: EventCategory) {
-    if (fieldSportLocked) return;
-    setCategory(cat);
-    setSubcategory(null);
-    setStepError(null);
-    const hasSubs = subcategoriesFor(cat).length > 0;
-    setStepId(hasSubs ? 'subcategory' : 'location');
   }
 
   function selectSubcategory(sub: string) {
@@ -667,26 +657,6 @@ export default function CreateEventScreen() {
         contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 24 }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}>
-        {stepId === 'category' ? (
-          <View style={styles.cardGrid}>
-            {EVENT_CATEGORIES.map((cat) => {
-              const active = category === cat;
-              return (
-                <Pressable
-                  key={cat}
-                  style={[
-                    styles.catCard,
-                    active && { borderColor: CATEGORY_META[cat].color, backgroundColor: CATEGORY_META[cat].tint },
-                  ]}
-                  onPress={() => selectCategory(cat)}>
-                  <Text style={styles.catEmoji}>{CATEGORY_META[cat].emoji}</Text>
-                  <Text style={styles.catLabel}>{categoryLabel(cat)}</Text>
-                </Pressable>
-              );
-            })}
-          </View>
-        ) : null}
-
         {stepId === 'subcategory' ? (
           <View style={styles.cardGrid}>
             {subcats.map((sub) => {
