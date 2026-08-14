@@ -564,10 +564,32 @@ function NotificationsBell({
       onUnreadCountChange((prev) => Math.max(0, prev - 1));
       void markNotificationRead(item.id);
     }
-    const eventId = item.data.event_id;
     closePanel();
+
+    const eventId = item.data.event_id;
     if (typeof eventId === 'string' && eventId) {
       router.push({ pathname: '/event/[id]', params: { id: eventId } });
+      return;
+    }
+    const teamId = item.data.team_id;
+    if (typeof teamId === 'string' && teamId) {
+      router.push(
+        (item.type === 'team_message' ? `/teams/${teamId}/chat` : `/teams/${teamId}`) as Href,
+      );
+      return;
+    }
+    const conversationId = item.data.conversation_id;
+    if (typeof conversationId === 'string' && conversationId) {
+      router.push({ pathname: '/messages/[id]', params: { id: conversationId } });
+      return;
+    }
+    const postId = item.data.post_id;
+    if (typeof postId === 'string' && postId) {
+      router.push({ pathname: '/feed/post/[id]', params: { id: postId } });
+      return;
+    }
+    if (item.type === 'friend_request' || item.type === 'friend_request_accepted') {
+      router.push('/social/friends');
     }
   }
 
