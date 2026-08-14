@@ -506,7 +506,8 @@ export const en: DeepPartialWide<Translations> = {
     locationDenied:
       'No location access — showing the default view. Turn on location in settings to see your area.',
     longPressHint: 'Press and hold the map to report a missing court.',
-    playSearchPlaceholder: 'What would you like to play today?',
+    playSearchEyebrow: 'Search',
+    playSearchPlaceholder: 'Where are we playing today?',
     loadingFields: 'Loading courts in Trójmiasto…',
     comingSoon: 'Coming soon',
     nearby: {

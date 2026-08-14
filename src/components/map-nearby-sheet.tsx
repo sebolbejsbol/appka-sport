@@ -2,6 +2,7 @@ import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { FieldRowSkeleton } from '@/components/skeleton';
 import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
@@ -10,6 +11,8 @@ import { formatDistance } from '@/lib/geo';
 import { getAvailabilityColor, getAvailabilityLabel } from '@/lib/map-theme';
 import { formatCountEvent } from '@/lib/plural-pl';
 import { fieldMarkerEmoji } from '@/lib/sports';
+
+const SKELETON_ROWS = [0, 1, 2];
 
 export type NearbyFieldItem = {
   id: string;
@@ -26,6 +29,7 @@ export type NearbyFieldItem = {
 
 export const NEARBY_SHEET_COLLAPSED_HEIGHT = 116;
 const EXPANDED_RATIO = 0.46;
+export const NEARBY_SHEET_SKELETON_HEIGHT = 208;
 
 type Props = {
   fields: NearbyFieldItem[];
@@ -33,12 +37,23 @@ type Props = {
   expanded: boolean;
   onToggleExpanded: () => void;
   bottomOffset: number;
+  /** Boiska jeszcze się ładują (pierwsze, zimne otwarcie) — pokaż szkielet zamiast nic. */
+  loading?: boolean;
 };
 
 /** Panel „W pobliżu" pod mapą — zwinięty pokazuje pasek uchwytu + 1 wiersz, po dotknięciu rozwija się do listy. */
-export function MapNearbySheet({ fields, onSelect, expanded, onToggleExpanded, bottomOffset }: Props) {
+export function MapNearbySheet({
+  fields,
+  onSelect,
+  expanded,
+  onToggleExpanded,
+  bottomOffset,
+  loading,
+}: Props) {
   const insets = useSafeAreaInsets();
   const { height: windowHeight } = useWindowDimensions();
+
+  const showSkeleton = loading && fields.length === 0;
 
   const targetHeight = expanded
     ? Math.round(windowHeight * EXPANDED_RATIO)
@@ -48,7 +63,26 @@ export function MapNearbySheet({ fields, onSelect, expanded, onToggleExpanded, b
     height: withTiming(targetHeight, { duration: 240 }),
   }));
 
-  if (fields.length === 0) return null;
+  if (fields.length === 0 && !showSkeleton) return null;
+
+  if (showSkeleton) {
+    return (
+      <Animated.View
+        style={[styles.sheet, { bottom: bottomOffset, height: NEARBY_SHEET_SKELETON_HEIGHT }]}>
+        <View style={styles.handleWrap}>
+          <View style={styles.handle} />
+          <View style={styles.header}>
+            <Text style={styles.title}>{t('map.nearby.title')}</Text>
+          </View>
+        </View>
+        <View style={styles.list}>
+          {SKELETON_ROWS.map((i) => (
+            <FieldRowSkeleton key={i} />
+          ))}
+        </View>
+      </Animated.View>
+    );
+  }
 
   return (
     <Animated.View style={[styles.sheet, { bottom: bottomOffset }, animatedStyle]}>

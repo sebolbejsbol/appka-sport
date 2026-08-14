@@ -18,11 +18,11 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { FieldDetailSheet } from '@/components/field-detail-sheet';
-import { FieldsLoadingHint } from '@/components/fields-loading-hint';
 import { MapPlaySearchBar } from '@/components/map-play-search-bar';
 import {
   MapNearbySheet,
   NEARBY_SHEET_COLLAPSED_HEIGHT,
+  NEARBY_SHEET_SKELETON_HEIGHT,
   type NearbyFieldItem,
 } from '@/components/map-nearby-sheet';
 import { MapFiltersSheet } from '@/components/map-filters-sheet';
@@ -760,6 +760,19 @@ export function AppMap() {
     );
   }
 
+  // Zanim jest jakikolwiek fetch dla widocznego obszaru (ani preładowanie, ani
+  // bbox), panel "W pobliżu" pokazuje szkielet zamiast nic — więc elementy
+  // skumulowane nad nim (wyszukiwarka, "Szukaj teraz" FAB) muszą liczyć
+  // clearance względem JEGO wysokości, nie tylko względem zwiniętego panelu
+  // z prawdziwymi danymi.
+  const nearbySkeletonVisible = showFields && fieldsLoading && features.features.length === 0;
+  const nearbyClearance =
+    nearbyFields.length > 0
+      ? NEARBY_SHEET_COLLAPSED_HEIGHT + 12
+      : nearbySkeletonVisible
+        ? NEARBY_SHEET_SKELETON_HEIGHT + 12
+        : null;
+
   return (
     <View style={styles.map}>
       <MapView
@@ -1178,22 +1191,11 @@ export function AppMap() {
 
       {!selectedField ? (
         <MapPlaySearchBar
-          bottomOffset={
-            insets.bottom +
-            BOTTOM_NAV_HEIGHT +
-            (nearbyFields.length > 0 ? NEARBY_SHEET_COLLAPSED_HEIGHT + 12 : 12)
-          }
+          bottomOffset={insets.bottom + BOTTOM_NAV_HEIGHT + (nearbyClearance ?? 12)}
           activeCount={activeFilterCount}
           loading={fieldsLoading}
           onPress={() => setFiltersOpen(true)}
         />
-      ) : null}
-
-      {/* Zimny start bez cache'u/wolna sieć: zamiast pustej mapy przez kilka
-          sekund, pokazujemy lekki, spokojny loading state. Znika, jak tylko
-          jest cokolwiek do narysowania (z preładowania albo pierwszego fetch'a). */}
-      {showFields && fieldsLoading && features.features.length === 0 ? (
-        <FieldsLoadingHint />
       ) : null}
 
       <MapFiltersSheet
@@ -1211,10 +1213,7 @@ export function AppMap() {
           style={({ pressed }) => [
             styles.playNowFab,
             {
-              bottom:
-                insets.bottom +
-                BOTTOM_NAV_HEIGHT +
-                (nearbyFields.length > 0 ? NEARBY_SHEET_COLLAPSED_HEIGHT + 12 : 24),
+              bottom: insets.bottom + BOTTOM_NAV_HEIGHT + (nearbyClearance ?? 24),
             },
             pressed && styles.playNowFabPressed,
           ]}>
@@ -1234,6 +1233,7 @@ export function AppMap() {
             })
           }
           bottomOffset={insets.bottom + BOTTOM_NAV_HEIGHT}
+          loading={nearbySkeletonVisible}
         />
       ) : null}
 

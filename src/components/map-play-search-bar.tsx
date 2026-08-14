@@ -27,16 +27,23 @@ export function MapPlaySearchBar({ bottomOffset, activeCount, loading, onPress }
         style={({ pressed }) => [styles.bar, pressed && styles.barPressed]}
         accessibilityRole="button"
         accessibilityLabel={t('map.playSearchPlaceholder')}>
-        <Text style={styles.icon}>🔍</Text>
-        <Text style={styles.placeholder} numberOfLines={1}>
-          {t('map.playSearchPlaceholder')}
-        </Text>
+        <View style={styles.iconBadge}>
+          <Text style={styles.icon}>🔍</Text>
+        </View>
+        <View style={styles.textCol}>
+          <Text style={styles.eyebrow}>{t('map.playSearchEyebrow')}</Text>
+          <Text style={styles.placeholder} numberOfLines={1}>
+            {t('map.playSearchPlaceholder')}
+          </Text>
+        </View>
         {loading ? <ActivityIndicator size="small" color={Brand.primary} /> : null}
         {activeCount > 0 ? (
           <View style={styles.badge}>
             <Text style={styles.badgeText}>{activeCount}</Text>
           </View>
-        ) : null}
+        ) : (
+          <Text style={styles.chevron}>›</Text>
+        )}
       </Pressable>
     </View>
   );
@@ -52,39 +59,61 @@ const styles = StyleSheet.create({
   bar: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    paddingVertical: 14,
-    paddingHorizontal: 16,
+    gap: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderRadius: Radius.pill,
     backgroundColor: Brand.surface,
-    borderWidth: 1,
-    borderColor: Brand.border,
-    ...shadow('md'),
+    ...shadow('lg'),
   },
   barPressed: {
-    opacity: 0.9,
+    opacity: 0.92,
+  },
+  iconBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: Brand.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   icon: {
-    fontSize: 16,
+    fontSize: 17,
+  },
+  textCol: {
+    flex: 1,
+    gap: 1,
+  },
+  eyebrow: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    color: Brand.textMuted,
+    textTransform: 'uppercase',
   },
   placeholder: {
-    flex: 1,
-    fontSize: 15,
+    fontSize: 16,
+    fontWeight: '700',
+    color: Brand.textPrimary,
+  },
+  chevron: {
+    fontSize: 22,
     fontWeight: '600',
-    color: Brand.textSecondary,
+    color: Brand.textMuted,
+    paddingRight: 2,
   },
   badge: {
-    minWidth: 22,
-    height: 22,
-    borderRadius: 11,
-    paddingHorizontal: 6,
+    minWidth: 24,
+    height: 24,
+    borderRadius: 12,
+    paddingHorizontal: 7,
     backgroundColor: Brand.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   badgeText: {
-    color: '#ffffff',
-    fontSize: 11,
+    color: Brand.primaryText,
+    fontSize: 12,
     fontWeight: '800',
   },
 });
