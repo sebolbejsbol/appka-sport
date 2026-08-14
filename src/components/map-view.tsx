@@ -19,6 +19,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { FieldDetailSheet } from '@/components/field-detail-sheet';
 import { MapPlaySearchBar } from '@/components/map-play-search-bar';
+import { NearbyEventsSheet } from '@/components/nearby-events-sheet';
 import {
   MapNearbySheet,
   NEARBY_SHEET_COLLAPSED_HEIGHT,
@@ -29,7 +30,8 @@ import { MapFiltersSheet } from '@/components/map-filters-sheet';
 import { MapLocationSearch } from '@/components/map-location-search';
 import { SzukajTerazSheet } from '@/components/szukaj-teraz-sheet';
 
-import { Brand } from '@/constants/theme';
+import { Brand, Radius } from '@/constants/theme';
+import { shadow } from '@/constants/ui';
 import { useUserLocation, type LngLat } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
 import {
@@ -70,6 +72,7 @@ import {
   countActiveDiscoverFilters,
   DEFAULT_DISCOVER_FILTERS,
   getDiscoverEvents,
+  sortDiscoverEvents,
   type DiscoverEvent,
   type DiscoverFilters,
 } from '@/lib/discover-events';
@@ -104,9 +107,11 @@ const LOAD_DEBOUNCE_MS = 320;
 const BBOX_PADDING = 1.6;
 const MAX_CACHED_FIELDS = 2200;
 /**
- * Tymczasowo ukryty przycisk FAB "Szukaj teraz" — logika (SzukajTerazSheet,
- * playNowOpen) zostaje nietknięta, docelowo przycisk wróci jako
- * "Szukaj w pobliżu" (eventy w promieniu 5 km od użytkownika).
+ * Tymczasowo ukryty przycisk FAB "Szukaj teraz" (kolejka dopasowań graczy —
+ * SzukajTerazSheet, playNowOpen) — osobna funkcja od przycisku "Szukaj w
+ * pobliżu" (NearbyEventsSheet, nearbyEventsOpen) niżej, który POKAZUJE
+ * aktywne wydarzenia w promieniu, a nie zapisuje do kolejki. Logika kolejki
+ * zostaje nietknięta na wypadek gdyby ten FAB też miał kiedyś wrócić.
  */
 const SZUKAJ_TERAZ_BUTTON_VISIBLE = false;
 /**
@@ -118,6 +123,10 @@ const SZUKAJ_TERAZ_BUTTON_VISIBLE = false;
  */
 const FIELD_LOAD_MIN_ZOOM = 6.3;
 const MAX_BADGE_COUNT = 20;
+/** Promień przycisku "Szukaj w pobliżu" — górny limit niezależnie od tego, co
+ * akurat jest ustawione w filtrach (ciaśniejszy istniejący filtr odległości
+ * i tak wygrywa, patrz nearbyEventsList). */
+const NEARBY_EVENTS_RADIUS_KM = 10;
 const FIELD_SORT: FieldSort = 'default';
 
 const EMPTY_FEATURES = fieldsToGeoJSON([]);
@@ -295,6 +304,7 @@ export function AppMap() {
   const [filters, setFilters] = useState<DiscoverFilters>(DEFAULT_DISCOVER_FILTERS);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [playNowOpen, setPlayNowOpen] = useState(false);
+  const [nearbyEventsOpen, setNearbyEventsOpen] = useState(false);
   const [searchedPlace, setSearchedPlace] = useState<PlaceSearchResult | null>(null);
   const [fieldsLoading, setFieldsLoading] = useState(false);
   const [nearbyExpanded, setNearbyExpanded] = useState(false);
@@ -322,6 +332,23 @@ export function AppMap() {
     () => applyDiscoverFilters(discoverEvents, filters, { userCoords: coords }),
     [discoverEvents, filters, coords],
   );
+
+  // "Szukaj w pobliżu": te same filtry co reszta mapy (sport, poziom, data...),
+  // tylko z dociśniętym promieniem — jeśli użytkownik ma już ustawiony ciaśniejszy
+  // filtr odległości, ten wygrywa, inaczej twardy limit NEARBY_EVENTS_RADIUS_KM.
+  const nearbyEventsList = useMemo(() => {
+    if (!coords) return [];
+    const cappedDistanceKm =
+      filters.distanceKm != null
+        ? Math.min(filters.distanceKm, NEARBY_EVENTS_RADIUS_KM)
+        : NEARBY_EVENTS_RADIUS_KM;
+    const filtered = applyDiscoverFilters(
+      discoverEvents,
+      { ...filters, distanceKm: cappedDistanceKm },
+      { userCoords: coords },
+    );
+    return sortDiscoverEvents(filtered, 'distance', coords);
+  }, [discoverEvents, filters, coords]);
 
   const activeFilterCount = useMemo(
     () => countActiveDiscoverFilters(filters),
@@ -1190,6 +1217,30 @@ export function AppMap() {
       ) : null}
 
       {!selectedField ? (
+        <Pressable
+          onPress={() => setNearbyEventsOpen(true)}
+          style={({ pressed }) => [
+            styles.nearbySearchBtn,
+            { top: insets.top + 68 },
+            pressed && styles.nearbySearchBtnPressed,
+          ]}>
+          <Text style={styles.nearbySearchBtnIcon}>📍</Text>
+          <Text style={styles.nearbySearchBtnText}>{t('map.nearbySearchButton')}</Text>
+        </Pressable>
+      ) : null}
+
+      <NearbyEventsSheet
+        visible={nearbyEventsOpen}
+        onClose={() => setNearbyEventsOpen(false)}
+        events={nearbyEventsList}
+        userCoords={coords}
+        onSelectEvent={(event) => {
+          setNearbyEventsOpen(false);
+          router.push({ pathname: '/event/[id]', params: { id: event.id } });
+        }}
+      />
+
+      {!selectedField ? (
         <MapPlaySearchBar
           bottomOffset={insets.bottom + BOTTOM_NAV_HEIGHT + (nearbyClearance ?? 12)}
           activeCount={activeFilterCount}
@@ -1304,6 +1355,32 @@ const styles = StyleSheet.create({
     color: '#ffffff',
     fontWeight: '800',
     fontSize: 15,
+  },
+  nearbySearchBtn: {
+    position: 'absolute',
+    right: 14,
+    zIndex: 27,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: Radius.pill,
+    backgroundColor: Brand.surface,
+    borderWidth: 1,
+    borderColor: Brand.border,
+    ...shadow('float'),
+  },
+  nearbySearchBtnPressed: {
+    opacity: 0.9,
+  },
+  nearbySearchBtnIcon: {
+    fontSize: 14,
+  },
+  nearbySearchBtnText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Brand.textPrimary,
   },
   searchPinWrap: {
     alignItems: 'center',
