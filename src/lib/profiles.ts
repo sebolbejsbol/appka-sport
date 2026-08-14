@@ -1,4 +1,5 @@
 import type { User } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 
@@ -195,9 +196,20 @@ export async function getOwnLanguage(
 export async function saveExpoPushToken(
   token: string | null,
 ): Promise<{ error: { message: string } | null }> {
-  const { error } = await supabase.rpc('save_expo_push_token', {
+  const platform = Platform.OS === 'ios' || Platform.OS === 'android' || Platform.OS === 'web'
+    ? Platform.OS
+    : 'unknown';
+  const { error } = await supabase.rpc('save_push_token', {
     p_token: token ?? '',
+    p_platform: platform,
   });
+  return { error };
+}
+
+export async function removePushToken(
+  token: string,
+): Promise<{ error: { message: string } | null }> {
+  const { error } = await supabase.rpc('remove_push_token', { p_token: token });
   return { error };
 }
 

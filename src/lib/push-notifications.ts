@@ -5,7 +5,7 @@ import { Platform } from 'react-native';
 
 import { t } from '@/i18n';
 import type { EventListItem } from '@/lib/events';
-import { saveExpoPushToken } from '@/lib/profiles';
+import { removePushToken, saveExpoPushToken } from '@/lib/profiles';
 import {
   getNotificationsEnabled,
   setNotificationsEnabled,
@@ -117,7 +117,19 @@ export async function getNotificationPermissionState(): Promise<
 }
 
 export async function clearPushTokenOnServer(): Promise<void> {
-  await saveExpoPushToken(null);
+  // Usuwa token TYLKO tego urządzenia — na wielourządzeniowym modelu
+  // wylogowanie na telefonie A nie może ubić pusha na telefonie B.
+  if (!Device.isDevice) return;
+  const projectId =
+    Constants.expoConfig?.extra?.eas?.projectId ??
+    (Constants as { easConfig?: { projectId?: string } }).easConfig?.projectId;
+  if (!projectId) return;
+  try {
+    const { data } = await Notifications.getExpoPushTokenAsync({ projectId });
+    if (data) await removePushToken(data);
+  } catch {
+    // brak zarejestrowanego tokenu na tym urządzeniu — nic do czyszczenia
+  }
 }
 
 async function scheduleReminder(opts: {

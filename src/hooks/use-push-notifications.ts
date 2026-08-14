@@ -50,7 +50,7 @@ export function usePushNotifications(): void {
         return;
       }
       if (
-        (data.type === 'dm' || data.type === 'group_message') &&
+        (data.type === 'dm' || data.type === 'group_message' || data.type === 'message_reaction') &&
         typeof data.conversation_id === 'string'
       ) {
         router.push({ pathname: '/messages/[id]', params: { id: data.conversation_id } });
