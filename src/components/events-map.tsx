@@ -15,6 +15,7 @@ import { Brand } from '@/constants/theme';
 import type { DiscoverEvent } from '@/lib/discover-events';
 import { groupEventsByVenue, soonestEvent } from '@/lib/discover-events-venue-points';
 import { POLAND_CENTER } from '@/lib/map-bbox';
+import { eventBubbleIconKey, mapEventBubbleIcons } from '@/lib/map-event-bubble-icons';
 import { mapFieldIcons } from '@/lib/map-field-icons';
 import {
   buildAvailabilityMatchExpression,
@@ -26,7 +27,6 @@ import {
   buildClusterStatusColorExpression,
   BUBBLE_CENTER_COLOR,
 } from '@/lib/map-theme';
-import { fieldMarkerIcon } from '@/lib/sports';
 import type { TournamentListItem } from '@/lib/tournaments';
 import type { LngLat } from '@/hooks/use-user-location';
 
@@ -69,7 +69,7 @@ function venuePointsToGeoJSON(points: ReturnType<typeof groupEventsByVenue>['poi
         sport: p.sport,
         event_count: p.eventCount,
         availability: p.availability,
-        icon: fieldMarkerIcon(p.sport),
+        bubbleIcon: eventBubbleIconKey(p.sport),
       },
       geometry: { type: 'Point' as const, coordinates: [p.lng, p.lat] },
     })),
@@ -119,6 +119,7 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
         />
 
         <Images images={mapFieldIcons} />
+        <Images images={mapEventBubbleIcons} />
 
         <ShapeSource
           id="event-venues"
@@ -197,8 +198,8 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
             id="event-venue-icon"
             filter={['!', ['has', 'point_count']]}
             style={{
-              iconImage: ['get', 'icon'],
-              iconSize: 0.42,
+              iconImage: ['get', 'bubbleIcon'],
+              iconSize: 1,
               iconOffset: [-10, 0],
               iconAllowOverlap: true,
               iconIgnorePlacement: true,
