@@ -17,6 +17,7 @@ import { WebAppShell } from '@/components/web-app-shell';
 import { Brand } from '@/constants/theme';
 import { LocaleProvider, useLocale } from '@/context/locale';
 import { SessionProvider, useSession } from '@/context/session';
+import { primeFieldsPrefetch } from '@/lib/fields-prefetch';
 import { onInitialMapDataReady } from '@/lib/map-ready';
 
 /** Maksymalny dodatkowy czas na starcie, żeby splash poczekał na pierwsze
@@ -27,6 +28,12 @@ const MAP_READY_TIMEOUT_MS = 4000;
 const LOGO = require('../../assets/images/splash-logo.png');
 
 SplashScreen.preventAutoHideAsync();
+
+// Startuje najwcześniej jak się da — równolegle z resztą inicjalizacji (auth,
+// nawigacja), zamiast dopiero po zamontowaniu ekranu mapy. Baza obejmuje na
+// razie tylko Trójmiasto (patrz fields-prefetch.ts), więc jedno preładowanie
+// tutaj wystarcza na cały pobyt w apce.
+primeFieldsPrefetch();
 
 // Po starcie aplikacja ma zawsze lądować na mapie ((app) -> "/"), a nie np. na
 // ekranie regulaminu/ustawień prawnych.

@@ -200,35 +200,38 @@ export default function PostDetailScreen() {
           <Text style={styles.error}>{t('feed.postNotFound')}</Text>
         ) : (
           <>
-            <PostCard
-              postId={post.post_id}
-              authorId={post.author_id}
-              authorNick={post.author_nick}
-              authorAvatarUrl={post.author_avatar_url}
-              body={post.body}
-              createdAt={post.created_at}
-              isFriend={post.author_is_friend}
-              likeCount={post.like_count}
-              commentCount={post.comment_count}
-              isLiked={post.is_liked}
-              likeBusy={likeBusy}
-              mentions={post.mentions}
-              media={post.media}
-              isMine={post.is_mine}
-              onAuthorPress={openUser}
-              onMentionPress={openUser}
-              onLikePress={() => void handleLike()}
-              onSharePress={() => void sharePost(post)}
-              onDeletePress={handleDeletePost}
-            />
-
-            <Text style={styles.sectionTitle}>{t('feed.commentsTitle')}</Text>
-
             <FlatList
+              style={styles.commentsList}
               data={threadedComments}
               keyExtractor={(item) => item.comment.comment_id}
               contentContainerStyle={{ paddingBottom: insets.bottom + 120 }}
               keyboardShouldPersistTaps="handled"
+              ListHeaderComponent={
+                <>
+                  <PostCard
+                    postId={post.post_id}
+                    authorId={post.author_id}
+                    authorNick={post.author_nick}
+                    authorAvatarUrl={post.author_avatar_url}
+                    body={post.body}
+                    createdAt={post.created_at}
+                    isFriend={post.author_is_friend}
+                    likeCount={post.like_count}
+                    commentCount={post.comment_count}
+                    isLiked={post.is_liked}
+                    likeBusy={likeBusy}
+                    mentions={post.mentions}
+                    media={post.media}
+                    isMine={post.is_mine}
+                    onAuthorPress={openUser}
+                    onMentionPress={openUser}
+                    onLikePress={() => void handleLike()}
+                    onSharePress={() => void sharePost(post)}
+                    onDeletePress={handleDeletePost}
+                  />
+                  <Text style={styles.sectionTitle}>{t('feed.commentsTitle')}</Text>
+                </>
+              }
               ListEmptyComponent={
                 <Text style={styles.emptyComments}>{t('feed.commentsEmpty')}</Text>
               }
@@ -348,6 +351,9 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.screenBackground,
   },
   container: {
+    flex: 1,
+  },
+  commentsList: {
     flex: 1,
   },
   backButton: {

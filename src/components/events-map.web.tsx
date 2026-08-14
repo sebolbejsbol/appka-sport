@@ -24,6 +24,7 @@ import {
   buildClusterIconSlotOffsetExpression,
   buildClusterIconSlotVisibleFilter,
   buildClusterStatusColorExpression,
+  BUBBLE_CENTER_COLOR,
 } from '@/lib/map-theme';
 import { fieldMarkerIcon } from '@/lib/sports';
 import type { TournamentListItem } from '@/lib/tournaments';
@@ -137,7 +138,7 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
             filter={['has', 'point_count']}
             style={{
               circleRadius: ['interpolate', ['linear'], ['get', 'total_events'], 1, 24, 5, 28, 15, 32, 40, 38],
-              circleColor: 'rgba(4,6,14,0.94)',
+              circleColor: BUBBLE_CENTER_COLOR,
               circleStrokeWidth: 4,
               circleStrokeColor: buildClusterStatusColorExpression(),
             }}
@@ -180,7 +181,7 @@ export function EventsMap({ events, tournaments, userCoords, onSelectEvent, onSe
             filter={['!', ['has', 'point_count']]}
             style={{
               circleRadius: 22,
-              circleColor: 'rgba(4,6,14,0.94)',
+              circleColor: BUBBLE_CENTER_COLOR,
               circleStrokeWidth: 4,
               circleStrokeColor: buildAvailabilityMatchExpression(),
             }}

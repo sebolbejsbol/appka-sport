@@ -17,6 +17,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FieldDetailSheet } from '@/components/field-detail-sheet';
+import { FieldsLoadingHint } from '@/components/fields-loading-hint';
 import { MapPlaySearchBar } from '@/components/map-play-search-bar';
 import {
   MapNearbySheet,
@@ -50,7 +51,8 @@ import { listMyFavoriteFieldIds } from '@/lib/favorites';
 import { dedupeNearbyFields } from '@/lib/field-dedupe';
 import { formatCourtName } from '@/lib/field-display';
 import { distanceMeters } from '@/lib/geo';
-import { markInitialDiscoverReady, markInitialFieldsReady } from '@/lib/map-ready';
+import { onFieldsPrefetchUpdate } from '@/lib/fields-prefetch';
+import { markInitialDiscoverReady } from '@/lib/map-ready';
 import {
   buildAvailabilityMatchExpression,
   buildClusterCategoryProperties,
@@ -59,6 +61,7 @@ import {
   buildClusterIconSlotOffsetExpression,
   buildClusterIconSlotVisibleFilter,
   buildClusterStatusColorExpression,
+  BUBBLE_CENTER_COLOR,
 } from '@/lib/map-theme';
 import { notifyInfo } from '@/lib/toast';
 import {
@@ -303,7 +306,6 @@ export function AppMap() {
   const lastZoomRef = useRef<number | null>(null);
   const fieldTapLockRef = useRef(false);
   const didCenterOnUserRef = useRef(false);
-  const initialFieldsMarkedRef = useRef(false);
 
   const center = coords ?? POLAND_CENTER_COORD;
   const zoom = coords ? USER_ZOOM : DEFAULT_ZOOM;
@@ -613,27 +615,36 @@ export function AppMap() {
     [runLoadNow],
   );
 
+  // Zanim ten efekt w ogóle zdąży pobrać dane dla dokładnego viewportu, cache
+  // może już być zasiedlony przez preładowanie startowe z _layout.tsx (patrz
+  // efekt niżej) — sygnał "gotowości" splasha należy właśnie do tamtego
+  // modułu, więc tutaj już go nie duplikujemy. Brak sztucznego opóźnienia:
+  // ta sama logika co wcześniej (800ms czekania na coords), tylko odpalana
+  // od razu z tym, co akurat jest dostępne — efekt i tak przeliczy się
+  // ponownie, gdy `center`/`coords` dojdą chwilę później.
   useEffect(() => {
     const wideBbox = coords
       ? expandBbox(bboxAroundCenter(center, USER_ZOOM), 1.4)
       : POLAND_BBOX;
-
-    const timer = setTimeout(() => {
-      void loadFields(wideBbox, coords ? USER_ZOOM : DEFAULT_ZOOM).finally(() => {
-        // Tylko pierwsze zakończone ładowanie liczy się dla sygnału "gotowości"
-        // startowej apki — kolejne (np. po doprecyzowaniu lokalizacji użytkownika)
-        // nie powinny przedłużać splasha.
-        if (!initialFieldsMarkedRef.current) {
-          initialFieldsMarkedRef.current = true;
-          markInitialFieldsReady();
-        }
-      });
-    }, 800);
+    void loadFields(wideBbox, coords ? USER_ZOOM : DEFAULT_ZOOM);
     return () => {
-      clearTimeout(timer);
       if (loadTimerRef.current) clearTimeout(loadTimerRef.current);
     };
   }, [center, coords, loadFields]);
+
+  // Preładowanie z _layout.tsx (patrz src/lib/fields-prefetch.ts) daje
+  // natychmiastowy pierwszy render boisk — z dysku przy kolejnych otwarciach
+  // apki, ze świeżej sieci przy pierwszym. Jak tylko efekt powyżej opublikuje
+  // cokolwiek własnego (dokładniejszego, bo wg realnego viewportu), przestajemy
+  // nadpisywać — to preładowanie służy wyłącznie do pierwszego malowania.
+  useEffect(() => {
+    if (!showFields) return;
+    return onFieldsPrefetchUpdate((prefetched) => {
+      if (fieldsCacheRef.current.size > 0) return;
+      fieldsCacheRef.current = new Map(prefetched.map((f) => [f.id, f]));
+      publishFeatures(fieldsCacheRef.current);
+    });
+  }, [showFields, publishFeatures]);
 
   useEffect(() => {
     fieldsCacheRef.current.clear();
@@ -826,7 +837,7 @@ export function AppMap() {
                 15, 32,
                 40, 38,
               ],
-              circleColor: 'rgba(4,6,14,0.94)',
+              circleColor: BUBBLE_CENTER_COLOR,
               circleOpacity: ['interpolate', ['linear'], ['zoom'], FADE_START, 0, FADE_END, 1],
               circleStrokeWidth: [
                 'interpolate',
@@ -919,7 +930,7 @@ export function AppMap() {
                 16, 26,
                 18, 30,
               ],
-              circleColor: 'rgba(4,6,14,0.94)',
+              circleColor: BUBBLE_CENTER_COLOR,
               circleOpacity: 1,
               circleStrokeWidth: [
                 'interpolate',
@@ -1171,6 +1182,13 @@ export function AppMap() {
           loading={fieldsLoading}
           onPress={() => setFiltersOpen(true)}
         />
+      ) : null}
+
+      {/* Zimny start bez cache'u/wolna sieć: zamiast pustej mapy przez kilka
+          sekund, pokazujemy lekki, spokojny loading state. Znika, jak tylko
+          jest cokolwiek do narysowania (z preładowania albo pierwszego fetch'a). */}
+      {showFields && fieldsLoading && features.features.length === 0 ? (
+        <FieldsLoadingHint />
       ) : null}
 
       <MapFiltersSheet

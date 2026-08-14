@@ -15,6 +15,13 @@ export const MAP_STATUS_COLORS: Record<CourtAvailability, string> = {
   empty: '#94a3b8',
 };
 
+/**
+ * Środek bąbla klastra/boiska (pod kolorową obwódką dostępności i licznikiem).
+ * Był niemal czarny (`rgba(4,6,14,0.94)`) — nie pasował do reszty niebieskiej
+ * palety apki, więc to ciemny odcień Brand.primaryDark zamiast czerni.
+ */
+export const BUBBLE_CENTER_COLOR = 'rgba(13, 43, 122, 0.94)';
+
 export function getAvailabilityColor(availability: CourtAvailability): string {
   return MAP_STATUS_COLORS[availability] ?? MAP_STATUS_COLORS.empty;
 }

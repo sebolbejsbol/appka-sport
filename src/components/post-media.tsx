@@ -76,6 +76,13 @@ const styles = StyleSheet.create({
   wrap: {
     marginTop: 10,
     gap: 8,
+    // Na szerokim viewportcie (desktop web) karta posta rozciąga się na całą
+    // dostępną szerokość (patrz web-app-shell.tsx), więc bez tego ograniczenia
+    // zdjęcie skalowane po aspectRatio robiło się gigantyczne i zasłaniało
+    // dostęp do komentarzy poniżej.
+    width: '100%',
+    maxWidth: 560,
+    alignSelf: 'center',
   },
   single: {
     width: '100%',
