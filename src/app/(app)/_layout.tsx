@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
-import { View } from 'react-native';
+import { useEffect } from 'react';
+import { Platform, View } from 'react-native';
 
 import { AppMenuProvider } from '@/components/app-side-menu';
 import { DisclaimerPromptHost } from '@/components/disclaimer-prompt-host';
@@ -9,12 +10,17 @@ import { EventFiltersProvider } from '@/context/event-filters';
 import { usePresenceHeartbeat } from '@/hooks/use-presence-heartbeat';
 import { useProfileLanguage } from '@/hooks/use-profile-language';
 import { usePushNotifications } from '@/hooks/use-push-notifications';
+import { bindWebPushClickRouting } from '@/lib/web-push';
 import { Brand } from '@/constants/theme';
 
 export default function AppLayout() {
   usePushNotifications();
   usePresenceHeartbeat();
   useProfileLanguage();
+
+  useEffect(() => {
+    if (Platform.OS === 'web') bindWebPushClickRouting();
+  }, []);
 
   return (
     <EventFiltersProvider>

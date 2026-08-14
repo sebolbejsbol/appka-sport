@@ -33,6 +33,13 @@ import {
   syncLocalEventReminders,
 } from '@/lib/push-notifications';
 import { hasExpoPushToken, setOwnLanguage } from '@/lib/profiles';
+import {
+  disableWebPush,
+  enableWebPush,
+  getWebPushPermissionState,
+  hasActiveWebPushSubscription,
+  webPushSupport,
+} from '@/lib/web-push';
 import type { Locale } from '@/i18n';
 
 export default function SettingsScreen() {
@@ -52,6 +59,15 @@ export default function SettingsScreen() {
   const load = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
+
+    if (Platform.OS === 'web') {
+      const hasSub = await hasActiveWebPushSubscription();
+      setEnabled(hasSub);
+      setPermission(getWebPushPermissionState());
+      setLoading(false);
+      return;
+    }
+
     let pref = await getNotificationsEnabled();
     if (!pref) {
       const hasToken = await hasExpoPushToken(userId);
@@ -75,6 +91,29 @@ export default function SettingsScreen() {
   async function handleToggle(next: boolean) {
     setBusy(true);
     setHint(null);
+
+    if (Platform.OS === 'web') {
+      if (next) {
+        const result = await enableWebPush();
+        if (result.ok) {
+          setEnabled(true);
+          setPermission('granted');
+        } else {
+          setEnabled(false);
+          setPermission(getWebPushPermissionState());
+          if (result.reason === 'permission_denied') {
+            setHint(t('settings.notificationsPermissionDenied'));
+          } else {
+            setHint(t('settings.notificationsEnableFailed'));
+          }
+        }
+      } else {
+        await disableWebPush();
+        setEnabled(false);
+      }
+      setBusy(false);
+      return;
+    }
 
     if (next) {
       const result = await enablePushNotifications();
@@ -135,7 +174,11 @@ export default function SettingsScreen() {
     setBusy(true);
     setHint(null);
 
-    await disablePushNotifications();
+    if (Platform.OS === 'web') {
+      await disableWebPush();
+    } else {
+      await disablePushNotifications();
+    }
     const result = await deleteMyAccount();
 
     setBusy(false);
@@ -192,7 +235,7 @@ export default function SettingsScreen() {
             <Text style={styles.cardTitle}>{t('settings.notificationsTitle')}</Text>
             <Text style={styles.cardHint}>{t('settings.notificationsHint')}</Text>
 
-            {Platform.OS === 'web' ? (
+            {Platform.OS === 'web' && webPushSupport() !== 'supported' ? (
               <Text style={styles.status}>{t('settings.notificationsWebUnavailable')}</Text>
             ) : (
               <>
@@ -210,7 +253,7 @@ export default function SettingsScreen() {
 
                 {hint ? <Text style={styles.errorText}>{hint}</Text> : null}
 
-                {permission === 'denied' ? (
+                {permission === 'denied' && Platform.OS !== 'web' ? (
                   <Button
                     label={t('settings.notificationsOpenSettings')}
                     variant="secondary"

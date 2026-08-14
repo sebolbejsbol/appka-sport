@@ -1,4 +1,3 @@
-import { router, type Href } from 'expo-router';
 import * as Notifications from 'expo-notifications';
 import { useEffect, useRef } from 'react';
 
@@ -8,7 +7,7 @@ import { getUpcomingEvents } from '@/lib/events';
 import {
   clearPushTokenOnServer,
   configureNotificationHandler,
-  getNotificationEventId,
+  routeForPushData,
   syncLocalEventReminders,
   syncPushTokenWithServer,
 } from '@/lib/push-notifications';
@@ -44,38 +43,7 @@ export function usePushNotifications(): void {
   useEffect(() => {
     const sub = Notifications.addNotificationResponseReceivedListener((response) => {
       const data = response.notification.request.content.data as Record<string, unknown>;
-      const eventId = getNotificationEventId(data);
-      if (eventId) {
-        router.push({ pathname: '/event/[id]', params: { id: eventId } });
-        return;
-      }
-      if (
-        (data.type === 'dm' || data.type === 'group_message' || data.type === 'message_reaction') &&
-        typeof data.conversation_id === 'string'
-      ) {
-        router.push({ pathname: '/messages/[id]', params: { id: data.conversation_id } });
-        return;
-      }
-      if (data.type === 'team_message' && typeof data.team_id === 'string') {
-        router.push(`/teams/${data.team_id}/chat` as Href);
-        return;
-      }
-      if (data.type === 'team_invite' && typeof data.team_id === 'string') {
-        router.push(`/teams/${data.team_id}` as Href);
-        return;
-      }
-      if (data.type === 'team_event_invite' && typeof data.event_id === 'string') {
-        router.push({ pathname: '/event/[id]', params: { id: data.event_id } });
-        return;
-      }
-      if (
-        (data.type === 'post_like' ||
-          data.type === 'post_comment' ||
-          data.type === 'post_mention') &&
-        typeof data.post_id === 'string'
-      ) {
-        router.push({ pathname: '/feed/post/[id]', params: { id: data.post_id } });
-      }
+      routeForPushData(data);
     });
     return () => sub.remove();
   }, []);

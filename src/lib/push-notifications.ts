@@ -1,6 +1,7 @@
 import Constants from 'expo-constants';
 import * as Device from 'expo-device';
 import * as Notifications from 'expo-notifications';
+import { router, type Href } from 'expo-router';
 import { Platform } from 'react-native';
 
 import { t } from '@/i18n';
@@ -220,4 +221,48 @@ export function getNotificationEventId(
   if (typeof raw === 'string' && raw) return raw;
   if (typeof raw === 'number') return String(raw);
   return null;
+}
+
+/**
+ * Nawigacja po tapnięciu w powiadomienie — wspólna dla Expo Push (natywne,
+ * patrz use-push-notifications.ts) i Web Push (patrz web-push.ts), żeby oba
+ * kanały doręczania prowadziły do tego samego miejsca w apce dla tego
+ * samego typu powiadomienia, zamiast dwóch osobnych, rozjeżdżających się
+ * implementacji.
+ */
+export function routeForPushData(data: Record<string, unknown>): void {
+  const eventId = getNotificationEventId(data);
+  if (eventId) {
+    router.push({ pathname: '/event/[id]', params: { id: eventId } });
+    return;
+  }
+  if (
+    (data.type === 'dm' || data.type === 'group_message' || data.type === 'message_reaction') &&
+    typeof data.conversation_id === 'string'
+  ) {
+    router.push({ pathname: '/messages/[id]', params: { id: data.conversation_id } });
+    return;
+  }
+  if (data.type === 'team_message' && typeof data.team_id === 'string') {
+    router.push(`/teams/${data.team_id}/chat` as Href);
+    return;
+  }
+  if (data.type === 'team_invite' && typeof data.team_id === 'string') {
+    router.push(`/teams/${data.team_id}` as Href);
+    return;
+  }
+  if (data.type === 'team_event_invite' && typeof data.event_id === 'string') {
+    router.push({ pathname: '/event/[id]', params: { id: data.event_id } });
+    return;
+  }
+  if (
+    (data.type === 'post_like' || data.type === 'post_comment' || data.type === 'post_mention') &&
+    typeof data.post_id === 'string'
+  ) {
+    router.push({ pathname: '/feed/post/[id]', params: { id: data.post_id } });
+    return;
+  }
+  if (data.type === 'friend_request' || data.type === 'friend_request_accepted') {
+    router.push('/social/friends');
+  }
 }

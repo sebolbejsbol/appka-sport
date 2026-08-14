@@ -213,6 +213,26 @@ export async function removePushToken(
   return { error };
 }
 
+export async function saveWebPushSubscription(
+  endpoint: string,
+  p256dh: string,
+  auth: string,
+): Promise<{ error: { message: string } | null }> {
+  const { error } = await supabase.rpc('save_web_push_subscription', {
+    p_endpoint: endpoint,
+    p_p256dh: p256dh,
+    p_auth: auth,
+  });
+  return { error };
+}
+
+export async function removeWebPushSubscription(
+  endpoint: string,
+): Promise<{ error: { message: string } | null }> {
+  const { error } = await supabase.rpc('remove_web_push_subscription', { p_endpoint: endpoint });
+  return { error };
+}
+
 export async function hasExpoPushToken(userId: string): Promise<boolean> {
   const { data, error } = await supabase
     .from('profiles')
