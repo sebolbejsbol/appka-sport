@@ -83,11 +83,42 @@
       #root:not(:empty) ~ #static-splash {
         display: none;
       }
-      #static-splash-runner {
+      #static-splash-runner-stage {
         margin-top: 28px;
+        position: relative;
         width: 44px;
         height: 44px;
-        animation: static-splash-run 900ms linear infinite;
+      }
+      #static-splash-runner {
+        width: 44px;
+        height: 44px;
+        animation: static-splash-run 720ms linear infinite;
+      }
+      #static-splash-speed-lines {
+        position: absolute;
+        right: 100%;
+        bottom: 10px;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 4px;
+        margin-right: 4px;
+        animation: static-splash-speed-lines 720ms linear infinite;
+      }
+      #static-splash-speed-lines span {
+        display: block;
+        height: 3px;
+        border-radius: 999px;
+        background: #9ec0ff;
+      }
+      #static-splash-speed-lines span:nth-child(1) {
+        width: 18px;
+      }
+      #static-splash-speed-lines span:nth-child(2) {
+        width: 12px;
+      }
+      #static-splash-speed-lines span:nth-child(3) {
+        width: 15px;
       }
       #static-splash-shadow {
         margin-top: 6px;
@@ -95,50 +126,54 @@
         height: 8px;
         border-radius: 999px;
         background: #0a0e16;
-        animation: static-splash-shadow 900ms linear infinite;
+        animation: static-splash-shadow 720ms linear infinite;
       }
-      /* 9 próbek (co 12.5%) krzywej translateY = -sin(t*pi)*0.26*44,
-         translateX = sin(t*2*pi)*0.05*44, rotate = sin(t*2*pi)*10deg —
-         dokładnie ta sama funkcja co runnerStyle w loading-runner.tsx. */
+      /* 9 próbek (co 12.5%) DOKŁADNIE tej samej krzywej co runnerStyle w
+         loading-runner.tsx: bounce = |sin(t*pi)|, stride = sin(t*2*pi),
+         translateY = -bounce*0.3*44, translateX = stride*0.05*44,
+         rotate = stride*10deg, scaleX = stride>=0 ? 1 : -1 (przełącznik
+         lustrzany dokładnie w neutralnym momencie kroku — ta sama sztuczka
+         "na przemian pracujących nóg" z jednej asymetrycznej sylwetki). */
       @keyframes static-splash-run {
         0% {
-          transform: translateY(0) translateX(0) rotate(0deg);
+          transform: translateY(0) translateX(0) rotate(0deg) scaleX(1);
         }
         12.5% {
-          transform: translateY(-4.2px) translateX(2.2px) rotate(10deg);
+          transform: translateY(-5.1px) translateX(1.6px) rotate(7.1deg) scaleX(1);
         }
         25% {
-          transform: translateY(-7.8px) translateX(0) rotate(0deg);
+          transform: translateY(-9.3px) translateX(2.2px) rotate(10deg) scaleX(1);
         }
         37.5% {
-          transform: translateY(-10.2px) translateX(-2.2px) rotate(-10deg);
+          transform: translateY(-12.2px) translateX(1.6px) rotate(7.1deg) scaleX(1);
         }
         50% {
-          transform: translateY(-11px) translateX(0) rotate(0deg);
+          transform: translateY(-13.2px) translateX(0) rotate(0deg) scaleX(1);
         }
         62.5% {
-          transform: translateY(-10.2px) translateX(2.2px) rotate(10deg);
+          transform: translateY(-12.2px) translateX(-1.6px) rotate(-7.1deg) scaleX(-1);
         }
         75% {
-          transform: translateY(-7.8px) translateX(0) rotate(0deg);
+          transform: translateY(-9.3px) translateX(-2.2px) rotate(-10deg) scaleX(-1);
         }
         87.5% {
-          transform: translateY(-4.2px) translateX(-2.2px) rotate(-10deg);
+          transform: translateY(-5.1px) translateX(-1.6px) rotate(-7.1deg) scaleX(-1);
         }
         100% {
-          transform: translateY(0) translateX(0) rotate(0deg);
+          transform: translateY(0) translateX(0) rotate(0deg) scaleX(1);
         }
       }
-      /* Cień: opacity/scaleX = 0.24-bounce*0.12 / 1-bounce*0.38, ta sama
-         "bounce" (|sin(t*pi)|) co powyżej — najniższy i najwęższy dokładnie
-         gdy biegacz jest najwyżej. */
+      /* Cień i smugi prędkości: obie napędzane tą samą "bounce" co powyżej
+         (opacity/scale cienia = 0.24-bounce*0.12 / 1-bounce*0.38, smugi =
+         0.15+bounce*0.35 / -bounce*0.16*44) — najintensywniejsze dokładnie
+         gdy biegacz jest najwyżej, tak jak w loading-runner.tsx. */
       @keyframes static-splash-shadow {
         0% {
           opacity: 0.24;
           transform: scaleX(1);
         }
         12.5% {
-          opacity: 0.195;
+          opacity: 0.194;
           transform: scaleX(0.855);
         }
         25% {
@@ -162,7 +197,7 @@
           transform: scaleX(0.731);
         }
         87.5% {
-          opacity: 0.195;
+          opacity: 0.194;
           transform: scaleX(0.855);
         }
         100% {
@@ -170,9 +205,48 @@
           transform: scaleX(1);
         }
       }
+      @keyframes static-splash-speed-lines {
+        0% {
+          opacity: 0.15;
+          transform: translateX(0);
+        }
+        12.5% {
+          opacity: 0.284;
+          transform: translateX(-2.7px);
+        }
+        25% {
+          opacity: 0.397;
+          transform: translateX(-5px);
+        }
+        37.5% {
+          opacity: 0.473;
+          transform: translateX(-6.5px);
+        }
+        50% {
+          opacity: 0.5;
+          transform: translateX(-7px);
+        }
+        62.5% {
+          opacity: 0.473;
+          transform: translateX(-6.5px);
+        }
+        75% {
+          opacity: 0.397;
+          transform: translateX(-5px);
+        }
+        87.5% {
+          opacity: 0.284;
+          transform: translateX(-2.7px);
+        }
+        100% {
+          opacity: 0.15;
+          transform: translateX(0);
+        }
+      }
       @media (prefers-reduced-motion: reduce) {
         #static-splash-runner,
-        #static-splash-shadow {
+        #static-splash-shadow,
+        #static-splash-speed-lines {
           animation: none;
         }
       }
@@ -188,12 +262,19 @@
     <div id="root"></div>
     <div id="static-splash">
       <img id="static-splash-logo" src="/splash-logo.png" alt="" />
-      <svg id="static-splash-runner" viewBox="0 -960 960 960">
-        <path
-          fill="#1f6bff"
-          d="M535-70v-209l-108-99-36 159q-3 12-13 18.5t-22 4.5l-208-43q-11-2-18-12t-5-22q2-12 12.5-18t21.5-4l171 34 73-369-100 47v104q0 13-8.5 21.5T273-449q-13 0-21.5-8.5T243-479v-125q0-9 5-16.5t13-11.5l146-61q32-14 45.5-17.5T480-714q20 0 35.5 8.5T542-680l42 67q23 37 60 65.5t86 36.5q13 2 21.5 10.5T760-479q0 12-8.5 21t-20.5 7q-57-6-102.5-36.5T543-573l-39 158 81 75q5 5 7.5 10.5T595-318v248q0 13-8.5 21.5T565-40q-13 0-21.5-8.5T535-70Zm-46.5-705.5Q467-797 467-827t21.5-51.5Q510-900 540-900t51.5 21.5Q613-857 613-827t-21.5 51.5Q570-754 540-754t-51.5-21.5Z"
-        />
-      </svg>
+      <div id="static-splash-runner-stage">
+        <div id="static-splash-speed-lines">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <svg id="static-splash-runner" viewBox="0 -960 960 960">
+          <path
+            fill="#1f6bff"
+            d="M535-70v-209l-108-99-36 159q-3 12-13 18.5t-22 4.5l-208-43q-11-2-18-12t-5-22q2-12 12.5-18t21.5-4l171 34 73-369-100 47v104q0 13-8.5 21.5T273-449q-13 0-21.5-8.5T243-479v-125q0-9 5-16.5t13-11.5l146-61q32-14 45.5-17.5T480-714q20 0 35.5 8.5T542-680l42 67q23 37 60 65.5t86 36.5q13 2 21.5 10.5T760-479q0 12-8.5 21t-20.5 7q-57-6-102.5-36.5T543-573l-39 158 81 75q5 5 7.5 10.5T595-318v248q0 13-8.5 21.5T565-40q-13 0-21.5-8.5T535-70Zm-46.5-705.5Q467-797 467-827t21.5-51.5Q510-900 540-900t51.5 21.5Q613-857 613-827t-21.5 51.5Q570-754 540-754t-51.5-21.5Z"
+          />
+        </svg>
+      </div>
       <div id="static-splash-shadow"></div>
     </div>
   </body>

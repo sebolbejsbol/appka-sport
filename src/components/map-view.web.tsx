@@ -663,7 +663,24 @@ export function AppMap() {
     });
   }, [showFields, publishFeatures]);
 
+  // Ten efekt ma reagować na REALNĄ zmianę filtra/showFields po starcie (np.
+  // użytkownik przełącza sport) — ale jak każdy useEffect z tablicą
+  // zależności, odpala się też przy PIERWSZYM montowaniu, mimo że wtedy nic
+  // się jeszcze "nie zmieniło". Bez tej strażniczej flagi pierwsze
+  // uruchomienie natychmiast czyściło fieldsCacheRef i kasowało to, co
+  // efekt preładowania (wyżej) dopiero co opublikował z gotowego cache'u
+  // startowego (fields-prefetch.ts) — więc splash poprawnie czekał na dane,
+  // ale użytkownik i tak wchodził na mapę, która przez chwilę traciła
+  // właśnie załadowane boiska i musiała je pobrać (lokalnie z cache'u, ale
+  // wciąż asynchronicznie) jeszcze raz. Zgłoszenie 2026-08-16: "boiska mają
+  // być w pełni załadowane od razu na wejściu" — ten podwójny start był
+  // częścią przyczyny.
+  const skipInitialFilterReloadRef = useRef(true);
   useEffect(() => {
+    if (skipInitialFilterReloadRef.current) {
+      skipInitialFilterReloadRef.current = false;
+      return;
+    }
     fieldsCacheRef.current.clear();
     void loadVisibleFields(latestStateRef.current);
   }, [showFields, sportFilter, loadVisibleFields]);
