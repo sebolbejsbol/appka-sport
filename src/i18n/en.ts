@@ -634,6 +634,9 @@ export const en: DeepPartialWide<Translations> = {
     locationDenied: 'Turn on location to get directions to the court.',
     locationError: 'Could not get your location.',
     invalidDestination: 'Invalid court coordinates.',
+    modeWalking: 'Walking',
+    modeCycling: 'Bike / scooter',
+    modeDriving: 'Driving',
   },
   fieldRatings: {
     title: 'Court ratings',

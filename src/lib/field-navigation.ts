@@ -26,7 +26,28 @@ export type StartNavigationResult =
   | 'location_error'
   | 'invalid_destination';
 
-const WALKING_SPEED_MPS = 5000 / 3600;
+/**
+ * Środek transportu do nawigacji w apce. Mapbox Directions nie ma osobnego
+ * profilu dla hulajnogi — najbliższy rzeczywisty odpowiednik (te same drogi
+ * rowerowe/piesze, zbliżona prędkość rzeczywista e-hulajnóg) to `cycling`,
+ * więc "rower" i "hulajnoga" celowo dzielą jeden tryb zamiast dwóch
+ * identycznych czasowo przycisków.
+ */
+export type TravelProfile = 'walking' | 'cycling' | 'driving';
+
+/** Mapbox Directions API profile segment dla danego środka transportu. */
+const MAPBOX_PROFILE: Record<TravelProfile, string> = {
+  walking: 'walking',
+  cycling: 'cycling',
+  driving: 'driving',
+};
+
+/** Przybliżona prędkość używana TYLKO jako fallback, gdy Directions API zawiedzie (patrz fetchRoute). */
+const FALLBACK_SPEED_MPS: Record<TravelProfile, number> = {
+  walking: 5000 / 3600,
+  cycling: 15000 / 3600,
+  driving: 35000 / 3600,
+};
 
 export function formatDuration(seconds: number): string {
   const totalMin = Math.max(1, Math.round(seconds / 60));
@@ -91,9 +112,10 @@ export async function getCurrentUserCoords(): Promise<LngLat | null> {
   }
 }
 
-export async function fetchWalkingRoute(
+export async function fetchRoute(
   from: LngLat,
   to: LngLat,
+  profile: TravelProfile = 'walking',
 ): Promise<{ data: FieldRoute | null; error: string | null }> {
   const token = process.env.EXPO_PUBLIC_MAPBOX_TOKEN;
   if (!token) return { data: null, error: 'missing_token' };
@@ -101,7 +123,7 @@ export async function fetchWalkingRoute(
   const [fromLng, fromLat] = from;
   const [toLng, toLat] = to;
   const url =
-    `https://api.mapbox.com/directions/v5/mapbox/walking/` +
+    `https://api.mapbox.com/directions/v5/mapbox/${MAPBOX_PROFILE[profile]}/` +
     `${fromLng},${fromLat};${toLng},${toLat}` +
     `?geometries=geojson&overview=full&access_token=${encodeURIComponent(token)}`;
 
@@ -122,7 +144,7 @@ export async function fetchWalkingRoute(
         data: {
           geometry: route.geometry,
           distanceMeters: Number(route.distance) || distanceMeters(from, to),
-          durationSeconds: Number(route.duration) || distanceMeters(from, to) / WALKING_SPEED_MPS,
+          durationSeconds: Number(route.duration) || distanceMeters(from, to) / FALLBACK_SPEED_MPS[profile],
         },
         error: null,
       };
@@ -136,7 +158,7 @@ export async function fetchWalkingRoute(
     data: {
       geometry: { type: 'LineString', coordinates: [from, [toLng, toLat]] },
       distanceMeters: straight,
-      durationSeconds: straight / WALKING_SPEED_MPS,
+      durationSeconds: straight / FALLBACK_SPEED_MPS[profile],
     },
     error: null,
   };

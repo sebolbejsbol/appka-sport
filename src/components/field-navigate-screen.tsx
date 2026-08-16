@@ -1,9 +1,9 @@
 import Mapbox, {
   Camera,
-  CircleLayer,
   LineLayer,
   LocationPuck,
   MapView,
+  MarkerView,
   ShapeSource,
   type Camera as CameraRef,
 } from '@rnmapbox/maps';
@@ -14,13 +14,16 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
+import { DestinationPin } from '@/components/destination-pin';
+import { TravelModePicker } from '@/components/travel-mode-picker';
 import { useWatchingLocation } from '@/hooks/use-watching-location';
 import { t } from '@/i18n';
 import { formatCourtName } from '@/lib/field-display';
 import {
-  fetchWalkingRoute,
+  fetchRoute,
   formatRouteSummary,
   type FieldRoute,
+  type TravelProfile,
 } from '@/lib/field-navigation';
 import { goBack } from '@/lib/navigation';
 
@@ -44,6 +47,7 @@ export default function FieldNavigateScreen() {
   );
 
   const { status, coords } = useWatchingLocation(Boolean(destination));
+  const [profile, setProfile] = useState<TravelProfile>('walking');
   const [route, setRoute] = useState<FieldRoute | null>(null);
   const [loadingRoute, setLoadingRoute] = useState(true);
   const [routeError, setRouteError] = useState(false);
@@ -52,7 +56,7 @@ export default function FieldNavigateScreen() {
     if (!destination || !coords) return;
     setLoadingRoute(true);
     setRouteError(false);
-    const { data, error } = await fetchWalkingRoute(coords, [destination[0], destination[1]]);
+    const { data, error } = await fetchRoute(coords, [destination[0], destination[1]], profile);
     if (error || !data) {
       setRouteError(true);
       setRoute(null);
@@ -68,13 +72,13 @@ export default function FieldNavigateScreen() {
       }
     }
     setLoadingRoute(false);
-  }, [coords, destination]);
+  }, [coords, destination, profile]);
 
   useEffect(() => {
     if (coords && destination) {
       void loadRoute();
     }
-  }, [coords, destination, loadRoute]);
+  }, [coords, destination, profile, loadRoute]);
 
   const summary = route ? formatRouteSummary(route) : null;
 
@@ -86,18 +90,6 @@ export default function FieldNavigateScreen() {
       geometry: route.geometry,
     };
   }, [route]);
-
-  const destFeature = useMemo(() => {
-    if (!destination) return null;
-    return {
-      type: 'Feature' as const,
-      properties: {},
-      geometry: {
-        type: 'Point' as const,
-        coordinates: [destination[0], destination[1]],
-      },
-    };
-  }, [destination]);
 
   if (!token) {
     return (
@@ -141,19 +133,9 @@ export default function FieldNavigateScreen() {
           </ShapeSource>
         ) : null}
 
-        {destFeature ? (
-          <ShapeSource id="destination" shape={destFeature}>
-            <CircleLayer
-              id="destination-circle"
-              style={{
-                circleRadius: 10,
-                circleColor: Brand.primary,
-                circleStrokeWidth: 3,
-                circleStrokeColor: '#ffffff',
-              }}
-            />
-          </ShapeSource>
-        ) : null}
+        <MarkerView coordinate={[destination[0], destination[1]]} anchor={{ x: 0.5, y: 1 }}>
+          <DestinationPin />
+        </MarkerView>
 
         {status === 'granted' ? <LocationPuck pulsing="default" /> : null}
       </MapView>
@@ -167,6 +149,8 @@ export default function FieldNavigateScreen() {
       <View style={[styles.panel, { paddingBottom: insets.bottom + 16 }]}>
         <Text style={styles.title}>{t('fieldNavigation.inAppTitle')}</Text>
         <Text style={styles.subtitle}>{destName}</Text>
+
+        <TravelModePicker value={profile} onChange={setProfile} style={styles.modePicker} />
 
         {status === 'denied' ? (
           <Text style={styles.muted}>{t('fieldNavigation.locationDenied')}</Text>
@@ -201,6 +185,9 @@ const styles = StyleSheet.create({
   },
   map: {
     flex: 1,
+  },
+  modePicker: {
+    marginBottom: 12,
   },
   topBar: {
     position: 'absolute',

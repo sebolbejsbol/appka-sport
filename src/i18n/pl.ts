@@ -633,6 +633,9 @@ export const pl = {
     locationDenied: 'Włącz lokalizację, aby wyznaczyć trasę do boiska.',
     locationError: 'Nie udało się pobrać Twojej lokalizacji.',
     invalidDestination: 'Nieprawidłowe współrzędne boiska.',
+    modeWalking: 'Pieszo',
+    modeCycling: 'Rower / hulajnoga',
+    modeDriving: 'Samochód',
   },
   fieldRatings: {
     title: 'Oceny boiska',
