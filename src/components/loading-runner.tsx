@@ -36,6 +36,18 @@ const AnimatedG = Animated.createAnimatedComponent(G);
  * przyklejone. Ręce dostały teraz taki sam duży zakres wymachu jak nogi
  * (przód/tył na wysokości klatki piersiowej, nie nad głową — tam wyglądało
  * jak jedna ciągła linia z szyją), naprzemiennie z nogami między klatkami.
+ *
+ * Zgłoszenie 2026-08-17 (szósta runda): użytkownik przysłał referencyjny
+ * obrazek 3-klatkowej biegnącej figurki — noga z tyłu ma być podkurzona
+ * piętą do pośladka ("heel kick"), nie unoszona kolanem wysoko do przodu
+ * jak poprzednio, plus małe "pięści"/"stopy" (kropki) na końcach kończyn
+ * dla lepszej czytelności. Klatka B przeprojektowana: noga z przodu —
+ * kolano podkurzone, stopa NIE dotyka ziemi (faza przenoszenia); noga z
+ * tyłu — kolano blisko bioder, stopa kopnięta w górę-tył (nie za wysoko,
+ * żeby nie krzyżowała się wizualnie z ręką). Sprawdzone renderem
+ * sharp/rsvg pod kątem nakładania się kończyn (pierwsza próba z pełnym
+ * "unieceniem pięty do pośladka" zachodziła na rękę i tworzyła
+ * nieczytelną plamę — cofnięte do umiarkowanej wysokości kopnięcia).
  */
 export function LoadingRunner({ size = 48 }: { size?: number }) {
   const flip = useSharedValue(1);
@@ -60,6 +72,7 @@ export function LoadingRunner({ size = 48 }: { size?: number }) {
   }));
 
   const limbProps = { stroke: Brand.primary, strokeWidth: 4, strokeLinecap: 'round' as const, fill: 'none' as const };
+  const cap = (cx: number, cy: number, r = 2.3) => <Circle cx={cx} cy={cy} r={r} fill={Brand.primary} />;
 
   return (
     <View style={[styles.root, { width: size * 1.6, height: size * 1.6 }]}>
@@ -68,15 +81,23 @@ export function LoadingRunner({ size = 48 }: { size?: number }) {
         <Path d="M23 12 L17 25" {...limbProps} />
         <AnimatedG animatedProps={frameAProps}>
           <Path d="M17 25 L26 32 L34 42" {...limbProps} strokeLinejoin="round" />
+          {cap(34, 42)}
           <Path d="M17 25 L4 40" {...limbProps} />
+          {cap(4, 40)}
           <Path d="M23 12 L35 15" {...limbProps} />
+          {cap(35, 15, 2)}
           <Path d="M23 12 L6 19" {...limbProps} />
+          {cap(6, 19, 2)}
         </AnimatedG>
         <AnimatedG animatedProps={frameBProps}>
-          <Path d="M17 25 L24 20 L29 24" {...limbProps} strokeLinejoin="round" />
-          <Path d="M17 25 L19 43" {...limbProps} />
+          <Path d="M17 25 L25 29 L23 38" {...limbProps} strokeLinejoin="round" />
+          {cap(23, 38)}
+          <Path d="M17 25 L9 23 L11 31" {...limbProps} strokeLinejoin="round" />
+          {cap(11, 31)}
           <Path d="M23 12 L8 16" {...limbProps} />
+          {cap(8, 16, 2)}
           <Path d="M23 12 L34 18" {...limbProps} />
+          {cap(34, 18, 2)}
         </AnimatedG>
       </Svg>
       <View style={[styles.shadow, { width: size * 0.7 }]} />
