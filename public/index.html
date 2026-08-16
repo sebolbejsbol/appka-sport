@@ -105,7 +105,11 @@
          "kolano uniesione" (noga podporowa NADAL sięga tej samej linii
          gruntu co w klatce A, tylko noga swobodna ma kolano w górze) — tak,
          żeby sylwetka nie "podskakiwała" wizualnie między klatkami. Cień
-         statyczny. */
+         statyczny.
+         2026-08-17 (piąta runda): ręce miały w klatce A/B prawie identyczne
+         współrzędne dłoni (różnica 1-2px) — wizualnie stały w miejscu,
+         biegły tylko nogi. Teraz ręce mają taki sam duży wymach jak nogi,
+         naprzemienny między klatkami. */
       #static-splash-runner .frame-a {
         animation: static-splash-frame-a 400ms steps(1) infinite;
       }
@@ -161,14 +165,14 @@
         <g class="frame-a">
           <path d="M17 25 L26 32 L34 42" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
           <path d="M17 25 L4 40" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
-          <path d="M23 12 L14 18" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
-          <path d="M23 12 L31 18" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
+          <path d="M23 12 L35 15" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
+          <path d="M23 12 L6 19" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
         </g>
         <g class="frame-b">
           <path d="M17 25 L24 20 L29 24" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
           <path d="M17 25 L19 43" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
-          <path d="M23 12 L13 16" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
-          <path d="M23 12 L30 19" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
+          <path d="M23 12 L8 16" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
+          <path d="M23 12 L34 18" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
         </g>
       </svg>
       <div id="static-splash-shadow"></div>

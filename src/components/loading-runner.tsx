@@ -27,6 +27,15 @@ const AnimatedG = Animated.createAnimatedComponent(G);
  * naraz). Głowa+tułów statyczne, nigdy się nie odbijają — biegacz zawsze
  * zwrócony w tę samą stronę, dyskretny (bez płynnego przejścia) skok
  * między klatkami.
+ *
+ * Zgłoszenie 2026-08-17 (piąta runda): "dalej bardzo słabo biegnie, ma
+ * używać nóg i rąk przy biegu jak normalna osoba" — po ponownym
+ * wyrenderowaniu okazało się, że współrzędne dłoni w klatce A i B były
+ * PRAWIE IDENTYCZNE (różnica 1-2px), czyli ręce w ogóle się wizualnie nie
+ * ruszały — biegacz "biegł" wyłącznie nogami, ręce stały w miejscu jak
+ * przyklejone. Ręce dostały teraz taki sam duży zakres wymachu jak nogi
+ * (przód/tył na wysokości klatki piersiowej, nie nad głową — tam wyglądało
+ * jak jedna ciągła linia z szyją), naprzemiennie z nogami między klatkami.
  */
 export function LoadingRunner({ size = 48 }: { size?: number }) {
   const flip = useSharedValue(1);
@@ -60,14 +69,14 @@ export function LoadingRunner({ size = 48 }: { size?: number }) {
         <AnimatedG animatedProps={frameAProps}>
           <Path d="M17 25 L26 32 L34 42" {...limbProps} strokeLinejoin="round" />
           <Path d="M17 25 L4 40" {...limbProps} />
-          <Path d="M23 12 L14 18" {...limbProps} />
-          <Path d="M23 12 L31 18" {...limbProps} />
+          <Path d="M23 12 L35 15" {...limbProps} />
+          <Path d="M23 12 L6 19" {...limbProps} />
         </AnimatedG>
         <AnimatedG animatedProps={frameBProps}>
           <Path d="M17 25 L24 20 L29 24" {...limbProps} strokeLinejoin="round" />
           <Path d="M17 25 L19 43" {...limbProps} />
-          <Path d="M23 12 L13 16" {...limbProps} />
-          <Path d="M23 12 L30 19" {...limbProps} />
+          <Path d="M23 12 L8 16" {...limbProps} />
+          <Path d="M23 12 L34 18" {...limbProps} />
         </AnimatedG>
       </Svg>
       <View style={[styles.shadow, { width: size * 0.7 }]} />
