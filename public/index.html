@@ -39,6 +39,53 @@
         flex: 1;
       }
     </style>
+
+    <!-- Statyczny (czysty HTML/CSS, zero JS) ekran ładowania — #root jest
+         PUSTY dopóki nie doładuje się i wykona cały bundle (kilka MB, patrz
+         zgłoszenie 2026-08-16 "boisk długo się ładuje" — bez tego użytkownik
+         przez ten cały czas patrzy na białą, pustą stronę, zanim React w
+         ogóle zdąży zamontować właściwy splash z biegaczem z LoadingRunner,
+         patrz src/app/_layout.tsx). Ten sam wygląd (białe tło, logo, biegnący
+         emoji) — więc przejście do prawdziwego splasha jest niezauważalne,
+         bez mrugnięcia. Znika sam, czysto przez CSS, w chwili gdy React
+         cokolwiek wstawi do #root — nie trzeba go usuwać z JS. -->
+    <style id="static-splash-styles">
+      #static-splash {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: #ffffff;
+        z-index: 9999;
+      }
+      #root:not(:empty) ~ #static-splash {
+        display: none;
+      }
+      #static-splash-runner {
+        margin-top: 28px;
+        font-size: 44px;
+        line-height: 1;
+        animation: static-splash-bounce 1.04s ease-in-out infinite;
+      }
+      @keyframes static-splash-bounce {
+        0% {
+          transform: translateY(0) rotate(-8deg);
+        }
+        50% {
+          transform: translateY(-12px) rotate(8deg);
+        }
+        100% {
+          transform: translateY(0) rotate(-8deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #static-splash-runner {
+          animation: none;
+        }
+      }
+    </style>
   </head>
 
   <body>
@@ -48,5 +95,8 @@
     </noscript>
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
+    <div id="static-splash">
+      <span id="static-splash-runner">🏃</span>
+    </div>
   </body>
 </html>
