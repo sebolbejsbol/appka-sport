@@ -53,7 +53,11 @@ import { listMyFavoriteFieldIds } from '@/lib/favorites';
 import { dedupeNearbyFields } from '@/lib/field-dedupe';
 import { formatCourtName } from '@/lib/field-display';
 import { distanceMeters } from '@/lib/geo';
-import { onFieldsPrefetchUpdate } from '@/lib/fields-prefetch';
+import {
+  filterPrefetchedFields,
+  isSportFilterCoveredByPrefetch,
+  onFieldsPrefetchUpdate,
+} from '@/lib/fields-prefetch';
 import { markInitialDiscoverReady } from '@/lib/map-ready';
 import {
   buildAvailabilityMatchExpression,
@@ -476,8 +480,20 @@ export function AppMap() {
       const requestId = ++requestIdRef.current;
       setFieldsLoading(true);
       const padded = expandBbox(bbox, BBOX_PADDING);
+
+      // Lista boisk Trójmiasta jest już cała w preładowanym cache'u (patrz
+      // fields-prefetch.ts) — dla filtrów, które ten cache pokrywa, filtrujemy
+      // go lokalnie zamiast pytać serwer o punkty od nowa przy każdym
+      // pan/zoom. Liczniki eventów zostają siecią (naprawdę dynamiczne dane),
+      // ale najcięższa część (same punkty) nie czeka na round-trip.
+      const cachedFields = isSportFilterCoveredByPrefetch(sportFilter)
+        ? filterPrefetchedFields(padded, sportFilter, maxRowsForZoom(mapZoom))
+        : null;
+
       const [fieldsRes, countsRes, categoryCountsRes] = await Promise.all([
-        getFieldsInBbox(padded, maxRowsForZoom(mapZoom), sportFilter, FIELD_SORT),
+        cachedFields
+          ? Promise.resolve({ data: cachedFields, error: null })
+          : getFieldsInBbox(padded, maxRowsForZoom(mapZoom), sportFilter, FIELD_SORT),
         getEventCountsInBbox(padded, sportFilter),
         getEventCountsByCategoryInBbox(padded),
       ]);

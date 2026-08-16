@@ -1,20 +1,14 @@
 import { SplashScreen, Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import {
-  ActivityIndicator,
-  Animated,
-  Image,
-  StyleSheet,
-  View,
-} from 'react-native';
+import { Animated, Image, StyleSheet, View } from 'react-native';
 
 import { ActionSheetHost } from '@/components/action-sheet-host';
 import { ConfirmModalHost } from '@/components/confirm-modal-host';
 import { LegalDocumentHost } from '@/components/legal-document-host';
+import { LoadingRunner } from '@/components/loading-runner';
 import { ToastHost } from '@/components/toast-host';
 import { WebAppShell } from '@/components/web-app-shell';
-import { Brand } from '@/constants/theme';
 import { LocaleProvider, useLocale } from '@/context/locale';
 import { SessionProvider, useSession } from '@/context/session';
 import { primeFieldsPrefetch } from '@/lib/fields-prefetch';
@@ -141,7 +135,9 @@ function RootNavigator() {
           style={[styles.splash, { opacity: splashOpacity }]}
           pointerEvents={isLoading ? 'auto' : 'none'}>
           <Image source={LOGO} style={styles.splashLogo} resizeMode="contain" />
-          <ActivityIndicator color={Brand.primary} style={styles.splashSpinner} />
+          <View style={styles.splashRunner}>
+            <LoadingRunner size={44} />
+          </View>
         </Animated.View>
       ) : null}
     </View>
@@ -166,7 +162,7 @@ const styles = StyleSheet.create({
     width: 280,
     aspectRatio: 752 / 509,
   },
-  splashSpinner: {
+  splashRunner: {
     marginTop: 28,
   },
 });
