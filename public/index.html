@@ -46,12 +46,11 @@
          przez ten cały czas patrzy na białą, pustą stronę, zanim React w
          ogóle zdąży zamontować właściwy splash z biegaczem z LoadingRunner,
          patrz src/app/_layout.tsx i src/components/loading-runner.tsx). TEN
-         SAM glif (Material Symbols "directions_run", kolor marki) i TE SAME
-         DWIE animacje co LoadingRunner (2026-08-17: poprzednia wersja z
-         wychyleniem/przechyłem/smugami prędkości naraz była "przekombinowana"
-         — uproszczone do dokładnie dwóch: podskok + zamiana nóg odbiciem
-         lustrzanym, zsynchronizowane, żeby wyglądało jak bieg, nie
-         odbijanie). TEN SAM layout co React splash (logo, potem pod nim
+         SAM rysunek (prosta sylwetka biegacza, kolor marki) i TA SAMA
+         animacja co LoadingRunner (2026-08-17, trzecia runda: głowa+tułów
+         statyczne, tylko nogi/ręce skaczą dyskretnie między parą "wykrok" /
+         "kolano uniesione" — patrz komentarz przy #static-splash-runner
+         niżej i loading-runner.tsx). TEN SAM layout co React splash (logo, potem pod nim
          biegacz) — biegacz ma być ZAWSZE pod logiem DUDIE DAY, nie najpierw
          sam biegacz a dopiero potem logo, więc logo musi być tutaj od razu,
          nie dopiero w React. Logo skopiowane do public/splash-logo.png (nie
@@ -97,18 +96,19 @@
         opacity: 0.18;
       }
       /* Dokładnie ta sama animacja co loading-runner.tsx —
-         2026-08-17 (druga runda): poprzednie `scaleX(-1)` na CAŁYM glifie
-         mirror'owało też głowę/tułów, więc wyglądało jak odwracanie się o
-         180°, nie bieg. Głowa+tułów (#static-splash-runner > circle, > .torso)
-         są TERAZ statyczne, nigdy się nie ruszają. Rusza się WYŁĄCZNIE para
-         noga+ręka — dyskretny (steps(1)) skok między dwiema klatkami wymachu
-         (.frame-a / .frame-b), zero ruchu w pionie, zero mirror'owania
-         całości. Cień statyczny. */
+         2026-08-17 (trzecia runda): głowa+tułów (circle + statyczny <path>
+         nad .frame-a/.frame-b) nigdy się nie ruszają/nie odbijają. Rusza się
+         WYŁĄCZNIE para noga+ręka, dyskretnie (steps(1), bez płynnego
+         przejścia) między dwiema kluczowymi pozycjami biegu: .frame-a =
+         "wykrok" (nogi maksymalnie rozstawione przód-tył), .frame-b =
+         "kolano uniesione" (przednia noga z kolanem w górze, tylna podkurzona
+         do tyłu) — uniesienie kolana to ruch stawu, nie podskok całej
+         sylwetki. Cień statyczny. */
       #static-splash-runner .frame-a {
-        animation: static-splash-frame-a 440ms steps(1) infinite;
+        animation: static-splash-frame-a 400ms steps(1) infinite;
       }
       #static-splash-runner .frame-b {
-        animation: static-splash-frame-b 440ms steps(1) infinite;
+        animation: static-splash-frame-b 400ms steps(1) infinite;
       }
       @keyframes static-splash-frame-a {
         0% {
@@ -154,19 +154,19 @@
     <div id="static-splash">
       <img id="static-splash-logo" src="/splash-logo.png" alt="" />
       <svg id="static-splash-runner" viewBox="0 0 48 48">
-        <circle cx="31" cy="9" r="5" fill="#1f6bff" />
-        <path d="M28 13 L21 27" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
+        <circle cx="30" cy="8" r="5.5" fill="#1f6bff" />
+        <path d="M27 12 L19 26" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
         <g class="frame-a">
-          <path d="M21 27 L29 33 L35 40" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-          <path d="M21 27 L10 35" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
-          <path d="M28 13 L18 20" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
-          <path d="M28 13 L38 8" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
+          <path d="M19 26 L28 31 L36 39" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          <path d="M19 26 L6 33" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
+          <path d="M27 12 L15 17" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
+          <path d="M27 12 L39 7" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
         </g>
         <g class="frame-b">
-          <path d="M21 27 L25 32 L27 39" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-          <path d="M21 27 L15 31" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
-          <path d="M28 13 L22 17" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
-          <path d="M28 13 L33 10" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
+          <path d="M19 26 L24 18 L30 22" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          <path d="M19 26 L12 20" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
+          <path d="M27 12 L20 6" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
+          <path d="M27 12 L33 20" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
         </g>
       </svg>
       <div id="static-splash-shadow"></div>

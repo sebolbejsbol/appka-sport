@@ -197,10 +197,6 @@ const styles = StyleSheet.create({
   splashLogo: {
     width: 340,
     aspectRatio: 752 / 509,
-    shadowColor: '#1f6bff',
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.16,
-    shadowRadius: 18,
   },
   splashRunner: {
     marginTop: 28,
