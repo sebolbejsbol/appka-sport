@@ -75,9 +75,10 @@
         z-index: 9999;
       }
       #static-splash-logo {
-        width: 280px;
+        width: 340px;
         aspect-ratio: 752 / 509;
         object-fit: contain;
+        filter: drop-shadow(0 6px 18px rgba(31, 107, 255, 0.16));
       }
       #root:not(:empty) ~ #static-splash {
         display: none;
@@ -86,7 +87,6 @@
         margin-top: 28px;
         width: 44px;
         height: 44px;
-        animation: static-splash-run 440ms steps(1) infinite;
       }
       #static-splash-shadow {
         margin-top: 6px;
@@ -96,28 +96,49 @@
         background: #0a0e16;
         opacity: 0.18;
       }
-      /* Dokładnie ta sama animacja co runnerStyle w loading-runner.tsx —
-         2026-08-17: "nie ma się kręcić! ma biec w jedno miejsce" — bez
-         ruchu w pionie i bez rotate (poprzednia płynna wersja przez
-         scaleX+rotate wyglądała jak spin). Biegacz stoi w miejscu, jedyna
-         zmiana to DYSKRETNY (steps(1) — bez płynnego przejścia przez środek)
-         skok między dwiema klatkami tej samej asymetrycznej sylwetki
-         (zwykłą i lustrzaną) = "2 animacje jak zmienia ręce i nogi". Cień
-         statyczny. */
-      @keyframes static-splash-run {
+      /* Dokładnie ta sama animacja co loading-runner.tsx —
+         2026-08-17 (druga runda): poprzednie `scaleX(-1)` na CAŁYM glifie
+         mirror'owało też głowę/tułów, więc wyglądało jak odwracanie się o
+         180°, nie bieg. Głowa+tułów (#static-splash-runner > circle, > .torso)
+         są TERAZ statyczne, nigdy się nie ruszają. Rusza się WYŁĄCZNIE para
+         noga+ręka — dyskretny (steps(1)) skok między dwiema klatkami wymachu
+         (.frame-a / .frame-b), zero ruchu w pionie, zero mirror'owania
+         całości. Cień statyczny. */
+      #static-splash-runner .frame-a {
+        animation: static-splash-frame-a 440ms steps(1) infinite;
+      }
+      #static-splash-runner .frame-b {
+        animation: static-splash-frame-b 440ms steps(1) infinite;
+      }
+      @keyframes static-splash-frame-a {
         0% {
-          transform: scaleX(1);
+          opacity: 1;
         }
         50% {
-          transform: scaleX(-1);
+          opacity: 0;
         }
         100% {
-          transform: scaleX(1);
+          opacity: 1;
+        }
+      }
+      @keyframes static-splash-frame-b {
+        0% {
+          opacity: 0;
+        }
+        50% {
+          opacity: 1;
+        }
+        100% {
+          opacity: 0;
         }
       }
       @media (prefers-reduced-motion: reduce) {
-        #static-splash-runner {
+        #static-splash-runner .frame-a,
+        #static-splash-runner .frame-b {
           animation: none;
+        }
+        #static-splash-runner .frame-b {
+          opacity: 0;
         }
       }
     </style>
@@ -132,11 +153,21 @@
     <div id="root"></div>
     <div id="static-splash">
       <img id="static-splash-logo" src="/splash-logo.png" alt="" />
-      <svg id="static-splash-runner" viewBox="0 -960 960 960">
-        <path
-          fill="#1f6bff"
-          d="M535-70v-209l-108-99-36 159q-3 12-13 18.5t-22 4.5l-208-43q-11-2-18-12t-5-22q2-12 12.5-18t21.5-4l171 34 73-369-100 47v104q0 13-8.5 21.5T273-449q-13 0-21.5-8.5T243-479v-125q0-9 5-16.5t13-11.5l146-61q32-14 45.5-17.5T480-714q20 0 35.5 8.5T542-680l42 67q23 37 60 65.5t86 36.5q13 2 21.5 10.5T760-479q0 12-8.5 21t-20.5 7q-57-6-102.5-36.5T543-573l-39 158 81 75q5 5 7.5 10.5T595-318v248q0 13-8.5 21.5T565-40q-13 0-21.5-8.5T535-70Zm-46.5-705.5Q467-797 467-827t21.5-51.5Q510-900 540-900t51.5 21.5Q613-857 613-827t-21.5 51.5Q570-754 540-754t-51.5-21.5Z"
-        />
+      <svg id="static-splash-runner" viewBox="0 0 48 48">
+        <circle cx="31" cy="9" r="5" fill="#1f6bff" />
+        <path d="M28 13 L21 27" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
+        <g class="frame-a">
+          <path d="M21 27 L29 33 L35 40" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          <path d="M21 27 L10 35" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
+          <path d="M28 13 L18 20" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
+          <path d="M28 13 L38 8" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
+        </g>
+        <g class="frame-b">
+          <path d="M21 27 L25 32 L27 39" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          <path d="M21 27 L15 31" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
+          <path d="M28 13 L22 17" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
+          <path d="M28 13 L33 10" stroke="#1f6bff" stroke-width="6" stroke-linecap="round" fill="none" />
+        </g>
       </svg>
       <div id="static-splash-shadow"></div>
     </div>
