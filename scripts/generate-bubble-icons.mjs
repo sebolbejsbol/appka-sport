@@ -149,11 +149,18 @@ writeFileSync(
 );
 
 // Domyślna ikona dla eventów/boisk bez rozpoznanej dyscypliny (sport=null/
-// nieznany typ) — puchar, zamiast dawnej "kropki".
-const trophySvg = readFileSync(join(MATERIAL_DIR, 'trophy-fill.svg'), 'utf8');
+// nieznany typ). Był tu przez chwilę puchar (patrz historia commitów) —
+// zgłoszenie 2026-08-16 słusznie zauważyło, że wygląda jak nagroda/status,
+// którego obiekt nie ma, i że w klastrach mylił się z prawdziwymi
+// dyscyplinami. Wraca zwykła pinezka — ten sam Material Symbol
+// (`location_on`), którego już od dawna używa odpowiednik w
+// assets/map-field-icons/ (kolorowa plakietka, patrz MATERIAL_ICONS.generic
+// w generate-priority-sport-icons.mjs) — jeden spójny, oczywisty "nieznany
+// obiekt" w obu zestawach, zamiast dwóch różnych glifów.
+const genericSvg = readFileSync(join(MATERIAL_DIR, 'location_on-fill.svg'), 'utf8');
 writeFileSync(
   join(OUT_DIR, 'generic.png'),
-  new Resvg(shell(materialGlyph(extractPathD(trophySvg))), {
+  new Resvg(shell(materialGlyph(extractPathD(genericSvg))), {
     fitTo: { mode: 'width', value: SIZE },
     font: { loadSystemFonts: false },
   })

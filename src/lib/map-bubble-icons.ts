@@ -74,6 +74,23 @@ const KNOWN_PLACE_CATEGORIES = new Set([
   'chess',
 ]);
 
+/**
+ * Warianty/synonimy tagów OSM, które oznaczają dokładnie ten sam obiekt co
+ * jeden z KNOWN_SPORTS, ale pod inną nazwą — dawniej lądowały na pucharze,
+ * co przy sąsiedztwie z prawdziwą dyscypliną (patrz zgłoszenie 2026-08-16,
+ * Zrzut 4: "athletics" obok "running" na tym samym boisku szkolnym) mylnie
+ * wyglądało jak dwie różne ikony tego samego miejsca. `athletics` to
+ * dokładnie bieżnia/stadion lekkoatletyczny — ten sam obiekt co `running`.
+ */
+const SPORT_ALIASES: Record<string, string> = {
+  athletics: 'running',
+  beachvolleyball: 'volleyball',
+  skateboard: 'skatepark',
+  team_handball: 'handball',
+  ['five-a-side']: 'football',
+  soccer: 'football',
+};
+
 export const mapBubbleIcons = {
   [`${KEY_PREFIX}basketball`]: icon(require('../../assets/map-bubble-icons/basketball.png')),
   [`${KEY_PREFIX}football`]: icon(require('../../assets/map-bubble-icons/football.png')),
@@ -128,5 +145,7 @@ export function bubbleIconKey(sport: string | null | undefined): BubbleIconKey {
   if (KNOWN_SPORTS.has(sport)) return `${KEY_PREFIX}${sport}` as BubbleIconKey;
   if (sport === 'multi' || sport.includes(';')) return `${KEY_PREFIX}multi` as BubbleIconKey;
   if (KNOWN_PLACE_CATEGORIES.has(sport)) return `${KEY_PREFIX}${sport}` as BubbleIconKey;
+  const alias = SPORT_ALIASES[sport];
+  if (alias) return `${KEY_PREFIX}${alias}` as BubbleIconKey;
   return `${KEY_PREFIX}generic` as BubbleIconKey;
 }

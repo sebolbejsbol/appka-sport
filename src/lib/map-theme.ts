@@ -113,10 +113,27 @@ export const CLUSTER_ICON_SPORTS = [
 const CLUSTER_CATEGORY_KEYS = [...CLUSTER_ICON_SPORTS, 'other'] as const;
 export type ClusterCategoryKey = (typeof CLUSTER_CATEGORY_KEYS)[number];
 
-/** "fitness" jako kategoria obejmuje dwa typy boisk z OSM (siłownia plenerowa = też siłownia). */
+/**
+ * "fitness" jako kategoria obejmuje dwa typy boisk z OSM (siłownia plenerowa
+ * = też siłownia). Kilka innych kategorii obejmuje surowe synonimy tagów OSM
+ * — patrz SPORT_ALIASES w map-bubble-icons.ts (ta sama lista, żeby bieżnia
+ * zaimportowana jako "athletics" liczyła się do tego samego slotu co
+ * "running", zamiast wpadać do "other" mimo że pojedynczy bąbel tego punktu
+ * i tak już pokazuje ikonę biegacza — zgłoszenie 2026-08-16, Zrzut 4).
+ */
+const CLUSTER_SPORT_ALIASES: Record<string, string[]> = {
+  fitness: ['fitness', 'outdoor_gym'],
+  running: ['running', 'athletics'],
+  volleyball: ['volleyball', 'beachvolleyball'],
+  skatepark: ['skatepark', 'skateboard'],
+  handball: ['handball', 'team_handball'],
+  football: ['football', 'soccer', 'five-a-side'],
+};
+
 function clusterSportCondition(sport: string): any {
-  if (sport === 'fitness') {
-    return ['in', ['get', 'sport'], ['literal', ['fitness', 'outdoor_gym']]];
+  const aliases = CLUSTER_SPORT_ALIASES[sport];
+  if (aliases) {
+    return ['in', ['get', 'sport'], ['literal', aliases]];
   }
   return ['==', ['get', 'sport'], sport];
 }
