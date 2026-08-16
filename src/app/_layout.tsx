@@ -18,6 +18,11 @@ import { onInitialMapDataReady } from '@/lib/map-ready';
  * boiska/eventy z mapy — zabezpieczenie na wypadek wolnej/zerwanej sieci,
  * żeby ekran startowy nigdy nie wisiał w nieskończoność. */
 const MAP_READY_TIMEOUT_MS = 4000;
+/** Minimalny czas, przez jaki splash (z animacją biegacza — patrz LoadingRunner)
+ * zostaje na ekranie, nawet gdy dane są gotowe szybciej. Z ciepłym cache'em
+ * boisk (fields-prefetch.ts) dane potrafią być gotowe w ułamku sekundy —
+ * bez tego splash znikał, zanim biegacz w ogóle zdążył się pokazać. */
+const MIN_SPLASH_VISIBLE_MS = 700;
 
 const LOGO = require('../../assets/images/splash-logo.png');
 
@@ -71,12 +76,15 @@ function RootNavigator() {
     let settled = false;
     let fadeTimer: ReturnType<typeof setTimeout> | null = null;
     let readyTimeout: ReturnType<typeof setTimeout> | null = null;
+    let minVisibleTimer: ReturnType<typeof setTimeout> | null = null;
     let unsubscribeMapReady: (() => void) | null = null;
+    let dataReady = false;
 
     function startFade() {
       if (settled) return;
       settled = true;
       if (readyTimeout) clearTimeout(readyTimeout);
+      if (minVisibleTimer) clearTimeout(minVisibleTimer);
       if (unsubscribeMapReady) unsubscribeMapReady();
       // React jest gotowy — chowamy natywny splash (nasz ciemny overlay już go zastępuje).
       SplashScreen.hideAsync().catch(() => {});
@@ -89,13 +97,25 @@ function RootNavigator() {
       }, 180);
     }
 
+    // Dane gotowe -> zamyka splash dopiero, gdy MIN_SPLASH_VISIBLE_MS też minął
+    // (który z kolei, gdy dane są już gotowe, sam odpala startFade) — czeka na
+    // PÓŹNIEJSZY z tych dwóch warunków, nie na pierwszy.
+    function onDataReady() {
+      dataReady = true;
+      if (minVisibleTimer == null) startFade();
+    }
+
     const willShowMap = !!session && !isPasswordRecovery && !needsProfileSetup;
     if (willShowMap) {
       // Trzymamy splash, dopóki mapa nie skończy pierwszego ładowania boisk/eventów —
       // inaczej użytkownik przez chwilę widzi pustą mapę i myśli, że coś nie działa.
       // Limit czasu na wypadek wolnej/zerwanej sieci.
       readyTimeout = setTimeout(startFade, MAP_READY_TIMEOUT_MS);
-      unsubscribeMapReady = onInitialMapDataReady(startFade);
+      minVisibleTimer = setTimeout(() => {
+        minVisibleTimer = null;
+        if (dataReady) startFade();
+      }, MIN_SPLASH_VISIBLE_MS);
+      unsubscribeMapReady = onInitialMapDataReady(onDataReady);
     } else {
       startFade();
     }
@@ -104,6 +124,7 @@ function RootNavigator() {
       settled = true;
       if (fadeTimer) clearTimeout(fadeTimer);
       if (readyTimeout) clearTimeout(readyTimeout);
+      if (minVisibleTimer) clearTimeout(minVisibleTimer);
       if (unsubscribeMapReady) unsubscribeMapReady();
     };
   }, [isLoading, session, isPasswordRecovery, needsProfileSetup, splashOpacity]);

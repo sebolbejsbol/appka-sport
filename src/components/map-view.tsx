@@ -33,6 +33,7 @@ import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useUserLocation, type LngLat } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
+import { showActionSheet } from '@/lib/action-sheet-navigation';
 import {
   fieldsToGeoJSON,
   getEventCountsByCategoryInBbox,
@@ -697,7 +698,8 @@ export function AppMap() {
 
   const onFieldPress = useCallback(
     (event: { features?: GeoJSON.Feature[] }) => {
-      const feature = event.features?.[0];
+      const rawFeatures = event.features ?? [];
+      const feature = rawFeatures[0];
       if (!feature) return;
 
       // Tap w grupę (cluster) -> NIE przybliżamy i nie otwieramy losowego boiska —
@@ -724,7 +726,50 @@ export function AppMap() {
         return;
       }
 
-      const field = fieldFromMapFeature(feature);
+      // Kilka NIEsklastrowanych boisk trafionych tym samym tapem — dzieje się
+      // to na kompleksach wielosportowych (np. Orlik: kosz + boisko piłkarskie
+      // kilka metrów od siebie), gdzie przy bliskim zoomie Mapbox przestaje je
+      // już klastrować (clusterMaxZoomLevel), więc renderują się jako osobne,
+      // nachodzące na siebie bąble. Bez tego zawsze wygrywała pierwsza cecha
+      // w tablicy — pozostałe boiska były NIEOSIĄGALNE żadnym tapnięciem.
+      const seenIds = new Set<string>();
+      const distinctFeatures: GeoJSON.Feature[] = [];
+      for (const f of rawFeatures) {
+        if (f.properties?.point_count != null) continue;
+        const id = String(f.properties?.id ?? f.id ?? '');
+        if (!id || seenIds.has(id)) continue;
+        seenIds.add(id);
+        distinctFeatures.push(f);
+      }
+
+      if (distinctFeatures.length > 1) {
+        showActionSheet({
+          title: t('map.overlappingFieldsTitle'),
+          cancelLabel: t('common.cancel'),
+          options: distinctFeatures.flatMap((f) => {
+            const overlappingField = fieldFromMapFeature(f);
+            if (!overlappingField) return [];
+            const props = (f.properties ?? {}) as Record<string, unknown>;
+            const emoji = typeof props.emoji === 'string' ? props.emoji : '📍';
+            return [
+              {
+                label: `${emoji} ${formatCourtName(overlappingField.name, overlappingField.sport)}`,
+                onPress: () => {
+                  fieldTapLockRef.current = true;
+                  setClusterVenues(null);
+                  setSelectedField(overlappingField);
+                  setTimeout(() => {
+                    fieldTapLockRef.current = false;
+                  }, 0);
+                },
+              },
+            ];
+          }),
+        });
+        return;
+      }
+
+      const field = fieldFromMapFeature(distinctFeatures[0] ?? feature);
       if (!field) return;
 
       fieldTapLockRef.current = true;

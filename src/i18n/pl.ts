@@ -507,6 +507,7 @@ export const pl = {
     locationDenied:
       'Brak dostępu do lokalizacji — pokazujemy widok domyślny. Włącz lokalizację w ustawieniach, aby zobaczyć okolicę.',
     longPressHint: 'Przytrzymaj mapę, aby zgłosić brakujące boisko.',
+    overlappingFieldsTitle: 'Kilka boisk w tym miejscu — które?',
     playSearchEyebrow: 'Szukaj',
     playSearchPlaceholder: 'Co Cię dziś interesuje?',
     loadingFields: 'Ładujemy boiska w Trójmieście…',
