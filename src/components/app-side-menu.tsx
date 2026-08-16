@@ -99,11 +99,17 @@ type AppMenuContextValue = {
   open: boolean;
   openMenu: () => void;
   closeMenu: () => void;
+  /** Czy dolny pasek nawigacji jest tymczasowo schowany (np. otwarta karta
+   * eventu na mapie, żeby nie zasłaniać przycisku „Dołącz"). Licznik, żeby
+   * kilka nakładających się źródeł mogło niezależnie żądać schowania. */
+  navHidden: boolean;
+  hideNav: () => void;
+  showNav: () => void;
 };
 
 const AppMenuContext = createContext<AppMenuContextValue | null>(null);
 
-function useAppMenu(): AppMenuContextValue {
+export function useAppMenu(): AppMenuContextValue {
   const value = useContext(AppMenuContext);
   if (!value) {
     throw new Error('useAppMenu musi być użyte wewnątrz <AppMenuProvider />');
@@ -137,16 +143,23 @@ function isNavActive(pathname: string, path: Href): boolean {
 
 export function AppMenuProvider({ children }: PropsWithChildren) {
   const [open, setOpen] = useState(false);
+  const [hideCount, setHideCount] = useState(0);
   const { width } = useWindowDimensions();
   const isDesktopNav = Platform.OS === 'web' && width >= DESKTOP_NAV_BREAKPOINT;
+
+  const hideNav = useCallback(() => setHideCount((c) => c + 1), []);
+  const showNav = useCallback(() => setHideCount((c) => Math.max(0, c - 1)), []);
 
   const value = useMemo(
     () => ({
       open,
       openMenu: () => setOpen(true),
       closeMenu: () => setOpen(false),
+      navHidden: hideCount > 0,
+      hideNav,
+      showNav,
     }),
-    [open],
+    [open, hideCount, hideNav, showNav],
   );
 
   if (isDesktopNav) {
@@ -360,9 +373,11 @@ function AppDrawer() {
   // pokazuje/chowa się przez visible={open}. Wcześniejszy early-return
   // unmountował całe AppDrawer (razem z NotificationsBell) w momencie
   // zamknięcia szuflady, co ubijało panel powiadomień w tym samym ticku,
-  // w którym dzwoneczek próbował go otworzyć (onBeforeOpen={closeMenu}
-  // w NotificationsBell) — dzwoneczek w menu na telefonie/wąskim widoku
-  // wizualnie "nic nie robił", bo jego panel nigdy nie zdążył się pokazać.
+  // w którym dzwoneczek próbował go otworzyć — dzwoneczek w menu na
+  // telefonie/wąskim widoku wizualnie "nic nie robił", bo jego panel
+  // nigdy nie zdążył się pokazać. Dodatkowo NotificationsBell już nie
+  // zamyka szuflady PRZED otwarciem swojego panelu (patrz onAfterClose) —
+  // dwa <Modal> przełączane naraz w jednym ticku to zbędne ryzyko.
 
   return (
     <Modal
@@ -391,7 +406,7 @@ function AppDrawer() {
               <NotificationsBell
                 unreadCount={unreadNotifications}
                 onUnreadCountChange={setUnreadNotifications}
-                onBeforeOpen={closeMenu}
+                onAfterClose={closeMenu}
               />
               <Pressable
                 onPress={closeMenu}
@@ -542,11 +557,16 @@ function NavRow({
 function NotificationsBell({
   unreadCount,
   onUnreadCountChange,
-  onBeforeOpen,
+  onAfterClose,
 }: {
   unreadCount: number;
   onUnreadCountChange: (updater: (prev: number) => number) => void;
-  onBeforeOpen?: () => void;
+  /** Wywoływane PO zamknięciu panelu (nie przed jego otwarciem) — np. żeby
+   * domknąć szufladę menu, w której żyje dzwoneczek na telefonie. Otwarcie
+   * panelu nie zamyka już szuflady synchronicznie: dwa <Modal> przełączane
+   * w tym samym ticku (jeden visible=false, drugi visible=true) potrafiły
+   * się wzajemnie gubić — dzwoneczek na mobile "nic nie robił". */
+  onAfterClose?: () => void;
 }) {
   const insets = useSafeAreaInsets();
   const [panelOpen, setPanelOpen] = useState(false);
@@ -555,7 +575,6 @@ function NotificationsBell({
   const [loadError, setLoadError] = useState(false);
 
   const openPanel = useCallback(async () => {
-    onBeforeOpen?.();
     setPanelOpen(true);
     setLoading(true);
     setLoadError(false);
@@ -563,9 +582,12 @@ function NotificationsBell({
     setRows(data);
     setLoadError(Boolean(error));
     setLoading(false);
-  }, [onBeforeOpen]);
+  }, []);
 
-  const closePanel = useCallback(() => setPanelOpen(false), []);
+  const closePanel = useCallback(() => {
+    setPanelOpen(false);
+    onAfterClose?.();
+  }, [onAfterClose]);
 
   async function handleItemPress(item: AppNotification) {
     if (!item.read_at) {
@@ -711,7 +733,7 @@ function NotificationsBell({
 function BottomNavBar() {
   const insets = useSafeAreaInsets();
   const pathname = usePathname();
-  const { open, openMenu } = useAppMenu();
+  const { open, openMenu, navHidden } = useAppMenu();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
 
   // Ten sam licznik nieprzeczytanych co w AppDrawer/DesktopSidebar (patrz
@@ -725,7 +747,7 @@ function BottomNavBar() {
     return unsubscribe;
   }, []);
 
-  if (!isMenuVisibleRoute(pathname)) return null;
+  if (!isMenuVisibleRoute(pathname) || navHidden) return null;
 
   function navigate(path: Href) {
     if (pathname === path) return;

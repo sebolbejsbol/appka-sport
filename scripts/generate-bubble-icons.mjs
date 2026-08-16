@@ -55,6 +55,10 @@ const MATERIAL_ICONS = {
   handball: 'sports_handball-fill',
   hockey: 'sports_hockey-fill',
   music_club: 'music_note-fill',
+  // Boisko wielofunkcyjne (sport = "basketball;football" itd., patrz
+  // bubbleIconKey w map-bubble-icons.ts) — stadion zamiast pucharu
+  // (generic.png), żeby nie sugerować nagrody/turnieju.
+  multi: 'stadium-fill',
 };
 
 /** Bez tła/obwódki — tylko biały glif, wyśrodkowany w przezroczystym kwadracie. */

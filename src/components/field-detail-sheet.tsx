@@ -12,6 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring } from 'react-native-reanimated';
 
+import { useAppMenu } from '@/components/app-side-menu';
 import { EventMetaBadges } from '@/components/event-meta-badges';
 import { FieldOpinionsSheet } from '@/components/field-opinions-sheet';
 import { FieldRatingStars } from '@/components/field-rating-stars';
@@ -69,6 +70,13 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
   const heartStyle = useAnimatedStyle(() => ({ transform: [{ scale: heartScale.value }] }));
 
   const fieldId = field?.id;
+
+  const { hideNav, showNav } = useAppMenu();
+  useEffect(() => {
+    if (!fieldId) return;
+    hideNav();
+    return () => showNav();
+  }, [fieldId, hideNav, showNav]);
 
   useEffect(() => {
     if (!fieldId) {

@@ -183,7 +183,7 @@ export function MapLocationSearch({ topOffset, onSelectPlace }: Props) {
 const styles = StyleSheet.create({
   anchor: {
     position: 'absolute',
-    left: 72,
+    left: 14,
     right: 14,
     zIndex: 28,
   },

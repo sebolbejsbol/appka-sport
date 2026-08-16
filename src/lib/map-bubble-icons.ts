@@ -58,6 +58,8 @@ export const mapBubbleIcons = {
   [`${KEY_PREFIX}handball`]: icon(require('../../assets/map-bubble-icons/handball.png')),
   [`${KEY_PREFIX}hockey`]: icon(require('../../assets/map-bubble-icons/hockey.png')),
   [`${KEY_PREFIX}music_club`]: icon(require('../../assets/map-bubble-icons/music_club.png')),
+  /** Boisko wielofunkcyjne (`sport` = kilka dyscyplin połączonych „;”, np. "basketball;football"). */
+  [`${KEY_PREFIX}multi`]: icon(require('../../assets/map-bubble-icons/multi.png')),
   /** Sport/typ bez rozpoznanej dyscypliny (null/nieznana wartość) — puchar zamiast kropki. */
   [`${KEY_PREFIX}generic`]: icon(require('../../assets/map-bubble-icons/generic.png')),
   /** Nadmiar kategorii w siatce ikon klastra (więcej niż mieści slot). */
@@ -66,8 +68,18 @@ export const mapBubbleIcons = {
 
 export type BubbleIconKey = keyof typeof mapBubbleIcons;
 
-/** Klucz ikony bąbla dla danego sportu — nierozpoznane/puste trafiają na domyślny puchar. */
+/**
+ * Klucz ikony bąbla dla danego sportu — nierozpoznane/puste trafiają na
+ * domyślny puchar. Boiska wielofunkcyjne — `sport` = "basketball;football"
+ * itd. (patrz formatSportLabel/fieldMarkerColor w sports.ts, które już
+ * dzielą po „;") ALBO dosłowne "multi" (patrz defaultCourtNameForSport w
+ * field-display.ts) — dawniej też lądowały na tym samym pucharze, bo żadna
+ * z tych wartości nigdy nie pasowała do KNOWN_SPORTS — teraz dostają własną
+ * ikonę stadionu zamiast pucharu (myląco kojarzącego się z nagrodą).
+ */
 export function bubbleIconKey(sport: string | null | undefined): BubbleIconKey {
-  if (sport && KNOWN_SPORTS.has(sport)) return `${KEY_PREFIX}${sport}` as BubbleIconKey;
+  if (!sport) return `${KEY_PREFIX}generic` as BubbleIconKey;
+  if (KNOWN_SPORTS.has(sport)) return `${KEY_PREFIX}${sport}` as BubbleIconKey;
+  if (sport === 'multi' || sport.includes(';')) return `${KEY_PREFIX}multi` as BubbleIconKey;
   return `${KEY_PREFIX}generic` as BubbleIconKey;
 }
