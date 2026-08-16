@@ -94,42 +94,27 @@
         height: 8px;
         border-radius: 999px;
         background: #0a0e16;
-        animation: static-splash-shadow 440ms ease-in-out infinite;
+        opacity: 0.18;
       }
-      /* Dokładnie te same 2 animacje co runnerStyle w loading-runner.tsx:
-         podskok (translateY, 220ms w górę / 220ms w dół) + zamiana nóg
-         (scaleX(-1), ta sama asymetryczna sylwetka -> lustrzane odbicie
-         daje iluzję dwóch na przemian pracujących nóg), w jednym cyklu
-         440ms, bo CSS nie potrafi złożyć dwóch osobnych animacji na tej
-         samej właściwości transform. */
+      /* Dokładnie te same 2 animacje co runnerStyle w loading-runner.tsx —
+         2026-08-17: "biegnie tylko do przodu, nigdzie nie skacze", więc bez
+         ruchu w pionie. Zamiana nóg (scaleX(-1), ta sama asymetryczna
+         sylwetka -> lustrzane odbicie = iluzja dwóch na przemian
+         pracujących nóg) + przechył do przodu w rytm kroku (rotate). Cień
+         statyczny (nie animowany — pulsowanie sugerowałoby podskakiwanie). */
       @keyframes static-splash-run {
         0% {
-          transform: translateY(0) scaleX(-1);
+          transform: scaleX(-1) rotate(-6deg);
         }
         50% {
-          transform: translateY(-12.3px) scaleX(1);
+          transform: scaleX(1) rotate(6deg);
         }
         100% {
-          transform: translateY(0) scaleX(-1);
-        }
-      }
-      @keyframes static-splash-shadow {
-        0% {
-          opacity: 0.24;
-          transform: scaleX(1);
-        }
-        50% {
-          opacity: 0.12;
-          transform: scaleX(0.65);
-        }
-        100% {
-          opacity: 0.24;
-          transform: scaleX(1);
+          transform: scaleX(-1) rotate(-6deg);
         }
       }
       @media (prefers-reduced-motion: reduce) {
-        #static-splash-runner,
-        #static-splash-shadow {
+        #static-splash-runner {
           animation: none;
         }
       }

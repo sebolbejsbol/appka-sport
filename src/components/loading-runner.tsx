@@ -1,13 +1,6 @@
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  Easing,
-  useAnimatedStyle,
-  useSharedValue,
-  withRepeat,
-  withSequence,
-  withTiming,
-} from 'react-native-reanimated';
+import Animated, { useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
 
 import { Brand } from '@/constants/theme';
@@ -18,37 +11,26 @@ import { Brand } from '@/constants/theme';
  * public/index.html, pokazywany zanim JS w ogóle się doładuje — MUSI
  * wyglądać identycznie, żeby przejście między nimi było niewidoczne).
  *
- * Zgłoszenie 2026-08-16/17: poprzednia wersja z ciągłym sinusem (podskok +
- * wychylenie na boki + przechył + smugi prędkości naraz) była
- * "przekombinowana". Uproszczone do DOKŁADNIE dwóch animacji, tak jak
- * poprosił użytkownik: (1) podskok — góra/dół w rytm kroku, (2) zamiana nóg
- * — odbicie lustrzane sylwetki (ta sama asymetryczna poza Material Symbols
- * "directions_run", więc scaleX(-1) daje tanią, ale realnie działającą
- * iluzję dwóch na przemian pracujących nóg) — obie zsynchronizowane w
- * prostym rytmie kroku, bez dodatkowych efektów.
+ * Zgłoszenie 2026-08-17: "biegnie tylko do przodu, nigdzie nie skacze" —
+ * ŻADNEGO ruchu w pionie. Dokładnie dwie animacje zmiany biegu, obie w
+ * poziomie: (1) zamiana nóg — odbicie lustrzane sylwetki (ta sama
+ * asymetryczna poza Material Symbols "directions_run", więc scaleX(-1)
+ * daje iluzję dwóch na przemian pracujących nóg), (2) przechył do przodu w
+ * rytm kroku (mały rotate, w stronę, w którą akurat "patrzy" odbita
+ * sylwetka) — razem czytają się jako pchanie się do przodu przy bieganiu,
+ * nie podskakiwanie w miejscu. Cień pod stopami zostaje statyczny (nie jest
+ * jedną z tych dwóch animacji, a wszelka pulsacja cienia sugerowałaby
+ * właśnie podskakiwanie).
  */
 export function LoadingRunner({ size = 48 }: { size?: number }) {
-  const bounce = useSharedValue(0);
   const flip = useSharedValue(1);
 
   useEffect(() => {
-    bounce.value = withRepeat(
-      withSequence(
-        withTiming(1, { duration: 220, easing: Easing.out(Easing.quad) }),
-        withTiming(0, { duration: 220, easing: Easing.in(Easing.quad) }),
-      ),
-      -1,
-    );
     flip.value = withRepeat(withSequence(withTiming(1, { duration: 220 }), withTiming(-1, { duration: 220 })), -1);
-  }, [bounce, flip]);
+  }, [flip]);
 
   const runnerStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: -bounce.value * size * 0.28 }, { scaleX: flip.value }],
-  }));
-
-  const shadowStyle = useAnimatedStyle(() => ({
-    opacity: 0.24 - bounce.value * 0.12,
-    transform: [{ scaleX: 1 - bounce.value * 0.35 }],
+    transform: [{ scaleX: flip.value }, { rotate: `${flip.value * 6}deg` }],
   }));
 
   return (
@@ -61,7 +43,7 @@ export function LoadingRunner({ size = 48 }: { size?: number }) {
           />
         </Svg>
       </Animated.View>
-      <Animated.View style={[styles.shadow, { width: size * 0.7 }, shadowStyle]} />
+      <View style={[styles.shadow, { width: size * 0.7 }]} />
     </View>
   );
 }
@@ -75,6 +57,7 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 999,
     backgroundColor: Brand.textPrimary,
+    opacity: 0.18,
     marginTop: 6,
   },
 });
