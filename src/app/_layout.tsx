@@ -1,7 +1,7 @@
 import { SplashScreen, Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
-import { Animated, Image, StyleSheet, View } from 'react-native';
+import { Animated, Image, Platform, StyleSheet, View } from 'react-native';
 
 import { ActionSheetHost } from '@/components/action-sheet-host';
 import { ConfirmModalHost } from '@/components/confirm-modal-host';
@@ -29,7 +29,17 @@ const MAP_READY_TIMEOUT_MS = 8000;
  * bez tego splash znikał, zanim biegacz w ogóle zdążył się pokazać. */
 const MIN_SPLASH_VISIBLE_MS = 700;
 
-const LOGO = require('../../assets/images/splash-logo.png');
+// Web MUSI używać dokładnie tego samego URL-a co statyczny splash w
+// public/index.html (public/splash-logo.png, serwowany pod /splash-logo.png
+// bez haszowania nazwy) — inaczej `require(...)` każe Metro/webpackowi
+// wygenerować OSOBNY, inny (hashowany) URL do assets/images/splash-logo.png,
+// a przeglądarka musi go pobrać od nowa zamiast trafić w cache z pierwszego
+// (statycznego) fetcha. Ten dodatkowy round-trip to dokładnie ta sekunda
+// (albo więcej na wolnym łączu), w której biegacz (wektor, renderuje się od
+// razu, zero sieci) już wisi na ekranie, a logo jeszcze nie — zgłoszenie
+// 2026-08-16: mają się pojawiać RAZEM, nie logo z opóźnieniem. Ta sama
+// nazwa pliku = gwarantowany trafiony cache = zero widocznego opóźnienia.
+const LOGO = Platform.OS === 'web' ? { uri: '/splash-logo.png' } : require('../../assets/images/splash-logo.png');
 
 SplashScreen.preventAutoHideAsync();
 
