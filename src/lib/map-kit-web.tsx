@@ -184,7 +184,16 @@ export const MapView = forwardRef<unknown, MapViewProps>(function MapView(
         if (!layerId) continue;
         for (const reg of sourcesRef.current.values()) {
           if (reg.getLayerIds().includes(layerId)) {
-            reg.onPress?.({ features: [feature] });
+            // Zbierz WSZYSTKIE cechy tego źródła trafione tym klikiem, nie tylko
+            // pierwszą (najwyższą w z-order) — inaczej dwa nachodzące na siebie,
+            // nieskastrowane boiska zawsze tracą to "pod spodem": onPress dostawał
+            // jednoelementową tablicę i logika wykrywania nakładających się boisk
+            // (patrz onFieldPress w map-view.web.tsx) nigdy się nie uruchamiała na
+            // wersji webowej, mimo że działa natywnie (tam RN Mapbox sam zwraca
+            // wszystkie trafione cechy).
+            const sourceLayerIds = new Set(reg.getLayerIds());
+            const matches = features.filter((f) => f.layer?.id && sourceLayerIds.has(f.layer.id));
+            reg.onPress?.({ features: matches });
             return;
           }
         }
