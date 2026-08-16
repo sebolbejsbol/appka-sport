@@ -460,6 +460,20 @@ export const ShapeSource = forwardRef<ShapeSourceImperative, ShapeSourceProps>(f
         cluster: Boolean(cluster),
         clusterRadius: clusterRadius ?? 50,
         clusterMaxZoom: clusterMaxZoomLevel ?? 14,
+        // GeoJSON źródło samo w sobie tnie dane na kafelki tylko do
+        // WŁASNEGO `maxzoom` (domyślnie 18 w MapLibre/Mapbox GL JS) —
+        // niezależnego od `clusterMaxZoom` powyżej. Bez jawnego ustawienia
+        // tego pola klaster przestaje się realnie przeliczać powyżej z18:
+        // każdy dalszy zoom tylko powiększa (over-zoom) już wygenerowany
+        // kafelek z18, więc dwa punkty, które w z18 mieściły się w
+        // `clusterRadius` (bardzo prawdopodobne dla obiektów kilka metrów
+        // od siebie — 80px na z18 to dziesiątki metrów), zostają
+        // sklastrowane NA ZAWSZE, niezależnie od tego, jak bardzo
+        // użytkownik przybliży mapę — `clusterMaxZoom={19}` nigdy realnie
+        // nie zadziała, bo nie ma dla z19 żadnego kafelka do wygenerowania.
+        // Stąd zgłoszenie 2026-08-16: "nawet na maksymalnym zoomie" bąble
+        // się nie rozdzielały. Podbite razem z clusterMaxZoom, z zapasem.
+        maxzoom: Math.max((clusterMaxZoomLevel ?? 14) + 2, 20),
         ...(clusterProperties ? { clusterProperties } : null),
       });
     }

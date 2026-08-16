@@ -59,6 +59,25 @@ const MATERIAL_ICONS = {
   // bubbleIconKey w map-bubble-icons.ts) — stadion zamiast pucharu
   // (generic.png), żeby nie sugerować nagrody/turnieju.
   multi: 'stadium-fill',
+  // "Inne obiekty" zaimportowane z OSM pod tą samą kolumną `sport` co
+  // dyscypliny sportowe (park/biblioteka/muzeum/... — patrz zgłoszenie
+  // 2026-08-16: tysiące takich rekordów w bazie, żaden nie pasował do
+  // KNOWN_SPORTS, więc wszystkie lądowały na pucharze). Te same glify co
+  // assets/map-field-icons/ (generate-priority-sport-icons.mjs), tylko
+  // białe/bez tła jak reszta tego zestawu.
+  park: 'park-fill',
+  museum: 'museum-fill',
+  theatre: 'theater_comedy-fill',
+  cinema: 'movie-fill',
+  library: 'local_library-fill',
+  concert_hall: 'mic-fill',
+  community_centre: 'groups-fill',
+  coworking: 'business_center-fill',
+  conference_centre: 'corporate_fare-fill',
+  arts_centre: 'palette-fill',
+  photo_studio: 'photo_camera-fill',
+  cooking_school: 'cooking-fill',
+  chess: 'chess-fill',
 };
 
 /** Bez tła/obwódki — tylko biały glif, wyśrodkowany w przezroczystym kwadracie. */

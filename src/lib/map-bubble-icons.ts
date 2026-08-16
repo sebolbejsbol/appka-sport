@@ -42,6 +42,38 @@ const KNOWN_SPORTS = new Set([
   'music_club',
 ]);
 
+/**
+ * `fields.sport` przechowuje surowy tag OSM importu, który dla wielu
+ * rekordów wcale nie jest dyscypliną sportu — to kategoria miejsca
+ * (park/biblioteka/muzeum/...). Zgłoszenie 2026-08-16: te rekordy (park —
+ * 5271 wierszy, community_centre — 4564, library — 3558, museum — 2695,
+ * arts_centre — 1302, photo_studio — 1247, conference_centre — 922,
+ * theatre — 872, cinema — 564, na produkcyjnej bazie) trafiały na
+ * `generic` (puchar), co użytkownik zgłosił jako mylące — "nic nie
+ * oznacza, tylko myli". Mają już własną ikonę w assets/map-field-icons/
+ * (kolorowa plakietka, patrz generate-priority-sport-icons.mjs) — teraz
+ * dostają też odpowiednik w tym (białym, bez tła) zestawie zamiast
+ * pucharu. `pottery` zostaje na `generic` — brak dobrego odpowiednika w
+ * Material Symbols (patrz komentarz przy SKIPPED_KEYS w
+ * generate-priority-sport-icons.mjs), zbyt mało rekordów (149), żeby to
+ * było priorytetem.
+ */
+const KNOWN_PLACE_CATEGORIES = new Set([
+  'park',
+  'museum',
+  'theatre',
+  'cinema',
+  'library',
+  'concert_hall',
+  'community_centre',
+  'coworking',
+  'conference_centre',
+  'arts_centre',
+  'photo_studio',
+  'cooking_school',
+  'chess',
+]);
+
 export const mapBubbleIcons = {
   [`${KEY_PREFIX}basketball`]: icon(require('../../assets/map-bubble-icons/basketball.png')),
   [`${KEY_PREFIX}football`]: icon(require('../../assets/map-bubble-icons/football.png')),
@@ -62,6 +94,20 @@ export const mapBubbleIcons = {
   [`${KEY_PREFIX}multi`]: icon(require('../../assets/map-bubble-icons/multi.png')),
   /** Sport/typ bez rozpoznanej dyscypliny (null/nieznana wartość) — puchar zamiast kropki. */
   [`${KEY_PREFIX}generic`]: icon(require('../../assets/map-bubble-icons/generic.png')),
+  /** Kategorie miejsc spoza sportu, patrz KNOWN_PLACE_CATEGORIES powyżej. */
+  [`${KEY_PREFIX}park`]: icon(require('../../assets/map-bubble-icons/park.png')),
+  [`${KEY_PREFIX}museum`]: icon(require('../../assets/map-bubble-icons/museum.png')),
+  [`${KEY_PREFIX}theatre`]: icon(require('../../assets/map-bubble-icons/theatre.png')),
+  [`${KEY_PREFIX}cinema`]: icon(require('../../assets/map-bubble-icons/cinema.png')),
+  [`${KEY_PREFIX}library`]: icon(require('../../assets/map-bubble-icons/library.png')),
+  [`${KEY_PREFIX}concert_hall`]: icon(require('../../assets/map-bubble-icons/concert_hall.png')),
+  [`${KEY_PREFIX}community_centre`]: icon(require('../../assets/map-bubble-icons/community_centre.png')),
+  [`${KEY_PREFIX}coworking`]: icon(require('../../assets/map-bubble-icons/coworking.png')),
+  [`${KEY_PREFIX}conference_centre`]: icon(require('../../assets/map-bubble-icons/conference_centre.png')),
+  [`${KEY_PREFIX}arts_centre`]: icon(require('../../assets/map-bubble-icons/arts_centre.png')),
+  [`${KEY_PREFIX}photo_studio`]: icon(require('../../assets/map-bubble-icons/photo_studio.png')),
+  [`${KEY_PREFIX}cooking_school`]: icon(require('../../assets/map-bubble-icons/cooking_school.png')),
+  [`${KEY_PREFIX}chess`]: icon(require('../../assets/map-bubble-icons/chess.png')),
   /** Nadmiar kategorii w siatce ikon klastra (więcej niż mieści slot). */
   [`${KEY_PREFIX}more`]: icon(require('../../assets/map-bubble-icons/more.png')),
 } as const;
@@ -81,5 +127,6 @@ export function bubbleIconKey(sport: string | null | undefined): BubbleIconKey {
   if (!sport) return `${KEY_PREFIX}generic` as BubbleIconKey;
   if (KNOWN_SPORTS.has(sport)) return `${KEY_PREFIX}${sport}` as BubbleIconKey;
   if (sport === 'multi' || sport.includes(';')) return `${KEY_PREFIX}multi` as BubbleIconKey;
+  if (KNOWN_PLACE_CATEGORIES.has(sport)) return `${KEY_PREFIX}${sport}` as BubbleIconKey;
   return `${KEY_PREFIX}generic` as BubbleIconKey;
 }
