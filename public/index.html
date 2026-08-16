@@ -51,11 +51,19 @@
          trygonometryczna ciągłego postępu t (sin, nie 2-3-punktowa sekwencja
          klatek kluczowych, stąd płynniej/bardziej "biegowo" niż odbijanie
          piłki), tu 9 próbek tej samej krzywej co CSS @keyframes potrafi
-         obsłużyć bez JS. Dzięki temu przejście do prawdziwego splasha jest
-         niezauważalne, bez mrugnięcia ani zmiany stylu ruchu. Znika samo,
-         czysto przez CSS, w chwili gdy React cokolwiek wstawi do #root —
-         nie trzeba go usuwać z JS, i zostaje widoczne nieprzerwanie aż do
-         tego momentu (nie ma progu czasowego/fade-out tutaj celowo). -->
+         obsłużyć bez JS. TEN SAM layout co React splash (logo, potem pod
+         nim biegacz) — zgłoszenie 2026-08-16: biegacz ma być ZAWSZE pod
+         logiem DUDIE DAY, nie najpierw sam biegacz a dopiero potem logo,
+         więc logo musi być tutaj od razu, nie dopiero w React. Logo
+         skopiowane do public/splash-logo.png (nie assets/images/ — Expo
+         haszuje nazwy plików z assets/ przy buildzie, więc statyczny HTML
+         nie miałby stabilnej ścieżki do niego; pliki w public/ Expo kopiuje
+         1:1 pod tą samą nazwą). Dzięki temu przejście do prawdziwego
+         splasha jest niezauważalne, bez mrugnięcia ani zmiany layoutu.
+         Znika samo, czysto przez CSS, w chwili gdy React cokolwiek wstawi
+         do #root — nie trzeba go usuwać z JS, i zostaje widoczne
+         nieprzerwanie aż do tego momentu (nie ma progu czasowego/fade-out
+         tutaj celowo). -->
     <style id="static-splash-styles">
       #static-splash {
         position: fixed;
@@ -66,6 +74,11 @@
         justify-content: center;
         background: #ffffff;
         z-index: 9999;
+      }
+      #static-splash-logo {
+        width: 280px;
+        aspect-ratio: 752 / 509;
+        object-fit: contain;
       }
       #root:not(:empty) ~ #static-splash {
         display: none;
@@ -174,6 +187,7 @@
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
     <div id="static-splash">
+      <img id="static-splash-logo" src="/splash-logo.png" alt="" />
       <svg id="static-splash-runner" viewBox="0 -960 960 960">
         <path
           fill="#1f6bff"
