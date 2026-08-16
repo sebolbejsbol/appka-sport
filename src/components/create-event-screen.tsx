@@ -1,7 +1,9 @@
 import Mapbox, {
   Camera,
   CircleLayer,
+  FillLayer,
   Images,
+  LineLayer,
   MapView,
   MarkerView,
   ShapeSource,
@@ -29,7 +31,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DatePickerField } from '@/components/date-picker-field';
 import { TimePickerField } from '@/components/time-picker-field';
 import { Brand, Layout, Radius } from '@/constants/theme';
-import { notifyError } from '@/lib/toast';
+import { notifyError, notifyInfo } from '@/lib/toast';
 import { shadow, Typography } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { useUserLocation } from '@/hooks/use-user-location';
@@ -49,6 +51,8 @@ import {
   fieldFromMapFeature,
   fieldsToGeoJSON,
   getFieldsInBbox,
+  getLockedVoivodeshipBoundaries,
+  lockedVoivodeshipsToGeoJSON,
   type FieldPoint,
 } from '@/lib/fields';
 import { uploadEventImage } from '@/lib/event-storage';
@@ -183,6 +187,14 @@ export default function CreateEventScreen() {
   const [categoryFields, setCategoryFields] = useState<FieldPoint[]>([]);
   const [searchResults, setSearchResults] = useState<PlaceSearchResult[] | null>(null);
   const [loadingPlaces, setLoadingPlaces] = useState(false);
+  // Szara blokada poza Trójmiastem — ta sama, co na głównej mapie (patrz
+  // map-view.tsx), bo tu też wybiera się lokalizację, którą i tak serwer
+  // odrzuci poza Trójmiastem (isWithinTricity walidacja niżej) — użytkownik
+  // ma to widzieć OD RAZU na mapie wyboru, a nie dopiero po błędzie.
+  const [lockedRegions, setLockedRegions] = useState<GeoJSON.FeatureCollection>({
+    type: 'FeatureCollection',
+    features: [],
+  });
 
   const [stepError, setStepError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -222,6 +234,22 @@ export default function CreateEventScreen() {
       setSubcategory(lockedSubcategory);
     }
   }, [fieldSportLocked, lockedSubcategory]);
+
+  useEffect(() => {
+    let active = true;
+    void getLockedVoivodeshipBoundaries('pomorskie').then(({ data, error }) => {
+      if (active && !error && data.length > 0) {
+        setLockedRegions(lockedVoivodeshipsToGeoJSON(data));
+      }
+    });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const onLockedRegionPress = useCallback(() => {
+    notifyInfo(`🔒 ${t('map.comingSoon')}`);
+  }, []);
 
   const stepIndex = Math.max(0, steps.indexOf(stepId));
   const totalSteps = steps.length;
@@ -803,6 +831,11 @@ export default function CreateEventScreen() {
                       clusterProperties={FIELD_PICKER_CLUSTER_PROPERTIES}>
                       <FieldLayers prefix="inline" />
                     </ShapeSource>
+                    <LockedRegionsOverlay
+                      id="create-locked-regions-inline"
+                      shape={lockedRegions}
+                      onPress={onLockedRegionPress}
+                    />
                     {location ? (
                       <MarkerView coordinate={location.center} anchor={{ x: 0.5, y: 1 }} allowOverlap>
                         <Text style={styles.selectedPin}>📍</Text>
@@ -1163,6 +1196,11 @@ export default function CreateEventScreen() {
                 clusterProperties={FIELD_PICKER_CLUSTER_PROPERTIES}>
                 <FieldLayers prefix="full" />
               </ShapeSource>
+              <LockedRegionsOverlay
+                id="create-locked-regions-full"
+                shape={lockedRegions}
+                onPress={onLockedRegionPress}
+              />
               {location ? (
                 <MarkerView coordinate={location.center} anchor={{ x: 0.5, y: 1 }} allowOverlap>
                   <Text style={styles.selectedPin}>📍</Text>
@@ -1276,6 +1314,55 @@ const FIELD_PICKER_CLUSTER_PROPERTIES = {
   total_events: ['+', 1],
   ...buildClusterCategoryProperties(),
 };
+
+/**
+ * Szara blokada poza Trójmiastem — ten sam wygląd (fill + przerywany obrys +
+ * kłódki wzdłuż granicy) co locked-regions na głównej mapie, patrz
+ * map-view.tsx. `id` musi być unikalny per instancja ShapeSource (mapa
+ * inline i pełnoekranowa renderują tę nakładkę osobno).
+ */
+function LockedRegionsOverlay({
+  id,
+  shape,
+  onPress,
+}: {
+  id: string;
+  shape: GeoJSON.FeatureCollection;
+  onPress?: () => void;
+}) {
+  return (
+    <ShapeSource id={id} shape={shape} onPress={onPress}>
+      <FillLayer
+        id={`${id}-fill`}
+        style={{
+          fillColor: '#94a3b8',
+          fillOpacity: 0.6,
+        }}
+      />
+      <LineLayer
+        id={`${id}-outline`}
+        style={{
+          lineColor: '#475569',
+          lineWidth: 1.5,
+          lineDasharray: [2, 2],
+        }}
+      />
+      <SymbolLayer
+        id={`${id}-lock`}
+        style={{
+          symbolPlacement: 'line',
+          symbolSpacing: 120,
+          textField: '🔒',
+          textSize: 16,
+          textAllowOverlap: true,
+          textIgnorePlacement: true,
+          textPitchAlignment: 'viewport',
+          textRotationAlignment: 'viewport',
+        }}
+      />
+    </ShapeSource>
+  );
+}
 
 /**
  * `sourceID` jest wstrzykiwany przez ShapeSource (cloneReactChildrenWithProps) i MUSI
