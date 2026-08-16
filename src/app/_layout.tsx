@@ -16,8 +16,13 @@ import { onInitialMapDataReady } from '@/lib/map-ready';
 
 /** Maksymalny dodatkowy czas na starcie, żeby splash poczekał na pierwsze
  * boiska/eventy z mapy — zabezpieczenie na wypadek wolnej/zerwanej sieci,
- * żeby ekran startowy nigdy nie wisiał w nieskończoność. */
-const MAP_READY_TIMEOUT_MS = 4000;
+ * żeby ekran startowy nigdy nie wisiał w nieskończoność. Zgłoszenie
+ * 2026-08-16: "boiska mają być w pełni załadowane od razu na wejściu" ma
+ * być egzekwowane, nie tylko preferowane — 4s było za krótkie na zimne
+ * połączenie z Supabase (brak cache'u regionu, patrz fields-prefetch.ts),
+ * więc splash częściej niż powinien poddawał się zanim dane realnie
+ * dotarły, i mapa doładowywała boiska dopiero po wejściu. */
+const MAP_READY_TIMEOUT_MS = 8000;
 /** Minimalny czas, przez jaki splash (z animacją biegacza — patrz LoadingRunner)
  * zostaje na ekranie, nawet gdy dane są gotowe szybciej. Z ciepłym cache'em
  * boisk (fields-prefetch.ts) dane potrafią być gotowe w ułamku sekundy —
