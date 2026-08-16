@@ -81,6 +81,17 @@ export function buildAvailabilityMatchExpression(): any {
 /**
  * Kategorie sportu pokazywane jako mini-ikonki wewnątrz bąbla klastra.
  * Wspólne dla map-view.tsx i map-view.web.tsx.
+ *
+ * Musi obejmować WSZYSTKIE FIELD_SPORTS (poza outdoor_gym — patrz
+ * clusterSportCondition, celowo scalone z "fitness" pod jedną ikoną), nie
+ * tylko "priorytetowe" — każdy sport spoza tej listy wpada do "other" i w
+ * klastrze pokazuje się jako puchar zamiast własnej ikony. Zgłoszenie
+ * 2026-08-16: brakowało tu m.in. running — bąbel z dwoma obiektami
+ * pokazywał "piłka + puchar", a dopiero po rozdzieleniu klastra (bliższy
+ * zoom, patrz [[project-2026-08-16-cluster-maxzoom-bug]]) ten sam punkt
+ * poprawnie pokazywał ikonę biegacza — czyli w klastrze wyglądało to, jakby
+ * puchar PODMIENIAŁ biegacza, mimo że to dwie różne, niepowiązane ścieżki
+ * renderowania tej samej ikony.
  */
 export const CLUSTER_ICON_SPORTS = [
   'basketball',
@@ -90,6 +101,13 @@ export const CLUSTER_ICON_SPORTS = [
   'fitness',
   'swimming',
   'hockey',
+  'running',
+  'climbing',
+  'skatepark',
+  'handball',
+  'badminton',
+  'padel',
+  'music_club',
 ] as const;
 
 const CLUSTER_CATEGORY_KEYS = [...CLUSTER_ICON_SPORTS, 'other'] as const;

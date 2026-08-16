@@ -128,13 +128,13 @@ describe('buildClusterIconSlotExpression', () => {
     expect(expr[0]).toBe('case');
     // ['case', [>, total, 4], 'more', <slot-3-category-expr>]
     expect(expr[1][0]).toBe('>');
-    expect(expr[2]).toBe('more');
+    expect(expr[2]).toBe('bubble_more');
   });
 
   it('slots 0-2 resolve to a plain case expression over present/rank checks', () => {
     const expr = buildClusterIconSlotExpression(0);
     expect(expr[0]).toBe('case');
-    expect(expr.at(-1)).toBe('generic'); // trailing fallback
+    expect(expr.at(-1)).toBe('bubble_generic'); // trailing fallback
   });
 });
 
