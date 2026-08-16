@@ -96,14 +96,16 @@
         opacity: 0.18;
       }
       /* Dokładnie ta sama animacja co loading-runner.tsx —
-         2026-08-17 (trzecia runda): głowa+tułów (circle + statyczny <path>
-         nad .frame-a/.frame-b) nigdy się nie ruszają/nie odbijają. Rusza się
-         WYŁĄCZNIE para noga+ręka, dyskretnie (steps(1), bez płynnego
-         przejścia) między dwiema kluczowymi pozycjami biegu: .frame-a =
-         "wykrok" (nogi maksymalnie rozstawione przód-tył), .frame-b =
-         "kolano uniesione" (przednia noga z kolanem w górze, tylna podkurzona
-         do tyłu) — uniesienie kolana to ruch stawu, nie podskok całej
-         sylwetki. Cień statyczny. */
+         2026-08-17 (czwarta runda, po renderze przez sharp/rsvg — patrz
+         komentarz w loading-runner.tsx): głowa+tułów (circle + statyczny
+         <path> nad .frame-a/.frame-b) nigdy się nie ruszają/nie odbijają.
+         Rusza się WYŁĄCZNIE para noga+ręka, dyskretnie (steps(1), bez
+         płynnego przejścia) między dwiema kluczowymi pozycjami biegu:
+         .frame-a = "wykrok" (obie stopy przy ziemi, przód-tył), .frame-b =
+         "kolano uniesione" (noga podporowa NADAL sięga tej samej linii
+         gruntu co w klatce A, tylko noga swobodna ma kolano w górze) — tak,
+         żeby sylwetka nie "podskakiwała" wizualnie między klatkami. Cień
+         statyczny. */
       #static-splash-runner .frame-a {
         animation: static-splash-frame-a 400ms steps(1) infinite;
       }
@@ -154,19 +156,19 @@
     <div id="static-splash">
       <img id="static-splash-logo" src="/splash-logo.png" alt="" />
       <svg id="static-splash-runner" viewBox="0 0 48 48">
-        <circle cx="30" cy="8" r="5.5" fill="#1f6bff" />
-        <path d="M27 12 L19 26" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
+        <circle cx="24" cy="6" r="4" fill="#1f6bff" />
+        <path d="M23 12 L17 25" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
         <g class="frame-a">
-          <path d="M19 26 L28 31 L36 39" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-          <path d="M19 26 L6 33" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
-          <path d="M27 12 L15 17" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
-          <path d="M27 12 L39 7" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
+          <path d="M17 25 L26 32 L34 42" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          <path d="M17 25 L4 40" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
+          <path d="M23 12 L14 18" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
+          <path d="M23 12 L31 18" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
         </g>
         <g class="frame-b">
-          <path d="M19 26 L24 18 L30 22" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-          <path d="M19 26 L12 20" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
-          <path d="M27 12 L20 6" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
-          <path d="M27 12 L33 20" stroke="#1f6bff" stroke-width="7" stroke-linecap="round" fill="none" />
+          <path d="M17 25 L24 20 L29 24" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
+          <path d="M17 25 L19 43" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
+          <path d="M23 12 L13 16" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
+          <path d="M23 12 L30 19" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
         </g>
       </svg>
       <div id="static-splash-shadow"></div>

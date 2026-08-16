@@ -13,18 +13,20 @@ const AnimatedG = Animated.createAnimatedComponent(G);
  * public/index.html, pokazywany zanim JS w ogóle się doładuje — MUSI
  * wyglądać identycznie, żeby przejście między nimi było niewidoczne).
  *
- * Zgłoszenie 2026-08-17 (trzecia runda): "lepiej ale musi wyglądać jakby
- * biegł" — poprzednia para klatek (nogi/ręce lekko "pompujące" w tym samym
- * miejscu) była za mało kontrastowa, czytała się jak marsz w miejscu, nie
- * bieg. Zamienione na klasyczną parę kluczowych pozycji biegu z ikonografii
- * sportowej: klatka A = "wykrok" (obie nogi maksymalnie rozstawione,
- * przód-tył, jak w fazie kontaktu ze stopą), klatka B = "przenoszenie" (noga
- * z przodu z kolanem uniesionym WYSOKO, noga z tyłu podkurzona do tyłu jak
- * przy odbiciu) — to uniesienie kolana to ruch STAWU w obrębie stałego
- * tułowia, nie podskok całej sylwetki, więc nie łamie zasady "zero ruchu w
- * pionie całej postaci". Głowa i tułów (z lekkim, stałym pochyleniem do
- * przodu) są statyczne i nigdy się nie odbijają — biegacz zawsze zwrócony w
- * tę samą stronę, dyskretny (bez płynnego przejścia) skok między klatkami.
+ * Zgłoszenie 2026-08-17 (czwarta runda): "ten ziomek nie biegnie" — na
+ * żywo wyrenderowane (sprawdzone przez sharp/rsvg z node, nie na oko —
+ * poprzednia grubość strokeWidth=7 przy tak krótkich odcinkach kończyn w
+ * viewBox 48 zlewała się w jedną bezkształtną plamę, w ogóle nie dało się
+ * rozróżnić rąk/nóg/tułowia). Przeprojektowane na proporcje patyczaka:
+ * dłuższe kończyny, cieńszy stroke (4), większy rozstaw stawów, żeby
+ * sylwetka faktycznie czytała się jako biegnący człowiek. Klatka A =
+ * szeroki wykrok (obie stopy przy ziemi, przód-tył), klatka B = kolano
+ * uniesione, ale noga podporowa NADAL sięga do tej samej linii "gruntu" co
+ * w klatce A (żeby całość nie "podskakiwała" wizualnie między klatkami —
+ * to był błąd wcześniejszej wersji, gdzie OBIE nogi odrywały się od ziemi
+ * naraz). Głowa+tułów statyczne, nigdy się nie odbijają — biegacz zawsze
+ * zwrócony w tę samą stronę, dyskretny (bez płynnego przejścia) skok
+ * między klatkami.
  */
 export function LoadingRunner({ size = 48 }: { size?: number }) {
   const flip = useSharedValue(1);
@@ -48,24 +50,24 @@ export function LoadingRunner({ size = 48 }: { size?: number }) {
     opacity: flip.value === 1 ? 0 : 1,
   }));
 
-  const limbProps = { stroke: Brand.primary, strokeWidth: 7, strokeLinecap: 'round' as const, fill: 'none' as const };
+  const limbProps = { stroke: Brand.primary, strokeWidth: 4, strokeLinecap: 'round' as const, fill: 'none' as const };
 
   return (
     <View style={[styles.root, { width: size * 1.6, height: size * 1.6 }]}>
       <Svg width={size} height={size} viewBox="0 0 48 48">
-        <Circle cx={30} cy={8} r={5.5} fill={Brand.primary} />
-        <Path d="M27 12 L19 26" {...limbProps} />
+        <Circle cx={24} cy={6} r={4} fill={Brand.primary} />
+        <Path d="M23 12 L17 25" {...limbProps} />
         <AnimatedG animatedProps={frameAProps}>
-          <Path d="M19 26 L28 31 L36 39" {...limbProps} strokeLinejoin="round" />
-          <Path d="M19 26 L6 33" {...limbProps} />
-          <Path d="M27 12 L15 17" {...limbProps} />
-          <Path d="M27 12 L39 7" {...limbProps} />
+          <Path d="M17 25 L26 32 L34 42" {...limbProps} strokeLinejoin="round" />
+          <Path d="M17 25 L4 40" {...limbProps} />
+          <Path d="M23 12 L14 18" {...limbProps} />
+          <Path d="M23 12 L31 18" {...limbProps} />
         </AnimatedG>
         <AnimatedG animatedProps={frameBProps}>
-          <Path d="M19 26 L24 18 L30 22" {...limbProps} strokeLinejoin="round" />
-          <Path d="M19 26 L12 20" {...limbProps} />
-          <Path d="M27 12 L20 6" {...limbProps} />
-          <Path d="M27 12 L33 20" {...limbProps} />
+          <Path d="M17 25 L24 20 L29 24" {...limbProps} strokeLinejoin="round" />
+          <Path d="M17 25 L19 43" {...limbProps} />
+          <Path d="M23 12 L13 16" {...limbProps} />
+          <Path d="M23 12 L30 19" {...limbProps} />
         </AnimatedG>
       </Svg>
       <View style={[styles.shadow, { width: size * 0.7 }]} />
