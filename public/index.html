@@ -45,10 +45,17 @@
          zgłoszenie 2026-08-16 "boisk długo się ładuje" — bez tego użytkownik
          przez ten cały czas patrzy na białą, pustą stronę, zanim React w
          ogóle zdąży zamontować właściwy splash z biegaczem z LoadingRunner,
-         patrz src/app/_layout.tsx). Ten sam wygląd (białe tło, logo, biegnący
-         emoji) — więc przejście do prawdziwego splasha jest niezauważalne,
-         bez mrugnięcia. Znika sam, czysto przez CSS, w chwili gdy React
-         cokolwiek wstawi do #root — nie trzeba go usuwać z JS. -->
+         patrz src/app/_layout.tsx i src/components/loading-runner.tsx). TEN
+         SAM glif (Material Symbols "directions_run", kolor marki) i TA SAMA
+         krzywa ruchu co LoadingRunner — tam pozycja liczy się jako funkcja
+         trygonometryczna ciągłego postępu t (sin, nie 2-3-punktowa sekwencja
+         klatek kluczowych, stąd płynniej/bardziej "biegowo" niż odbijanie
+         piłki), tu 9 próbek tej samej krzywej co CSS @keyframes potrafi
+         obsłużyć bez JS. Dzięki temu przejście do prawdziwego splasha jest
+         niezauważalne, bez mrugnięcia ani zmiany stylu ruchu. Znika samo,
+         czysto przez CSS, w chwili gdy React cokolwiek wstawi do #root —
+         nie trzeba go usuwać z JS, i zostaje widoczne nieprzerwanie aż do
+         tego momentu (nie ma progu czasowego/fade-out tutaj celowo). -->
     <style id="static-splash-styles">
       #static-splash {
         position: fixed;
@@ -65,23 +72,94 @@
       }
       #static-splash-runner {
         margin-top: 28px;
-        font-size: 44px;
-        line-height: 1;
-        animation: static-splash-bounce 1.04s ease-in-out infinite;
+        width: 44px;
+        height: 44px;
+        animation: static-splash-run 900ms linear infinite;
       }
-      @keyframes static-splash-bounce {
+      #static-splash-shadow {
+        margin-top: 6px;
+        width: 31px;
+        height: 8px;
+        border-radius: 999px;
+        background: #0a0e16;
+        animation: static-splash-shadow 900ms linear infinite;
+      }
+      /* 9 próbek (co 12.5%) krzywej translateY = -sin(t*pi)*0.26*44,
+         translateX = sin(t*2*pi)*0.05*44, rotate = sin(t*2*pi)*10deg —
+         dokładnie ta sama funkcja co runnerStyle w loading-runner.tsx. */
+      @keyframes static-splash-run {
         0% {
-          transform: translateY(0) rotate(-8deg);
+          transform: translateY(0) translateX(0) rotate(0deg);
+        }
+        12.5% {
+          transform: translateY(-4.2px) translateX(2.2px) rotate(10deg);
+        }
+        25% {
+          transform: translateY(-7.8px) translateX(0) rotate(0deg);
+        }
+        37.5% {
+          transform: translateY(-10.2px) translateX(-2.2px) rotate(-10deg);
         }
         50% {
-          transform: translateY(-12px) rotate(8deg);
+          transform: translateY(-11px) translateX(0) rotate(0deg);
+        }
+        62.5% {
+          transform: translateY(-10.2px) translateX(2.2px) rotate(10deg);
+        }
+        75% {
+          transform: translateY(-7.8px) translateX(0) rotate(0deg);
+        }
+        87.5% {
+          transform: translateY(-4.2px) translateX(-2.2px) rotate(-10deg);
         }
         100% {
-          transform: translateY(0) rotate(-8deg);
+          transform: translateY(0) translateX(0) rotate(0deg);
+        }
+      }
+      /* Cień: opacity/scaleX = 0.24-bounce*0.12 / 1-bounce*0.38, ta sama
+         "bounce" (|sin(t*pi)|) co powyżej — najniższy i najwęższy dokładnie
+         gdy biegacz jest najwyżej. */
+      @keyframes static-splash-shadow {
+        0% {
+          opacity: 0.24;
+          transform: scaleX(1);
+        }
+        12.5% {
+          opacity: 0.195;
+          transform: scaleX(0.855);
+        }
+        25% {
+          opacity: 0.155;
+          transform: scaleX(0.731);
+        }
+        37.5% {
+          opacity: 0.129;
+          transform: scaleX(0.649);
+        }
+        50% {
+          opacity: 0.12;
+          transform: scaleX(0.62);
+        }
+        62.5% {
+          opacity: 0.129;
+          transform: scaleX(0.649);
+        }
+        75% {
+          opacity: 0.155;
+          transform: scaleX(0.731);
+        }
+        87.5% {
+          opacity: 0.195;
+          transform: scaleX(0.855);
+        }
+        100% {
+          opacity: 0.24;
+          transform: scaleX(1);
         }
       }
       @media (prefers-reduced-motion: reduce) {
-        #static-splash-runner {
+        #static-splash-runner,
+        #static-splash-shadow {
           animation: none;
         }
       }
@@ -96,7 +174,13 @@
     <!-- The root element for your Expo app. -->
     <div id="root"></div>
     <div id="static-splash">
-      <span id="static-splash-runner">🏃</span>
+      <svg id="static-splash-runner" viewBox="0 -960 960 960">
+        <path
+          fill="#1f6bff"
+          d="M535-70v-209l-108-99-36 159q-3 12-13 18.5t-22 4.5l-208-43q-11-2-18-12t-5-22q2-12 12.5-18t21.5-4l171 34 73-369-100 47v104q0 13-8.5 21.5T273-449q-13 0-21.5-8.5T243-479v-125q0-9 5-16.5t13-11.5l146-61q32-14 45.5-17.5T480-714q20 0 35.5 8.5T542-680l42 67q23 37 60 65.5t86 36.5q13 2 21.5 10.5T760-479q0 12-8.5 21t-20.5 7q-57-6-102.5-36.5T543-573l-39 158 81 75q5 5 7.5 10.5T595-318v248q0 13-8.5 21.5T565-40q-13 0-21.5-8.5T535-70Zm-46.5-705.5Q467-797 467-827t21.5-51.5Q510-900 540-900t51.5 21.5Q613-857 613-827t-21.5 51.5Q570-754 540-754t-51.5-21.5Z"
+        />
+      </svg>
+      <div id="static-splash-shadow"></div>
     </div>
   </body>
 </html>
