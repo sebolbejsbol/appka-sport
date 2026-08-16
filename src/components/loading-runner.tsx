@@ -11,26 +11,34 @@ import { Brand } from '@/constants/theme';
  * public/index.html, pokazywany zanim JS w ogóle się doładuje — MUSI
  * wyglądać identycznie, żeby przejście między nimi było niewidoczne).
  *
- * Zgłoszenie 2026-08-17: "biegnie tylko do przodu, nigdzie nie skacze" —
- * ŻADNEGO ruchu w pionie. Dokładnie dwie animacje zmiany biegu, obie w
- * poziomie: (1) zamiana nóg — odbicie lustrzane sylwetki (ta sama
- * asymetryczna poza Material Symbols "directions_run", więc scaleX(-1)
- * daje iluzję dwóch na przemian pracujących nóg), (2) przechył do przodu w
- * rytm kroku (mały rotate, w stronę, w którą akurat "patrzy" odbita
- * sylwetka) — razem czytają się jako pchanie się do przodu przy bieganiu,
- * nie podskakiwanie w miejscu. Cień pod stopami zostaje statyczny (nie jest
- * jedną z tych dwóch animacji, a wszelka pulsacja cienia sugerowałaby
- * właśnie podskakiwanie).
+ * Zgłoszenie 2026-08-17: "nie ma się kręcić! ma biec w jedno miejsce i mieć
+ * 2 animacje biegu jak zmienia ręce i nogi" — ŻADNEGO ruchu w pionie ANI
+ * obrotu (poprzedni `rotate` + płynne przejście `scaleX` przez zero
+ * wyglądały jak kręcenie się/spin). Biegacz stoi w jednym miejscu; jedyna
+ * zmiana to DYSKRETNA (natychmiastowa, bez płynnego przejścia przez środek)
+ * zamiana pomiędzy dwiema pozycjami — zwykłą i lustrzanym odbiciem tej
+ * samej asymetrycznej sylwetki Material Symbols "directions_run" — czyli
+ * dokładnie "2 animacje jak zmienia ręce i nogi": klatka A (ręka/noga w
+ * przód po jednej stronie) i klatka B (po drugiej), przełączane skokowo w
+ * rytm kroku, nie płynnie interpolowane. Cień pod stopami statyczny.
  */
 export function LoadingRunner({ size = 48 }: { size?: number }) {
   const flip = useSharedValue(1);
 
   useEffect(() => {
-    flip.value = withRepeat(withSequence(withTiming(1, { duration: 220 }), withTiming(-1, { duration: 220 })), -1);
+    flip.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 0 }),
+        withTiming(1, { duration: 220 }),
+        withTiming(-1, { duration: 0 }),
+        withTiming(-1, { duration: 220 }),
+      ),
+      -1,
+    );
   }, [flip]);
 
   const runnerStyle = useAnimatedStyle(() => ({
-    transform: [{ scaleX: flip.value }, { rotate: `${flip.value * 6}deg` }],
+    transform: [{ scaleX: flip.value }],
   }));
 
   return (

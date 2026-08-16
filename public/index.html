@@ -86,7 +86,7 @@
         margin-top: 28px;
         width: 44px;
         height: 44px;
-        animation: static-splash-run 440ms ease-in-out infinite;
+        animation: static-splash-run 440ms steps(1) infinite;
       }
       #static-splash-shadow {
         margin-top: 6px;
@@ -96,21 +96,23 @@
         background: #0a0e16;
         opacity: 0.18;
       }
-      /* Dokładnie te same 2 animacje co runnerStyle w loading-runner.tsx —
-         2026-08-17: "biegnie tylko do przodu, nigdzie nie skacze", więc bez
-         ruchu w pionie. Zamiana nóg (scaleX(-1), ta sama asymetryczna
-         sylwetka -> lustrzane odbicie = iluzja dwóch na przemian
-         pracujących nóg) + przechył do przodu w rytm kroku (rotate). Cień
-         statyczny (nie animowany — pulsowanie sugerowałoby podskakiwanie). */
+      /* Dokładnie ta sama animacja co runnerStyle w loading-runner.tsx —
+         2026-08-17: "nie ma się kręcić! ma biec w jedno miejsce" — bez
+         ruchu w pionie i bez rotate (poprzednia płynna wersja przez
+         scaleX+rotate wyglądała jak spin). Biegacz stoi w miejscu, jedyna
+         zmiana to DYSKRETNY (steps(1) — bez płynnego przejścia przez środek)
+         skok między dwiema klatkami tej samej asymetrycznej sylwetki
+         (zwykłą i lustrzaną) = "2 animacje jak zmienia ręce i nogi". Cień
+         statyczny. */
       @keyframes static-splash-run {
         0% {
-          transform: scaleX(-1) rotate(-6deg);
+          transform: scaleX(1);
         }
         50% {
-          transform: scaleX(1) rotate(6deg);
+          transform: scaleX(-1);
         }
         100% {
-          transform: scaleX(-1) rotate(-6deg);
+          transform: scaleX(1);
         }
       }
       @media (prefers-reduced-motion: reduce) {
