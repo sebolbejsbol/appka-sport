@@ -334,11 +334,13 @@ export default function EventDetailScreen() {
       notifyError(
         locationResult.status === 'permission_denied'
           ? Platform.OS === 'web'
-            ? t('event.errors.checkInPermissionDeniedWeb')
+            ? t('location.permissionDeniedWeb')
             : t('event.errors.checkInPermissionDenied')
           : locationResult.status === 'timeout'
-            ? t('event.errors.checkInTimeout')
-            : t('event.errors.checkInNoLocation'),
+            ? t('location.timeout')
+            : Platform.OS === 'web'
+              ? t('location.unavailable')
+              : t('event.errors.checkInNoLocation'),
       );
       return;
     }

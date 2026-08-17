@@ -1,4 +1,4 @@
-import { ActivityIndicator, FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EventCard } from '@/components/event-card';
@@ -53,16 +53,22 @@ export function NearbyEventsSheet({
           </View>
 
           {!userCoords && (locationStatus === 'denied' || locationStatus === 'unavailable') ? (
-            // Ta karta nie prosi o zgodę ani nie kieruje do ustawień — apka
-            // aktywnie pyta o lokalizację WYŁĄCZNIE z "Dołącz do eventu" /
-            // "Stwórz event" (patrz requireLocationPermission). Tu tylko
-            // informujemy, dlaczego lista jest pusta.
+            // Na webie kliknięcie "Szukaj w pobliżu" już samo w sobie
+            // aktywnie prosi o lokalizację (patrz get-web-location.ts) —
+            // ten stan znaczy więc realną odmowę/błąd, nie "jeszcze nie
+            // pytano", stąd te same ujednolicone komunikaty co reszta
+            // akcji lokalizacyjnych na webie. Na natywnej appce ten panel
+            // tylko odczytuje stan bez promptowania.
             <View style={styles.stateWrap}>
               <Text style={styles.stateEmoji}>📍</Text>
               <Text style={styles.stateText}>
                 {locationStatus === 'denied'
-                  ? t('map.nearbyEventsLocationDenied')
-                  : t('map.nearbyEventsLocationUnavailable')}
+                  ? Platform.OS === 'web'
+                    ? t('location.permissionDeniedWeb')
+                    : t('map.nearbyEventsLocationDenied')
+                  : Platform.OS === 'web'
+                    ? t('location.unavailable')
+                    : t('map.nearbyEventsLocationUnavailable')}
               </Text>
             </View>
           ) : !userCoords ? (

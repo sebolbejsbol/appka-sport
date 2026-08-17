@@ -4,6 +4,7 @@ import { Linking, Platform } from 'react-native';
 
 import { t } from '@/i18n';
 import { distanceMeters, formatDistance, type LngLat } from '@/lib/geo';
+import { getCurrentLocation } from '@/lib/get-web-location';
 import { checkLocationPermission } from '@/lib/location-permission';
 import { notifyError } from '@/lib/toast';
 
@@ -24,6 +25,7 @@ export type StartNavigationResult =
   | 'google_maps'
   | 'in_app'
   | 'location_denied'
+  | 'location_timeout'
   | 'location_error'
   | 'invalid_destination';
 
@@ -95,13 +97,12 @@ export async function openGoogleMapsNavigation(dest: FieldDestination): Promise<
 }
 
 /**
- * Nawigacja do boiska NIE jest jednym z dwóch miejsc, gdzie apka wolno
- * aktywnie prosić o zgodę (patrz requireLocationPermission w
- * location-permission.ts — to wyłącznie Dołącz/Stwórz event) — tu tylko
- * odczytujemy aktualny stan, bez pokazywania promptu. W praktyce user,
- * który dotarł tu (dołączył/utworzył event), już ma zgodę ustaloną.
+ * Na natywnej appce nawigacja tylko ODCZYTUJE aktualny stan zgody, bez
+ * promptu (natywny prompt jest zarezerwowany dla Dołącz/Stwórz event —
+ * patrz requireLocationPermission w location-permission.ts). W praktyce
+ * user, który dotarł tu, już ma zgodę ustaloną wcześniej.
  */
-export async function getCurrentUserCoords(): Promise<LngLat | null> {
+async function getCurrentUserCoordsNative(): Promise<LngLat | null> {
   const permission = await checkLocationPermission();
   if (permission !== 'granted') return null;
 
@@ -194,13 +195,26 @@ export async function startFieldNavigation(
 
   let userCoords = options?.userCoords ?? null;
   if (!userCoords) {
-    userCoords = await getCurrentUserCoords();
-    if (!userCoords) {
-      // Rozróżniamy "brak zgody" od "zgoda jest, ale nie udało się pobrać
-      // pozycji" na podstawie AKTUALNEGO stanu uprawnień, a nie tego, co
-      // ewentualnie przyszło z propsów wcześniej. Tylko odczyt — bez promptu.
-      const permission = await checkLocationPermission();
-      return permission === 'granted' ? 'location_error' : 'location_denied';
+    if (Platform.OS === 'web') {
+      // Na webie "Nawiguj" jest jedną z akcji, które aktywnie proszą o
+      // lokalizację (patrz src/lib/get-web-location.ts) — pokazuje realny
+      // prompt przeglądarki, jeśli user jeszcze nie podjął decyzji.
+      const result = await getCurrentLocation();
+      if (!result.ok) {
+        if (result.error === 'PERMISSION_DENIED') return 'location_denied';
+        if (result.error === 'TIMEOUT') return 'location_timeout';
+        return 'location_error';
+      }
+      userCoords = result.coords;
+    } else {
+      userCoords = await getCurrentUserCoordsNative();
+      if (!userCoords) {
+        // Rozróżniamy "brak zgody" od "zgoda jest, ale nie udało się pobrać
+        // pozycji" na podstawie AKTUALNEGO stanu uprawnień, a nie tego, co
+        // ewentualnie przyszło z propsów wcześniej. Tylko odczyt — bez promptu.
+        const permission = await checkLocationPermission();
+        return permission === 'granted' ? 'location_error' : 'location_denied';
+      }
     }
   }
 
@@ -216,11 +230,17 @@ export async function startFieldNavigation(
 
 export function showNavigationError(result: Exclude<StartNavigationResult, 'google_maps' | 'in_app'>) {
   const message =
-    result === 'location_denied'
-      ? t('fieldNavigation.locationDenied')
-      : result === 'invalid_destination'
-        ? t('fieldNavigation.invalidDestination')
-        : t('fieldNavigation.locationError');
+    result === 'invalid_destination'
+      ? t('fieldNavigation.invalidDestination')
+      : result === 'location_denied'
+        ? Platform.OS === 'web'
+          ? t('location.permissionDeniedWeb')
+          : t('fieldNavigation.locationDenied')
+        : result === 'location_timeout'
+          ? t('location.timeout')
+          : Platform.OS === 'web'
+            ? t('location.unavailable')
+            : t('fieldNavigation.locationError');
   notifyError(message);
 }
 

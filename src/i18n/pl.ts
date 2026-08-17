@@ -4,6 +4,16 @@
  * Nie wpisujemy tekstów widocznych dla użytkownika bezpośrednio w ekranach.
  */
 export const pl = {
+  // Ujednolicone komunikaty dla KAŻDEJ akcji wymagającej lokalizacji na webie
+  // (meldowanie, nawigacja, eventy w pobliżu, tworzenie eventu) — patrz
+  // src/lib/get-web-location.ts. Zastępuje wcześniejsze osobne klucze per
+  // funkcja (np. checkInPermissionDeniedWeb).
+  location: {
+    permissionDeniedWeb:
+      'Ta strona nie ma dostępu do lokalizacji. Kliknij ikonę kłódki (lub „AA") obok adresu strony → Ustawienia witryny → Lokalizacja → Zezwól, potem spróbuj ponownie.',
+    timeout: 'Ustalanie lokalizacji trwa zbyt długo. Spróbuj ponownie.',
+    unavailable: 'Nie udało się ustalić lokalizacji. Spróbuj ponownie.',
+  },
   common: {
     appName: 'DUDIE DAY',
     email: 'E-mail',
@@ -862,9 +872,6 @@ export const pl = {
       checkInTooFar: 'Jesteś za daleko od boiska (wymagane 100 m).',
       checkInNoLocation: 'Nie udało się uzyskać wystarczająco dokładnej lokalizacji. Wyjdź na otwartą przestrzeń i spróbuj ponownie.',
       checkInPermissionDenied: 'Dostęp do lokalizacji jest wyłączony. Włącz go w ustawieniach urządzenia, żeby się zameldować.',
-      checkInPermissionDeniedWeb:
-        'Ta strona nie ma dostępu do lokalizacji. Kliknij ikonę kłódki (lub „AA") obok adresu strony → Ustawienia witryny → Lokalizacja → Zezwól, potem spróbuj ponownie.',
-      checkInTimeout: 'Ustalanie lokalizacji trwa zbyt długo. Spróbuj ponownie.',
       checkInNotYet: 'Meldowanie jeszcze niedostępne.',
       checkInWindowClosed: 'Okno meldowania już się zamknęło.',
       checkInAlready: 'Już jesteś zameldowany.',

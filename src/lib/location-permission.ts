@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import { Linking, Platform } from 'react-native';
 
 import { confirmAction } from '@/lib/confirm';
+import { getCurrentLocation } from '@/lib/get-web-location';
 
 export type LocationPermissionState = 'granted' | 'denied' | 'undetermined';
 
@@ -44,23 +45,13 @@ export async function requestLocationPermission(): Promise<'granted' | 'denied'>
     // Safari (iOS i macOS) w ogóle nie wspiera navigator.permissions.query
     // dla 'geolocation' — rzuca TypeError, i to ZANIM expo-location zdąży w
     // środku wywołać prawdziwe navigator.geolocation.getCurrentPosition().
-    // Bezpośrednie wywołanie geolokalizacji omija ten zepsuty krok — to
-    // jedyna metoda w tym shimie, która nie zależy od navigator.permissions.
-    return probeBrowserGeolocation();
+    // get-web-location.ts woła geolokalizację bezpośrednio, z pominięciem
+    // tego zepsutego kroku — to samo miejsce, którego używa KAŻDA inna
+    // akcja lokalizacyjna na webie (meldowanie, nawigacja, eventy w
+    // pobliżu, tworzenie eventu), więc to jest jedyna kopia tej logiki.
+    const result = await getCurrentLocation();
+    return result.ok ? 'granted' : 'denied';
   }
-}
-
-function probeBrowserGeolocation(): Promise<'granted' | 'denied'> {
-  if (Platform.OS !== 'web' || typeof navigator === 'undefined' || !navigator.geolocation) {
-    return Promise.resolve('denied');
-  }
-  return new Promise((resolve) => {
-    navigator.geolocation.getCurrentPosition(
-      () => resolve('granted'),
-      () => resolve('denied'),
-      { maximumAge: 60000 },
-    );
-  });
 }
 
 /** Otwiera systemowe ustawienia uprawnień apki. Na webie nie ma takiego API. */

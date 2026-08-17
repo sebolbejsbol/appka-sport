@@ -278,7 +278,7 @@ function isNearbyListEligible(item: NearbyFieldItem): boolean {
 
 export function AppMap() {
   const insets = useSafeAreaInsets();
-  const { status, coords } = useUserLocation();
+  const { status, coords, requestLocation } = useUserLocation();
   const mapRef = useRef<unknown>(null);
   const cameraRef = useRef<{
     setCamera: (opts: { centerCoordinate?: [number, number]; zoomLevel?: number; animationDuration?: number }) => void;
@@ -1284,7 +1284,13 @@ export function AppMap() {
 
       {!selectedField ? (
         <Pressable
-          onPress={() => setNearbyEventsOpen(true)}
+          onPress={() => {
+            // Web: "Eventy w pobliżu" jest jedną z akcji, które aktywnie
+            // proszą o lokalizację (patrz get-web-location.ts) — pokazuje
+            // realny prompt przeglądarki, jeśli user jeszcze nie zdecydował.
+            void requestLocation();
+            setNearbyEventsOpen(true);
+          }}
           style={({ pressed }) => [
             styles.nearbySearchBtn,
             { top: insets.top + 68 },
