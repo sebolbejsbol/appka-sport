@@ -74,19 +74,27 @@ async function getNativeLocation(): Promise<LocationFetchResult> {
 }
 
 /**
+ * 'unsupported' odróżnia "przeglądarka NIE UMIE powiedzieć jaki jest stan"
+ * (Safari — navigator.permissions.query nie wspiera 'geolocation', zawsze
+ * rzuca) od 'prompt' — "przeglądarka SZCZERZE mówi, że jeszcze nie pytano"
+ * (Chrome/inne). To rozróżnienie jest kluczowe dla wołających, którzy NIE
+ * chcą ryzykować promptu przy biernym sprawdzeniu (np. samo wejście na
+ * mapę) — dla 'prompt' zostają bierni, dla 'unsupported' muszą i tak
+ * spróbować, bo inaczej nigdy nie wykryją realnie przyznanej zgody na
+ * Safari (patrz use-user-location.ts).
+ */
+export type BrowserPermissionState = 'granted' | 'denied' | 'prompt' | 'unsupported';
+
+/**
  * Sam getCurrentPosition() poniżej i tak poprawnie odróżnia denied/
  * unavailable/timeout w swoim error callbacku — ten pre-check tylko pozwala
- * pominąć zbędne wywołanie, gdy WIADOMO, że jest odmówione na stałe. Safari
- * (iOS i macOS) w ogóle nie wspiera nazwy 'geolocation' dla
- * navigator.permissions.query i rzuca zamiast zwrócić stan — traktujemy to
- * jak "jeszcze nie pytano" (żeby getCurrentPosition mógł spróbować
- * pokazać realny prompt), nie jak odmowę.
+ * pominąć zbędne wywołanie, gdy WIADOMO, że jest odmówione na stałe.
  */
-function checkBrowserPermission(): Promise<'granted' | 'denied' | 'prompt'> {
+export function checkBrowserPermission(): Promise<BrowserPermissionState> {
   const permissions = (navigator as { permissions?: Permissions } | undefined)?.permissions;
   if (!permissions?.query) {
     geoDiag('permissions.query unsupported', {});
-    return Promise.resolve('prompt');
+    return Promise.resolve('unsupported');
   }
   return permissions
     .query({ name: 'geolocation' as PermissionName })
@@ -96,7 +104,7 @@ function checkBrowserPermission(): Promise<'granted' | 'denied' | 'prompt'> {
     })
     .catch((err) => {
       geoDiag('permissions.query threw', { message: String(err) });
-      return 'prompt' as const;
+      return 'unsupported' as const;
     });
 }
 

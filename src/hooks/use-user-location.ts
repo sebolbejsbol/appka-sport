@@ -1,7 +1,9 @@
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 
 import { geoDiag } from '@/lib/geo-diag';
+import { checkBrowserPermission } from '@/lib/get-web-location';
 import { checkLocationPermission, requestLocationPermission } from '@/lib/location-permission';
 
 /**
@@ -118,10 +120,56 @@ export function useUserLocation(): UserLocationState {
     [],
   );
 
+  /**
+   * WEB: checkLocationPermission() (expo-location) rzuca ZAWSZE na Safari
+   * (navigator.permissions.query nie wspiera 'geolocation'), co dawniej
+   * kończyło się bezwarunkowym 'denied' — NIEZALEŻNIE od tego, czy user
+   * faktycznie zezwolił. Efekt: mapa na Safari na stałe pokazywała "włącz
+   * lokalizację", nawet po realnym Allow i odświeżeniu. Naprawa: pytamy
+   * bezpośrednio checkBrowserPermission() (get-web-location.ts), które
+   * odróżnia 'prompt' (Chrome i inne szczerze mówią "jeszcze nie pytano" —
+   * zostajemy bierni, zero promptu, tak jak w redesignie "prompt tylko przy
+   * Join/Create") od 'unsupported' (Safari nie umie tego stwierdzić bez
+   * próby — więc próbujemy: jeśli realnie granted, przechodzi po cichu bez
+   * żadnego promptu; jedyny przypadek gdy pokaże prompt to naprawdę
+   * pierwsza wizyta na Safari, czego nie da się uniknąć bez tej informacji).
+   */
+  const checkOnlyWeb = useCallback(
+    async (seq: number) => {
+      const permission = await checkBrowserPermission();
+      geoDiag('useUserLocation checkOnly (web): checkBrowserPermission ->', {
+        instance: instanceIdRef.current,
+        seq,
+        permission,
+      });
+      if (seq !== requestSeqRef.current) return;
+
+      if (permission === 'denied') {
+        setState({ status: 'denied', coords: null });
+        return;
+      }
+      if (permission === 'prompt') {
+        // Szczerze "jeszcze nie pytano" — zostajemy bierni, żeby uniknąć
+        // eager promptu przy samym wejściu na mapę.
+        setState({ status: 'denied', coords: null });
+        return;
+      }
+
+      // 'granted' albo 'unsupported' (Safari) — spróbuj pobrać pozycję.
+      await fetchCoords(seq);
+    },
+    [fetchCoords],
+  );
+
   const checkOnly = useCallback(async () => {
     const seq = ++requestSeqRef.current;
     geoDiag('useUserLocation checkOnly: start', { instance: instanceIdRef.current, seq });
     setState((prev) => ({ ...prev, status: 'loading' }));
+
+    if (Platform.OS === 'web') {
+      await checkOnlyWeb(seq);
+      return;
+    }
 
     const permission = await checkLocationPermission();
     geoDiag('useUserLocation checkOnly: checkLocationPermission ->', {
@@ -140,7 +188,7 @@ export function useUserLocation(): UserLocationState {
     }
 
     await fetchCoords(seq);
-  }, [fetchCoords]);
+  }, [fetchCoords, checkOnlyWeb]);
 
   useEffect(() => {
     void checkOnly();
