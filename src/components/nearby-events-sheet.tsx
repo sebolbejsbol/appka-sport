@@ -8,7 +8,6 @@ import type { LocationStatus } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
 import type { DiscoverEvent } from '@/lib/discover-events';
 import type { LngLat } from '@/lib/geo';
-import { canOpenLocationSettings, openLocationSettings } from '@/lib/location-permission';
 
 type Props = {
   visible: boolean;
@@ -16,7 +15,6 @@ type Props = {
   events: DiscoverEvent[];
   userCoords: LngLat | null;
   locationStatus: LocationStatus;
-  onRetryLocation: () => void;
   onSelectEvent: (event: DiscoverEvent) => void;
 };
 
@@ -33,7 +31,6 @@ export function NearbyEventsSheet({
   events,
   userCoords,
   locationStatus,
-  onRetryLocation,
   onSelectEvent,
 }: Props) {
   const insets = useSafeAreaInsets();
@@ -56,6 +53,10 @@ export function NearbyEventsSheet({
           </View>
 
           {!userCoords && (locationStatus === 'denied' || locationStatus === 'unavailable') ? (
+            // Ta karta nie prosi o zgodę ani nie kieruje do ustawień — apka
+            // aktywnie pyta o lokalizację WYŁĄCZNIE z "Dołącz do eventu" /
+            // "Stwórz event" (patrz requireLocationPermission). Tu tylko
+            // informujemy, dlaczego lista jest pusta.
             <View style={styles.stateWrap}>
               <Text style={styles.stateEmoji}>📍</Text>
               <Text style={styles.stateText}>
@@ -63,21 +64,6 @@ export function NearbyEventsSheet({
                   ? t('map.nearbyEventsLocationDenied')
                   : t('map.nearbyEventsLocationUnavailable')}
               </Text>
-              <Pressable
-                onPress={() => {
-                  if (locationStatus === 'denied' && canOpenLocationSettings) {
-                    void openLocationSettings();
-                  } else {
-                    onRetryLocation();
-                  }
-                }}
-                style={styles.retryBtn}>
-                <Text style={styles.retryBtnText}>
-                  {locationStatus === 'denied' && canOpenLocationSettings
-                    ? t('fieldNavigation.openSettings')
-                    : t('fieldNavigation.retryLocation')}
-                </Text>
-              </Pressable>
             </View>
           ) : !userCoords ? (
             <View style={styles.stateWrap}>
@@ -172,19 +158,6 @@ const styles = StyleSheet.create({
     color: Brand.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 24,
-  },
-  retryBtn: {
-    marginTop: 6,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: Brand.primary,
-  },
-  retryBtnText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Brand.primary,
   },
   list: {
     gap: 12,

@@ -1,27 +1,42 @@
+import { router } from 'expo-router';
 import * as Location from 'expo-location';
 import { Linking, Platform } from 'react-native';
 
+import { confirmAction } from '@/lib/confirm';
+
+export type LocationPermissionState = 'granted' | 'denied' | 'undetermined';
+
 /**
- * Wspólna logika uprawnień do lokalizacji — jedno miejsce dla mapy
- * (use-user-location, use-watching-location) i nawigacji do boiska
- * (field-navigation). Wcześniej każde miejsce robiło własny
- * requestForegroundPermissionsAsync() bez sprawdzenia aktualnego stanu,
- * więc żadne z nich nie potrafiło odróżnić "jeszcze nie pytaliśmy" od
- * "user już odmówił" i pokazać właściwej podpowiedzi.
+ * Odczyt AKTUALNEGO stanu uprawnień — NIGDY nie pokazuje żadnego promptu.
+ * Bezpieczne do wołania w tle / przy montowaniu ekranu (mapa, nawigacja,
+ * event) — to jest to, co wcześniej apka robiła źle: montowanie mapy
+ * aktywnie prosiło o zgodę, więc prompt wyskakiwał od razu przy starcie,
+ * zanim user w ogóle zrobił cokolwiek, co lokalizacji wymaga.
+ *
+ * 'undetermined' oznacza zarówno "jeszcze nie pytano", jak i "nie da się
+ * ustalić bez próby" (Safari — navigator.permissions nie wspiera
+ * 'geolocation') — w obu przypadkach wolno jeszcze spróbować aktywnego
+ * requestLocationPermission().
  */
-export async function ensureLocationPermission(): Promise<'granted' | 'denied'> {
+export async function checkLocationPermission(): Promise<LocationPermissionState> {
   try {
     const current = await Location.getForegroundPermissionsAsync();
     if (current.status === 'granted') return 'granted';
-    // canAskAgain === false: system/przeglądarka i tak nie pokaże już
-    // promptu ponownie (trwałe odrzucenie) — nie ma sensu wywoływać request,
-    // od razu przechodzimy do fallbacku "otwórz ustawienia".
     if (current.status === 'denied' && current.canAskAgain === false) return 'denied';
+    return 'undetermined';
   } catch {
-    // np. web bez wsparcia dla navigator.permissions.query — przechodzimy
-    // od razu do request poniżej, który i tak wymusza realny prompt.
+    return 'undetermined';
   }
+}
 
+/**
+ * AKTYWNIE prosi o zgodę — pokazuje natywny systemowy prompt ("Zezwól
+ * podczas używania" / "Nie zezwalaj"), jeśli status jest 'undetermined'.
+ * Wołać WYŁĄCZNIE z bezpośredniej akcji użytkownika (Dołącz do eventu,
+ * Stwórz event) — patrz requireLocationPermission poniżej, które właśnie
+ * to egzekwuje w jednym miejscu.
+ */
+export async function requestLocationPermission(): Promise<'granted' | 'denied'> {
   try {
     const requested = await Location.requestForegroundPermissionsAsync();
     return requested.status === 'granted' ? 'granted' : 'denied';
@@ -29,11 +44,8 @@ export async function ensureLocationPermission(): Promise<'granted' | 'denied'> 
     // Safari (iOS i macOS) w ogóle nie wspiera navigator.permissions.query
     // dla 'geolocation' — rzuca TypeError, i to ZANIM expo-location zdąży w
     // środku wywołać prawdziwe navigator.geolocation.getCurrentPosition().
-    // Efekt: na Safari powyższe dwie próby zawsze rzucają, więc przeglądarka
-    // NIGDY nie pokazuje natywnego promptu — apka po prostu poddaje się i
-    // pokazuje "brak dostępu", mimo że w ogóle nie zapytała. Bezpośrednie
-    // wywołanie geolokalizacji (poniżej) omija ten zepsuty krok — to jedyna
-    // metoda w tym shimie, która nie zależy od navigator.permissions.
+    // Bezpośrednie wywołanie geolokalizacji omija ten zepsuty krok — to
+    // jedyna metoda w tym shimie, która nie zależy od navigator.permissions.
     return probeBrowserGeolocation();
   }
 }
@@ -63,3 +75,39 @@ export async function openLocationSettings(): Promise<boolean> {
 }
 
 export const canOpenLocationSettings = Platform.OS !== 'web';
+
+/**
+ * JEDYNE miejsce w apce, które wolno wołać z akcji "Dołącz do eventu" /
+ * "Stwórz event" — pełny flow zgodności z natywnym zachowaniem platformy:
+ *
+ *  - granted        -> true od razu, żadnego promptu.
+ *  - undetermined    -> pokazuje natywny systemowy prompt; jeśli user zezwoli,
+ *                       true od razu (bez dodatkowego klikania w apce).
+ *  - denied/restricted (już teraz, albo user właśnie odmówił w prompcie)
+ *                    -> krótki modal tłumaczący PO CO w tym kontekście jest
+ *                       lokalizacja, z przyciskiem, który przenosi do
+ *                       ustawień (systemowych na natywnej appce, do
+ *                       ekranu Ustawień w apce na webie). Cancel po prostu
+ *                       zamyka modal — nie blokuje reszty apki, blokuje
+ *                       tylko tę jedną akcję.
+ */
+export async function requireLocationPermission(opts: {
+  title: string;
+  message: string;
+  settingsLabel: string;
+  cancelLabel: string;
+}): Promise<boolean> {
+  let state = await checkLocationPermission();
+
+  if (state === 'undetermined') {
+    state = await requestLocationPermission();
+  }
+
+  if (state === 'granted') return true;
+
+  confirmAction(opts.title, opts.message, opts.settingsLabel, opts.cancelLabel, () => {
+    if (canOpenLocationSettings) void openLocationSettings();
+    else router.push('/settings');
+  });
+  return false;
+}

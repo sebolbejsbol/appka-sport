@@ -1,7 +1,7 @@
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { ensureLocationPermission } from '@/lib/location-permission';
+import { checkLocationPermission, requestLocationPermission } from '@/lib/location-permission';
 
 /**
  * Stan pobierania lokalizacji użytkownika:
@@ -19,20 +19,24 @@ export type UserLocationState = {
   status: LocationStatus;
   coords: LngLat | null;
   /**
-   * Ponawia sprawdzenie uprawnień/pobranie pozycji na żądanie (np. przycisk
-   * "W pobliżu" albo "Włącz lokalizację" w Ustawieniach). Zwraca finalny
-   * status, żeby wołający mógł pokazać feedback (np. toast), gdy nic się
-   * wizualnie nie zmieni — przeglądarka po realnej odmowie nie pokaże już
-   * własnego promptu, więc bez tego klik wyglądał jak "nic nie robi".
+   * AKTYWNIE prosi o zgodę (może pokazać natywny prompt) i zwraca finalny
+   * status. Wołać TYLKO z bezpośredniej akcji usera — np. przycisku
+   * "Włącz lokalizację" w Ustawieniach. Nigdy automatycznie w tle: mapa i
+   * inne ekrany montujące ten hook dostają tylko PASYWNY odczyt aktualnego
+   * stanu (patrz efekt niżej) — to naprawia wcześniejszy błąd, gdzie sam
+   * wejście na mapę wyskakiwało z systemowym promptem o lokalizację.
    */
   requestLocation: () => Promise<LocationStatus>;
 };
 
 /**
- * Prosi o zgodę na lokalizację „w trakcie używania" i zwraca pozycję użytkownika.
- * Najpierw próbuje szybkiej, ostatnio znanej pozycji (żeby mapa od razu skoczyła w okolicę),
- * potem dokłada dokładniejszą, aktualną. Lokalizacja jest pobierana tylko na żądanie
- * (przy wejściu na mapę), nie w tle — zgodnie z założeniami prywatności.
+ * Odczytuje stan lokalizacji użytkownika PASYWNIE (nigdy nie pokazuje
+ * promptu przy montowaniu) — jeśli zgoda jest już przyznana, dociąga
+ * pozycję; jeśli nie, zostawia status 'denied'/'loading' bez pytania.
+ * Aktywne proszenie o zgodę (z natywnym promptem) robi tylko
+ * requestLocationPermission() z location-permission.ts, wołane wprost z
+ * "Dołącz do eventu" / "Stwórz event" (patrz tam) albo z przycisku w
+ * Ustawieniach (przez requestLocation() zwrócone z tego hooka).
  */
 export function useUserLocation(): UserLocationState {
   const [state, setState] = useState<{ status: LocationStatus; coords: LngLat | null }>({
@@ -41,11 +45,61 @@ export function useUserLocation(): UserLocationState {
   });
   const requestSeqRef = useRef(0);
 
-  const resolveLocation = useCallback(async (): Promise<LocationStatus> => {
+  const fetchCoords = useCallback(
+    async (seq: number): Promise<LocationStatus> => {
+      try {
+        const lastKnown = await Location.getLastKnownPositionAsync();
+        if (seq === requestSeqRef.current && lastKnown) {
+          setState({
+            status: 'granted',
+            coords: [lastKnown.coords.longitude, lastKnown.coords.latitude],
+          });
+        }
+
+        const current = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+        if (seq === requestSeqRef.current) {
+          setState({
+            status: 'granted',
+            coords: [current.coords.longitude, current.coords.latitude],
+          });
+        }
+        return 'granted';
+      } catch {
+        if (seq === requestSeqRef.current) {
+          setState((prev) => (prev.coords ? prev : { status: 'unavailable', coords: null }));
+        }
+        return 'unavailable';
+      }
+    },
+    [],
+  );
+
+  const checkOnly = useCallback(async () => {
     const seq = ++requestSeqRef.current;
     setState((prev) => ({ ...prev, status: 'loading' }));
 
-    const permission = await ensureLocationPermission();
+    const permission = await checkLocationPermission();
+    if (seq !== requestSeqRef.current) return;
+
+    if (permission !== 'granted') {
+      setState({ status: 'denied', coords: null });
+      return;
+    }
+
+    await fetchCoords(seq);
+  }, [fetchCoords]);
+
+  useEffect(() => {
+    void checkOnly();
+  }, [checkOnly]);
+
+  const requestLocation = useCallback(async (): Promise<LocationStatus> => {
+    const seq = ++requestSeqRef.current;
+    setState((prev) => ({ ...prev, status: 'loading' }));
+
+    const permission = await requestLocationPermission();
     if (seq !== requestSeqRef.current) return 'loading';
 
     if (permission !== 'granted') {
@@ -53,40 +107,8 @@ export function useUserLocation(): UserLocationState {
       return 'denied';
     }
 
-    try {
-      // Szybka, przybliżona pozycja (jeśli dostępna) — natychmiastowy skok mapy w okolicę.
-      const lastKnown = await Location.getLastKnownPositionAsync();
-      if (seq === requestSeqRef.current && lastKnown) {
-        setState({
-          status: 'granted',
-          coords: [lastKnown.coords.longitude, lastKnown.coords.latitude],
-        });
-      }
-
-      // Dokładniejsza, aktualna pozycja.
-      const current = await Location.getCurrentPositionAsync({
-        accuracy: Location.Accuracy.Balanced,
-      });
-      if (seq === requestSeqRef.current) {
-        setState({
-          status: 'granted',
-          coords: [current.coords.longitude, current.coords.latitude],
-        });
-      }
-      return 'granted';
-    } catch {
-      if (seq === requestSeqRef.current) {
-        setState((prev) => (prev.coords ? prev : { status: 'unavailable', coords: null }));
-      }
-      return 'unavailable';
-    }
-  }, []);
-
-  useEffect(() => {
-    void resolveLocation();
-  }, [resolveLocation]);
-
-  const requestLocation = useCallback(() => resolveLocation(), [resolveLocation]);
+    return fetchCoords(seq);
+  }, [fetchCoords]);
 
   return { ...state, requestLocation };
 }

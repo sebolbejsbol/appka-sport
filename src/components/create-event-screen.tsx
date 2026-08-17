@@ -67,6 +67,7 @@ import {
 } from '@/lib/map-bbox';
 import type { Bbox } from '@/lib/fields';
 import { reverseGeocode, searchMapPlaces, type PlaceSearchResult } from '@/lib/map-geocoding';
+import { requireLocationPermission } from '@/lib/location-permission';
 import { fieldTypesForSelection, eventSubcategoryForFieldSport, fieldSportMatchesEvent } from '@/lib/venue-types';
 import { mapBubbleIcons } from '@/lib/map-bubble-icons';
 import {
@@ -113,7 +114,7 @@ function bboxFromMapState(state: MapState | undefined): { bbox: Bbox; zoom: numb
 export default function CreateEventScreen() {
   const insets = useSafeAreaInsets();
   const { session } = useSession();
-  const { coords, status: locationStatus, requestLocation } = useUserLocation();
+  const { coords } = useUserLocation();
   const userId = session?.user?.id;
 
   const start = defaultEventStart();
@@ -557,11 +558,13 @@ export default function CreateEventScreen() {
       notifyError(t('createEvent.mustLogin'));
       return;
     }
-    if (locationStatus !== 'granted') {
-      notifyError(t('createEvent.errLocationRequired'));
-      requestLocation();
-      return;
-    }
+    const locationAllowed = await requireLocationPermission({
+      title: t('createEvent.locationRequiredTitle'),
+      message: t('createEvent.locationRequiredMessage'),
+      settingsLabel: t('settings.open'),
+      cancelLabel: t('common.cancel'),
+    });
+    if (!locationAllowed) return;
     // Pełna walidacja wszystkich kroków przed publikacją.
     for (const id of steps) {
       const err = validateStep(id);

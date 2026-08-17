@@ -59,7 +59,6 @@ import {
   isSportFilterCoveredByPrefetch,
   onFieldsPrefetchUpdate,
 } from '@/lib/fields-prefetch';
-import { canOpenLocationSettings, openLocationSettings } from '@/lib/location-permission';
 import { markInitialDiscoverReady } from '@/lib/map-ready';
 import {
   buildAvailabilityMatchExpression,
@@ -297,7 +296,7 @@ function isNearbyListEligible(item: NearbyFieldItem): boolean {
 
 export function AppMap() {
   const insets = useSafeAreaInsets();
-  const { status, coords, requestLocation } = useUserLocation();
+  const { status, coords } = useUserLocation();
   const mapRef = useRef<MapView>(null);
   const cameraRef = useRef<Camera>(null);
   const fieldsSourceRef = useRef<ShapeSource>(null);
@@ -1328,35 +1327,13 @@ export function AppMap() {
         {status === 'granted' ? <LocationPuck pulsing="default" /> : null}
       </MapView>
 
-      {status === 'denied' && !selectedField ? (
-        <View style={[styles.hint, { top: insets.top + 112 }]}>
-          <Text style={styles.hintText} numberOfLines={1}>
-            {t('map.locationDenied')}
-          </Text>
-          <Pressable
-            onPress={() => {
-              if (canOpenLocationSettings) void openLocationSettings();
-              else router.push('/settings');
-            }}
-            hitSlop={8}>
-            <Text style={styles.hintAction}>{t('settings.open')}</Text>
-          </Pressable>
-        </View>
-      ) : null}
-
       {!selectedField ? (
         <MapLocationSearch topOffset={insets.top + 10} onSelectPlace={flyToPlace} />
       ) : null}
 
       {!selectedField ? (
         <Pressable
-          onPress={() => {
-            // Klik = intencja "chcę teraz lokalizację" — nie polegamy tylko
-            // na tym, co hook ustalił raz przy montowaniu mapy (mogło się
-            // nie udać albo user dopiero teraz włączył uprawnienia).
-            requestLocation();
-            setNearbyEventsOpen(true);
-          }}
+          onPress={() => setNearbyEventsOpen(true)}
           style={({ pressed }) => [
             styles.nearbySearchBtn,
             { top: insets.top + 68 },
@@ -1373,7 +1350,6 @@ export function AppMap() {
         events={nearbyEventsList}
         userCoords={coords}
         locationStatus={status}
-        onRetryLocation={requestLocation}
         onSelectEvent={(event) => {
           setNearbyEventsOpen(false);
           router.push({ pathname: '/event/[id]', params: { id: event.id } });
@@ -1437,8 +1413,6 @@ export function AppMap() {
       <FieldDetailSheet
         field={selectedField}
         userCoords={coords}
-        locationStatus={status}
-        onRequestLocation={requestLocation}
         onClose={() => setSelectedField(null)}
       />
     </View>
@@ -1460,30 +1434,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Brand.danger,
     textAlign: 'center',
-  },
-  hint: {
-    position: 'absolute',
-    alignSelf: 'center',
-    zIndex: 26,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    maxWidth: '90%',
-    backgroundColor: 'rgba(15,23,42,0.85)',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderRadius: Radius.pill,
-    ...shadow('float'),
-  },
-  hintText: {
-    fontSize: 12,
-    color: '#ffffff',
-    flexShrink: 1,
-  },
-  hintAction: {
-    fontSize: 12,
-    fontWeight: '800',
-    color: '#93c5fd',
   },
   playNowFab: {
     position: 'absolute',

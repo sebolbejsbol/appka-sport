@@ -54,6 +54,7 @@ import { formatCourtName } from '@/lib/field-display';
 import { formatFieldSport } from '@/lib/field-display';
 import { distanceMeters, formatDistance } from '@/lib/geo';
 import { formatPlayersCount } from '@/lib/plural-pl';
+import { requireLocationPermission } from '@/lib/location-permission';
 import { goBack } from '@/lib/navigation';
 import { notifyFieldEventCountDelta } from '@/lib/map-field-sync';
 import { cancelEventReminders, scheduleEventReminders } from '@/lib/push-notifications';
@@ -82,7 +83,7 @@ export default function EventDetailScreen() {
   const userId = session?.user?.id;
   const params = useLocalSearchParams<{ id?: string }>();
   const eventId = params.id;
-  const { status: locationStatus, coords, requestLocation } = useWatchingLocation();
+  const { status: locationStatus, coords } = useWatchingLocation();
 
   const [event, setEvent] = useState<EventDetail | null>(null);
   const [teamInvites, setTeamInvites] = useState<EventTeamInvitation[]>([]);
@@ -205,11 +206,14 @@ export default function EventDetailScreen() {
 
   async function handleJoin() {
     if (!event) return;
-    if (locationStatus !== 'granted') {
-      notifyError(t('event.errors.joinLocationRequired'));
-      requestLocation();
-      return;
-    }
+    const allowed = await requireLocationPermission({
+      title: t('event.errors.joinLocationRequiredTitle'),
+      message: t('event.errors.joinLocationRequiredMessage'),
+      settingsLabel: t('settings.open'),
+      cancelLabel: t('common.cancel'),
+    });
+    if (!allowed) return;
+
     setBusy(true);
     const result = await joinEvent(event.id);
     setBusy(false);

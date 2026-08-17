@@ -6,7 +6,7 @@ import Mapbox, {
   MarkerView,
   ShapeSource,
 } from '@/lib/map-kit-web';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -43,7 +43,7 @@ export default function FieldNavigateScreen() {
     [destLat, destLng],
   );
 
-  const { status, coords, requestLocation } = useWatchingLocation(Boolean(destination));
+  const { status, coords } = useWatchingLocation(Boolean(destination));
   const [profile, setProfile] = useState<TravelProfile>('walking');
   const [route, setRoute] = useState<FieldRoute | null>(null);
   const [loadingRoute, setLoadingRoute] = useState(true);
@@ -147,14 +147,10 @@ export default function FieldNavigateScreen() {
             <Pressable
               onPress={() => {
                 if (canOpenLocationSettings) void openLocationSettings();
-                else requestLocation();
+                else router.push('/settings');
               }}
               style={styles.retryBtn}>
-              <Text style={styles.retryBtnText}>
-                {canOpenLocationSettings
-                  ? t('fieldNavigation.openSettings')
-                  : t('fieldNavigation.retryLocation')}
-              </Text>
+              <Text style={styles.retryBtnText}>{t('settings.open')}</Text>
             </Pressable>
           </View>
         ) : loadingRoute || !coords ? (

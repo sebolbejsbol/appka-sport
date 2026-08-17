@@ -1,19 +1,23 @@
 import * as Location from 'expo-location';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { ensureLocationPermission } from '@/lib/location-permission';
+import { checkLocationPermission } from '@/lib/location-permission';
 import type { LocationStatus, LngLat } from '@/hooks/use-user-location';
 
 export type UserLocationState = {
   status: LocationStatus;
   coords: LngLat | null;
-  /** Ponawia sprawdzenie uprawnień i (ponownie) uruchamia śledzenie na żądanie. Zwraca finalny status. */
+  /** Ponawia PASYWNE sprawdzenie uprawnień (bez promptu) i śledzenie, jeśli już przyznane. */
   requestLocation: () => Promise<LocationStatus>;
 };
 
 /**
- * Ciągłe śledzenie lokalizacji (np. w drodze na event).
- * Odświeża pozycję co kilka sekund lub po przesunięciu ~5 m.
+ * Ciągłe śledzenie lokalizacji (np. dystans do boiska na ekranie eventu,
+ * nawigacja). PASYWNE — nigdy nie pokazuje natywnego promptu o zgodę samym
+ * montowaniem; jeśli zgoda jest już przyznana, zaczyna śledzić, jeśli nie,
+ * zostawia status 'denied'/'loading' bez pytania. Aktywny prompt istnieje
+ * tylko w requireLocationPermission() z location-permission.ts, wołanym
+ * wprost z "Dołącz do eventu" / "Stwórz event".
  */
 export function useWatchingLocation(enabled = true): UserLocationState {
   const [state, setState] = useState<{ status: LocationStatus; coords: LngLat | null }>({
@@ -29,7 +33,7 @@ export function useWatchingLocation(enabled = true): UserLocationState {
     subscriptionRef.current = null;
     setState((prev) => ({ ...prev, status: 'loading' }));
 
-    const permission = await ensureLocationPermission();
+    const permission = await checkLocationPermission();
     if (seq !== requestSeqRef.current) return 'loading';
 
     if (permission !== 'granted') {

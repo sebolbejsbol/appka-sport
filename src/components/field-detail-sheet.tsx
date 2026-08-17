@@ -20,7 +20,7 @@ import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useEventFilters } from '@/context/event-filters';
 import { useSession } from '@/context/session';
-import type { LngLat, LocationStatus } from '@/hooks/use-user-location';
+import type { LngLat } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
 import { formatEventDateTime } from '@/lib/datetime';
 import {
@@ -43,23 +43,16 @@ import { requestFavoritesRefresh } from '@/lib/map-field-sync';
 import { cancelEventReminders, scheduleEventReminders } from '@/lib/push-notifications';
 import { distanceMeters, formatDistance } from '@/lib/geo';
 import { fieldMarkerEmoji } from '@/lib/sports';
+import { requireLocationPermission } from '@/lib/location-permission';
 import { notifyError, notifySuccess } from '@/lib/toast';
 
 type Props = {
   field: FieldPoint | null;
   userCoords: LngLat | null;
-  locationStatus: LocationStatus;
-  onRequestLocation: () => void;
   onClose: () => void;
 };
 
-export function FieldDetailSheet({
-  field,
-  userCoords,
-  locationStatus,
-  onRequestLocation,
-  onClose,
-}: Props) {
+export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
   const insets = useSafeAreaInsets();
   const { session } = useSession();
   const userId = session?.user?.id;
@@ -166,11 +159,14 @@ export function FieldDetailSheet({
   }, [field?.id, field?.lng, field?.lat, storedStreet]);
 
   async function handleJoin(event: EventSummary) {
-    if (locationStatus !== 'granted') {
-      notifyError(t('event.errors.joinLocationRequired'));
-      onRequestLocation();
-      return;
-    }
+    const allowed = await requireLocationPermission({
+      title: t('event.errors.joinLocationRequiredTitle'),
+      message: t('event.errors.joinLocationRequiredMessage'),
+      settingsLabel: t('settings.open'),
+      cancelLabel: t('common.cancel'),
+    });
+    if (!allowed) return;
+
     setBusyId(event.id);
     const result = await joinEvent(event.id);
     setBusyId(null);

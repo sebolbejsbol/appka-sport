@@ -4,7 +4,7 @@ import { Linking, Platform } from 'react-native';
 
 import { t } from '@/i18n';
 import { distanceMeters, formatDistance, type LngLat } from '@/lib/geo';
-import { ensureLocationPermission } from '@/lib/location-permission';
+import { checkLocationPermission } from '@/lib/location-permission';
 import { notifyError } from '@/lib/toast';
 
 export type FieldDestination = {
@@ -94,8 +94,15 @@ export async function openGoogleMapsNavigation(dest: FieldDestination): Promise<
   }
 }
 
+/**
+ * Nawigacja do boiska NIE jest jednym z dwóch miejsc, gdzie apka wolno
+ * aktywnie prosić o zgodę (patrz requireLocationPermission w
+ * location-permission.ts — to wyłącznie Dołącz/Stwórz event) — tu tylko
+ * odczytujemy aktualny stan, bez pokazywania promptu. W praktyce user,
+ * który dotarł tu (dołączył/utworzył event), już ma zgodę ustaloną.
+ */
 export async function getCurrentUserCoords(): Promise<LngLat | null> {
-  const permission = await ensureLocationPermission();
+  const permission = await checkLocationPermission();
   if (permission !== 'granted') return null;
 
   try {
@@ -191,8 +198,8 @@ export async function startFieldNavigation(
     if (!userCoords) {
       // Rozróżniamy "brak zgody" od "zgoda jest, ale nie udało się pobrać
       // pozycji" na podstawie AKTUALNEGO stanu uprawnień, a nie tego, co
-      // ewentualnie przyszło z propsów wcześniej.
-      const permission = await ensureLocationPermission();
+      // ewentualnie przyszło z propsów wcześniej. Tylko odczyt — bez promptu.
+      const permission = await checkLocationPermission();
       return permission === 'granted' ? 'location_error' : 'location_denied';
     }
   }
