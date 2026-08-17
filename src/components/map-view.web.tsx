@@ -1307,6 +1307,7 @@ export function AppMap() {
         events={nearbyEventsList}
         userCoords={coords}
         locationStatus={status}
+        onRetryLocation={() => void requestLocation()}
         onSelectEvent={(event) => {
           setNearbyEventsOpen(false);
           router.push({ pathname: '/event/[id]', params: { id: event.id } });

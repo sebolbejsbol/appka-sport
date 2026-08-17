@@ -296,7 +296,7 @@ function isNearbyListEligible(item: NearbyFieldItem): boolean {
 
 export function AppMap() {
   const insets = useSafeAreaInsets();
-  const { status, coords } = useUserLocation();
+  const { status, coords, requestLocation } = useUserLocation();
   const mapRef = useRef<MapView>(null);
   const cameraRef = useRef<Camera>(null);
   const fieldsSourceRef = useRef<ShapeSource>(null);
@@ -1350,6 +1350,7 @@ export function AppMap() {
         events={nearbyEventsList}
         userCoords={coords}
         locationStatus={status}
+        onRetryLocation={() => void requestLocation()}
         onSelectEvent={(event) => {
           setNearbyEventsOpen(false);
           router.push({ pathname: '/event/[id]', params: { id: event.id } });

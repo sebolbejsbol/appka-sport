@@ -9,8 +9,17 @@ export const pl = {
   // src/lib/get-web-location.ts. Zastępuje wcześniejsze osobne klucze per
   // funkcja (np. checkInPermissionDeniedWeb).
   location: {
+    // Ogólny (platform-agnostyczny) wariant — używany tam, gdzie nie ma
+    // sensu/miejsca rozróżniać iOS/Android (np. krótki toast). Tam, gdzie
+    // jest miejsce na pełną instrukcję, wolimy permissionDeniedIOS /
+    // permissionDeniedAndroid — ścieżka odblokowania różni się między
+    // Safari i Chrome.
     permissionDeniedWeb:
       'Ta strona nie ma dostępu do lokalizacji. Kliknij ikonę kłódki (lub „AA") obok adresu strony → Ustawienia witryny → Lokalizacja → Zezwól, potem spróbuj ponownie.',
+    permissionDeniedIOS:
+      'Ta strona nie ma dostępu do lokalizacji. W Safari dotknij „aA" w pasku adresu → Ustawienia witryny → Lokalizacja → Zezwól (albo: Ustawienia iPhone\'a → Safari → Lokalizacja → dla tej strony), potem odśwież stronę.',
+    permissionDeniedAndroid:
+      'Ta strona nie ma dostępu do lokalizacji. W Chrome dotknij ikony kłódki (lub „i") obok adresu → Uprawnienia → Lokalizacja → Zezwól, potem odśwież stronę.',
     timeout: 'Ustalanie lokalizacji trwa zbyt długo. Spróbuj ponownie.',
     unavailable: 'Nie udało się ustalić lokalizacji. Spróbuj ponownie.',
   },

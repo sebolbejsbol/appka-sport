@@ -13,6 +13,10 @@ export const en: DeepPartialWide<Translations> = {
   location: {
     permissionDeniedWeb:
       'This site doesn\'t have location access. Click the padlock (or "AA") icon next to the address → Site Settings → Location → Allow, then try again.',
+    permissionDeniedIOS:
+      'This site doesn\'t have location access. In Safari, tap "aA" in the address bar → Website Settings → Location → Allow (or: iPhone Settings → Safari → Location → for this website), then reload the page.',
+    permissionDeniedAndroid:
+      'This site doesn\'t have location access. In Chrome, tap the padlock (or "i") icon next to the address → Permissions → Location → Allow, then reload the page.',
     timeout: 'Finding your location is taking too long. Please try again.',
     unavailable: "Couldn't get your location. Please try again.",
   },

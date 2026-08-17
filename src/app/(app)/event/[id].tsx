@@ -55,6 +55,7 @@ import { formatCourtName } from '@/lib/field-display';
 import { formatFieldSport } from '@/lib/field-display';
 import { distanceMeters, formatDistance } from '@/lib/geo';
 import { formatPlayersCount } from '@/lib/plural-pl';
+import { isIOSWebBrowser } from '@/lib/get-web-location';
 import { requireLocationPermission } from '@/lib/location-permission';
 import { goBack } from '@/lib/navigation';
 import { notifyFieldEventCountDelta } from '@/lib/map-field-sync';
@@ -334,7 +335,9 @@ export default function EventDetailScreen() {
       notifyError(
         locationResult.status === 'permission_denied'
           ? Platform.OS === 'web'
-            ? t('location.permissionDeniedWeb')
+            ? isIOSWebBrowser()
+              ? t('location.permissionDeniedIOS')
+              : t('location.permissionDeniedAndroid')
             : t('event.errors.checkInPermissionDenied')
           : locationResult.status === 'timeout'
             ? t('location.timeout')

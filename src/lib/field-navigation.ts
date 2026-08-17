@@ -4,7 +4,7 @@ import { Linking, Platform } from 'react-native';
 
 import { t } from '@/i18n';
 import { distanceMeters, formatDistance, type LngLat } from '@/lib/geo';
-import { getCurrentLocation } from '@/lib/get-web-location';
+import { getCurrentLocation, isIOSWebBrowser } from '@/lib/get-web-location';
 import { checkLocationPermission } from '@/lib/location-permission';
 import { notifyError } from '@/lib/toast';
 
@@ -234,7 +234,9 @@ export function showNavigationError(result: Exclude<StartNavigationResult, 'goog
       ? t('fieldNavigation.invalidDestination')
       : result === 'location_denied'
         ? Platform.OS === 'web'
-          ? t('location.permissionDeniedWeb')
+          ? isIOSWebBrowser()
+            ? t('location.permissionDeniedIOS')
+            : t('location.permissionDeniedAndroid')
           : t('fieldNavigation.locationDenied')
         : result === 'location_timeout'
           ? t('location.timeout')

@@ -9,8 +9,9 @@ import { checkLocationPermission, requestLocationPermission } from '@/lib/locati
  * - granted  — mamy zgodę i (zwykle) współrzędne
  * - denied   — użytkownik odmówił dostępu do lokalizacji
  * - unavailable — nie udało się pobrać pozycji (np. GPS wyłączony, błąd)
+ * - timeout — ustalanie pozycji trwało zbyt długo (web: patrz get-web-location.ts)
  */
-export type LocationStatus = 'loading' | 'granted' | 'denied' | 'unavailable';
+export type LocationStatus = 'loading' | 'granted' | 'denied' | 'unavailable' | 'timeout';
 
 /** Współrzędne w formacie Mapbox: [długość geograficzna, szerokość geograficzna]. */
 export type LngLat = [number, number];

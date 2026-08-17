@@ -6,7 +6,7 @@ import Mapbox, {
   MarkerView,
   ShapeSource,
 } from '@/lib/map-kit-web';
-import { router, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -24,7 +24,7 @@ import {
   type FieldRoute,
   type TravelProfile,
 } from '@/lib/field-navigation';
-import { canOpenLocationSettings, openLocationSettings } from '@/lib/location-permission';
+import { isIOSWebBrowser } from '@/lib/get-web-location';
 import { goBack } from '@/lib/navigation';
 
 export default function FieldNavigateScreen() {
@@ -43,7 +43,7 @@ export default function FieldNavigateScreen() {
     [destLat, destLng],
   );
 
-  const { status, coords } = useWatchingLocation(Boolean(destination));
+  const { status, coords, requestLocation } = useWatchingLocation(Boolean(destination));
   const [profile, setProfile] = useState<TravelProfile>('walking');
   const [route, setRoute] = useState<FieldRoute | null>(null);
   const [loadingRoute, setLoadingRoute] = useState(true);
@@ -142,15 +142,22 @@ export default function FieldNavigateScreen() {
         <TravelModePicker value={profile} onChange={setProfile} style={styles.modePicker} />
 
         {status === 'denied' ? (
+          // Przeglądarka NIE pokaże już własnego promptu z poziomu strony po
+          // realnej odmowie — "Spróbuj ponownie" nic by tu nie dał, więc
+          // pokazujemy tylko instrukcję ręcznego odblokowania, inną dla
+          // Safari (iOS) i Chrome (Android), bo ścieżka w ustawieniach jest inna.
           <View>
-            <Text style={styles.muted}>{t('fieldNavigation.locationDenied')}</Text>
-            <Pressable
-              onPress={() => {
-                if (canOpenLocationSettings) void openLocationSettings();
-                else router.push('/settings');
-              }}
-              style={styles.retryBtn}>
-              <Text style={styles.retryBtnText}>{t('settings.open')}</Text>
+            <Text style={styles.muted}>
+              {isIOSWebBrowser() ? t('location.permissionDeniedIOS') : t('location.permissionDeniedAndroid')}
+            </Text>
+          </View>
+        ) : status === 'timeout' || status === 'unavailable' ? (
+          <View>
+            <Text style={styles.muted}>
+              {status === 'timeout' ? t('location.timeout') : t('location.unavailable')}
+            </Text>
+            <Pressable onPress={() => void requestLocation()} style={styles.retryBtn}>
+              <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
             </Pressable>
           </View>
         ) : loadingRoute || !coords ? (

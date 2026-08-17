@@ -8,6 +8,7 @@ import type { LocationStatus } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
 import type { DiscoverEvent } from '@/lib/discover-events';
 import type { LngLat } from '@/lib/geo';
+import { isIOSWebBrowser } from '@/lib/get-web-location';
 
 type Props = {
   visible: boolean;
@@ -15,6 +16,7 @@ type Props = {
   events: DiscoverEvent[];
   userCoords: LngLat | null;
   locationStatus: LocationStatus;
+  onRetryLocation: () => void;
   onSelectEvent: (event: DiscoverEvent) => void;
 };
 
@@ -31,6 +33,7 @@ export function NearbyEventsSheet({
   events,
   userCoords,
   locationStatus,
+  onRetryLocation,
   onSelectEvent,
 }: Props) {
   const insets = useSafeAreaInsets();
@@ -52,24 +55,34 @@ export function NearbyEventsSheet({
             </Pressable>
           </View>
 
-          {!userCoords && (locationStatus === 'denied' || locationStatus === 'unavailable') ? (
+          {!userCoords &&
+          (locationStatus === 'denied' || locationStatus === 'unavailable' || locationStatus === 'timeout') ? (
             // Na webie kliknięcie "Szukaj w pobliżu" już samo w sobie
             // aktywnie prosi o lokalizację (patrz get-web-location.ts) —
             // ten stan znaczy więc realną odmowę/błąd, nie "jeszcze nie
-            // pytano", stąd te same ujednolicone komunikaty co reszta
-            // akcji lokalizacyjnych na webie. Na natywnej appce ten panel
-            // tylko odczytuje stan bez promptowania.
+            // pytano", stąd te same ujednolicone komunikaty co reszta akcji
+            // lokalizacyjnych na webie. "denied" nie dostaje przycisku
+            // ponawiania — przeglądarka i tak nie pokaże już promptu.
             <View style={styles.stateWrap}>
               <Text style={styles.stateEmoji}>📍</Text>
               <Text style={styles.stateText}>
                 {locationStatus === 'denied'
                   ? Platform.OS === 'web'
-                    ? t('location.permissionDeniedWeb')
+                    ? isIOSWebBrowser()
+                      ? t('location.permissionDeniedIOS')
+                      : t('location.permissionDeniedAndroid')
                     : t('map.nearbyEventsLocationDenied')
                   : Platform.OS === 'web'
-                    ? t('location.unavailable')
+                    ? locationStatus === 'timeout'
+                      ? t('location.timeout')
+                      : t('location.unavailable')
                     : t('map.nearbyEventsLocationUnavailable')}
               </Text>
+              {locationStatus !== 'denied' ? (
+                <Pressable onPress={onRetryLocation} style={styles.retryBtn}>
+                  <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
+                </Pressable>
+              ) : null}
             </View>
           ) : !userCoords ? (
             <View style={styles.stateWrap}>
@@ -164,6 +177,19 @@ const styles = StyleSheet.create({
     color: Brand.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 24,
+  },
+  retryBtn: {
+    marginTop: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: Brand.primary,
+  },
+  retryBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Brand.primary,
   },
   list: {
     gap: 12,
