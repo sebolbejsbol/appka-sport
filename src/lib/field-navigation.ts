@@ -4,6 +4,7 @@ import { Linking, Platform } from 'react-native';
 
 import { t } from '@/i18n';
 import { distanceMeters, formatDistance, type LngLat } from '@/lib/geo';
+import { ensureLocationPermission } from '@/lib/location-permission';
 import { notifyError } from '@/lib/toast';
 
 export type FieldDestination = {
@@ -94,10 +95,10 @@ export async function openGoogleMapsNavigation(dest: FieldDestination): Promise<
 }
 
 export async function getCurrentUserCoords(): Promise<LngLat | null> {
-  try {
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== 'granted') return null;
+  const permission = await ensureLocationPermission();
+  if (permission !== 'granted') return null;
 
+  try {
     const lastKnown = await Location.getLastKnownPositionAsync();
     if (lastKnown) {
       return [lastKnown.coords.longitude, lastKnown.coords.latitude];
@@ -184,11 +185,16 @@ export async function startFieldNavigation(
     return 'invalid_destination';
   }
 
-  const userCoords = options?.userCoords ?? (await getCurrentUserCoords());
+  let userCoords = options?.userCoords ?? null;
   if (!userCoords) {
-    const { status } = await Location.getForegroundPermissionsAsync();
-    if (status === 'denied') return 'location_denied';
-    return 'location_error';
+    userCoords = await getCurrentUserCoords();
+    if (!userCoords) {
+      // Rozróżniamy "brak zgody" od "zgoda jest, ale nie udało się pobrać
+      // pozycji" na podstawie AKTUALNEGO stanu uprawnień, a nie tego, co
+      // ewentualnie przyszło z propsów wcześniej.
+      const permission = await ensureLocationPermission();
+      return permission === 'granted' ? 'location_error' : 'location_denied';
+    }
   }
 
   if (await isGoogleMapsInstalled()) {

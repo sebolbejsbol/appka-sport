@@ -25,6 +25,7 @@ import {
   type FieldRoute,
   type TravelProfile,
 } from '@/lib/field-navigation';
+import { canOpenLocationSettings, openLocationSettings } from '@/lib/location-permission';
 import { goBack } from '@/lib/navigation';
 
 const token = process.env.EXPO_PUBLIC_MAPBOX_TOKEN;
@@ -46,7 +47,7 @@ export default function FieldNavigateScreen() {
     [destLat, destLng],
   );
 
-  const { status, coords } = useWatchingLocation(Boolean(destination));
+  const { status, coords, requestLocation } = useWatchingLocation(Boolean(destination));
   const [profile, setProfile] = useState<TravelProfile>('walking');
   const [route, setRoute] = useState<FieldRoute | null>(null);
   const [loadingRoute, setLoadingRoute] = useState(true);
@@ -153,7 +154,21 @@ export default function FieldNavigateScreen() {
         <TravelModePicker value={profile} onChange={setProfile} style={styles.modePicker} />
 
         {status === 'denied' ? (
-          <Text style={styles.muted}>{t('fieldNavigation.locationDenied')}</Text>
+          <View>
+            <Text style={styles.muted}>{t('fieldNavigation.locationDenied')}</Text>
+            <Pressable
+              onPress={() => {
+                if (canOpenLocationSettings) void openLocationSettings();
+                else requestLocation();
+              }}
+              style={styles.retryBtn}>
+              <Text style={styles.retryBtnText}>
+                {canOpenLocationSettings
+                  ? t('fieldNavigation.openSettings')
+                  : t('fieldNavigation.retryLocation')}
+              </Text>
+            </Pressable>
+          </View>
         ) : loadingRoute || !coords ? (
           <View style={styles.loadingRow}>
             <ActivityIndicator color={Brand.primary} />
@@ -267,6 +282,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Brand.textMuted,
     paddingVertical: 8,
+  },
+  retryBtn: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: 14,
+    paddingVertical: 9,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: Brand.primary,
+    marginBottom: 8,
+  },
+  retryBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Brand.primary,
   },
   fallback: {
     flex: 1,

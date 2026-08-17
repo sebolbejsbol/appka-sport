@@ -20,8 +20,8 @@ import { Brand } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
 import { showActionSheet } from '@/lib/action-sheet-navigation';
-import { debounce, subscribeToTable } from '@/lib/realtime';
 import {
+  openDmConversation,
   listConversationsV2,
   searchConversations,
   setConversationMuted,
@@ -29,6 +29,11 @@ import {
   type ConversationListV2,
   type ConversationSearchResult,
 } from '@/lib/messages';
+import { debounce, subscribeToTable } from '@/lib/realtime';
+import { listFriends, type SocialUserRow } from '@/lib/social';
+import { notifyError } from '@/lib/toast';
+
+type SearchResultItem = ConversationSearchResult & { pending?: boolean };
 
 export default function MessagesListScreen() {
   const insets = useSafeAreaInsets();
@@ -36,23 +41,36 @@ export default function MessagesListScreen() {
   const myUserId = session?.user?.id;
 
   const [rows, setRows] = useState<ConversationListV2[]>([]);
+  const [friends, setFriends] = useState<SocialUserRow[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState(false);
+  const [openingUserId, setOpeningUserId] = useState<string | null>(null);
 
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<ConversationSearchResult[]>([]);
+  const [results, setResults] = useState<SearchResultItem[]>([]);
   const [searching, setSearching] = useState(false);
 
   const refresh = useCallback(async (silent = false) => {
     if (!silent) setLoading(true);
     setError(false);
-    const { data, error: loadErr } = await listConversationsV2();
+    const [{ data, error: loadErr }, { data: friendsData }] = await Promise.all([
+      listConversationsV2(),
+      listFriends(),
+    ]);
     setRows(data);
+    setFriends(friendsData);
     setError(Boolean(loadErr));
     setLoading(false);
     setRefreshing(false);
   }, []);
+
+  // Znajomi, którzy jeszcze nie mają rozmowy — bez tego nowy znajomy w ogóle
+  // nie pojawiał się w Wiadomościach, dopóki ktoś nie napisał pierwszej
+  // wiadomości (open_dm_conversation tworzy rozmowę leniwie, nie przy zaprzyjaźnieniu).
+  const friendsWithoutConversation = friends.filter(
+    (f) => !rows.some((r) => r.other_user_id === f.user_id),
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -73,21 +91,61 @@ export default function MessagesListScreen() {
     };
   }, [refresh]);
 
-  const onSearch = useCallback(async (text: string) => {
-    setQuery(text);
-    if (!text.trim()) {
-      setResults([]);
+  const onSearch = useCallback(
+    async (text: string) => {
+      setQuery(text);
+      if (!text.trim()) {
+        setResults([]);
+        setSearching(false);
+        return;
+      }
+      setSearching(true);
+      const { data } = await searchConversations(text);
+      // "Szukaj rozmów" ma zwracać WSZYSTKICH znajomych, nie tylko tych, z
+      // którymi już jest jakaś rozmowa — inaczej świeżo dodany znajomy był
+      // nieosiągalny przez wyszukiwarkę, dopóki ktoś nie napisał pierwszy.
+      const term = text.trim().toLowerCase();
+      const matchedUserIds = new Set(data.map((r) => r.other_user_id).filter(Boolean));
+      const friendMatches: SearchResultItem[] = friends
+        .filter(
+          (f) => !matchedUserIds.has(f.user_id) && (f.nick ?? '').toLowerCase().includes(term),
+        )
+        .map((f) => ({
+          conversation_id: f.user_id,
+          kind: 'dm',
+          title: f.nick,
+          photo_url: f.avatar_url,
+          other_user_id: f.user_id,
+          pending: true,
+        }));
+      setResults([...data, ...friendMatches]);
       setSearching(false);
-      return;
-    }
-    setSearching(true);
-    const { data } = await searchConversations(text);
-    setResults(data);
-    setSearching(false);
-  }, []);
+    },
+    [friends],
+  );
 
   function openConversation(conversationId: string) {
     router.push({ pathname: '/messages/[id]', params: { id: conversationId } });
+  }
+
+  async function openConversationWithFriend(userId: string) {
+    if (openingUserId) return;
+    setOpeningUserId(userId);
+    const { data: conversationId } = await openDmConversation(userId);
+    setOpeningUserId(null);
+    if (!conversationId) {
+      notifyError(t('chat.openFailed'));
+      return;
+    }
+    openConversation(conversationId);
+  }
+
+  function openSearchResult(item: SearchResultItem) {
+    if (item.pending && item.other_user_id) {
+      void openConversationWithFriend(item.other_user_id);
+      return;
+    }
+    openConversation(item.conversation_id);
   }
 
   function showActions(row: ConversationListV2) {
@@ -170,7 +228,8 @@ export default function MessagesListScreen() {
           }
           renderItem={({ item }) => (
             <Pressable
-              onPress={() => openConversation(item.conversation_id)}
+              onPress={() => openSearchResult(item)}
+              disabled={openingUserId === item.other_user_id}
               style={({ pressed }) => [styles.resultRow, pressed && styles.pressed]}>
               <ConversationAvatar
                 kind={item.kind}
@@ -181,10 +240,17 @@ export default function MessagesListScreen() {
               <Text style={styles.resultName} numberOfLines={1}>
                 {item.title?.trim() || t('common.nick')}
               </Text>
+              {item.pending ? (
+                openingUserId === item.other_user_id ? (
+                  <ActivityIndicator color={Brand.primary} />
+                ) : (
+                  <Text style={styles.sayHiHint}>{t('chat.sayHi')}</Text>
+                )
+              ) : null}
             </Pressable>
           )}
         />
-      ) : error || rows.length === 0 ? (
+      ) : error || (rows.length === 0 && friendsWithoutConversation.length === 0) ? (
         <View style={styles.emptyWrap}>
           <View style={styles.emptyIcon}>
             <Text style={styles.emptyIconText}>💬</Text>
@@ -208,6 +274,36 @@ export default function MessagesListScreen() {
             />
           }
           ItemSeparatorComponent={() => <View style={styles.separator} />}
+          ListHeaderComponent={
+            friendsWithoutConversation.length > 0 ? (
+              <View style={styles.friendsSection}>
+                <Text style={styles.friendsSectionTitle}>{t('chat.friendsSectionTitle')}</Text>
+                {friendsWithoutConversation.map((f) => (
+                  <Pressable
+                    key={f.user_id}
+                    onPress={() => void openConversationWithFriend(f.user_id)}
+                    disabled={openingUserId === f.user_id}
+                    style={({ pressed }) => [styles.friendRow, pressed && styles.pressed]}>
+                    <ConversationAvatar
+                      kind="dm"
+                      title={f.nick}
+                      photoUrl={f.avatar_url}
+                      isOnline={f.is_online}
+                      size={48}
+                    />
+                    <Text style={styles.friendName} numberOfLines={1}>
+                      {f.nick?.trim() || t('common.nick')}
+                    </Text>
+                    {openingUserId === f.user_id ? (
+                      <ActivityIndicator color={Brand.primary} />
+                    ) : (
+                      <Text style={styles.sayHiAction}>{t('chat.sayHi')}</Text>
+                    )}
+                  </Pressable>
+                ))}
+              </View>
+            ) : null
+          }
           renderItem={({ item }) => (
             <ChatListItem
               row={item}
@@ -289,6 +385,44 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '600',
     color: Brand.textPrimary,
+  },
+  sayHiHint: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Brand.primary,
+  },
+  friendsSection: {
+    paddingTop: 8,
+    paddingBottom: 4,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#efefef',
+  },
+  friendsSectionTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Brand.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.4,
+    paddingHorizontal: 16,
+    paddingBottom: 6,
+  },
+  friendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+  },
+  friendName: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '600',
+    color: Brand.textPrimary,
+  },
+  sayHiAction: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Brand.primary,
   },
   pressed: {
     backgroundColor: Brand.surfaceMuted,

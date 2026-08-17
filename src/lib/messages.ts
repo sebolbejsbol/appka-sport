@@ -273,6 +273,18 @@ export async function listConversationsV2(): Promise<{
   return { data: (data as ConversationListV2[] | null) ?? [], error: null };
 }
 
+/**
+ * Suma nieprzeczytanych wiadomości ze wszystkich rozmów — do odznaczki przy
+ * "Wiadomości" w nawigacji, ODDZIELNIE od ogólnego dzwonka powiadomień (ten
+ * ostatni ma pokazywać resztę: zaproszenia, dołączenia do eventu itd., patrz
+ * app-side-menu.tsx). Reużywa już istniejącego list_conversations_v2 zamiast
+ * osobnego zapytania — unread_count per rozmowa jest już liczony po stronie bazy.
+ */
+export async function getUnreadMessageCount(): Promise<number> {
+  const { data } = await listConversationsV2();
+  return data.reduce((sum, row) => sum + (row.unread_count || 0), 0);
+}
+
 export async function getConversationMeta(conversationId: string): Promise<{
   data: ConversationMeta | null;
   error: { message: string } | null;

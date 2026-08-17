@@ -1,5 +1,7 @@
 import * as Location from 'expo-location';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
+
+import { ensureLocationPermission } from '@/lib/location-permission';
 
 /**
  * Stan pobierania lokalizacji użytkownika:
@@ -16,6 +18,8 @@ export type LngLat = [number, number];
 export type UserLocationState = {
   status: LocationStatus;
   coords: LngLat | null;
+  /** Ponawia sprawdzenie uprawnień/pobranie pozycji na żądanie (np. przycisk "W pobliżu"). */
+  requestLocation: () => void;
 };
 
 /**
@@ -25,58 +29,58 @@ export type UserLocationState = {
  * (przy wejściu na mapę), nie w tle — zgodnie z założeniami prywatności.
  */
 export function useUserLocation(): UserLocationState {
-  const [state, setState] = useState<UserLocationState>({
+  const [state, setState] = useState<{ status: LocationStatus; coords: LngLat | null }>({
     status: 'loading',
     coords: null,
   });
+  const requestSeqRef = useRef(0);
 
-  useEffect(() => {
-    let cancelled = false;
+  const resolveLocation = useCallback(async () => {
+    const seq = ++requestSeqRef.current;
+    setState((prev) => ({ ...prev, status: 'loading' }));
 
-    async function resolveLocation() {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (cancelled) return;
+    const permission = await ensureLocationPermission();
+    if (seq !== requestSeqRef.current) return;
 
-        if (status !== 'granted') {
-          setState({ status: 'denied', coords: null });
-          return;
-        }
-
-        // Szybka, przybliżona pozycja (jeśli dostępna) — natychmiastowy skok mapy w okolicę.
-        const lastKnown = await Location.getLastKnownPositionAsync();
-        if (!cancelled && lastKnown) {
-          setState({
-            status: 'granted',
-            coords: [lastKnown.coords.longitude, lastKnown.coords.latitude],
-          });
-        }
-
-        // Dokładniejsza, aktualna pozycja.
-        const current = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-        if (!cancelled) {
-          setState({
-            status: 'granted',
-            coords: [current.coords.longitude, current.coords.latitude],
-          });
-        }
-      } catch {
-        if (!cancelled) {
-          setState((prev) =>
-            prev.coords ? prev : { status: 'unavailable', coords: null },
-          );
-        }
-      }
+    if (permission !== 'granted') {
+      setState({ status: 'denied', coords: null });
+      return;
     }
 
-    resolveLocation();
+    try {
+      // Szybka, przybliżona pozycja (jeśli dostępna) — natychmiastowy skok mapy w okolicę.
+      const lastKnown = await Location.getLastKnownPositionAsync();
+      if (seq === requestSeqRef.current && lastKnown) {
+        setState({
+          status: 'granted',
+          coords: [lastKnown.coords.longitude, lastKnown.coords.latitude],
+        });
+      }
 
-    return () => {
-      cancelled = true;
-    };
+      // Dokładniejsza, aktualna pozycja.
+      const current = await Location.getCurrentPositionAsync({
+        accuracy: Location.Accuracy.Balanced,
+      });
+      if (seq === requestSeqRef.current) {
+        setState({
+          status: 'granted',
+          coords: [current.coords.longitude, current.coords.latitude],
+        });
+      }
+    } catch {
+      if (seq === requestSeqRef.current) {
+        setState((prev) => (prev.coords ? prev : { status: 'unavailable', coords: null }));
+      }
+    }
   }, []);
 
-  return state;
+  useEffect(() => {
+    void resolveLocation();
+  }, [resolveLocation]);
+
+  const requestLocation = useCallback(() => {
+    void resolveLocation();
+  }, [resolveLocation]);
+
+  return { ...state, requestLocation };
 }

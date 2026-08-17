@@ -12,7 +12,7 @@ import Mapbox, {
   type MapState,
   type ShapeSourceImperative,
 } from '@/lib/map-kit-web';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -60,6 +60,7 @@ import {
   isSportFilterCoveredByPrefetch,
   onFieldsPrefetchUpdate,
 } from '@/lib/fields-prefetch';
+import { canOpenLocationSettings, openLocationSettings } from '@/lib/location-permission';
 import { markInitialDiscoverReady } from '@/lib/map-ready';
 import {
   buildAvailabilityMatchExpression,
@@ -278,7 +279,7 @@ function isNearbyListEligible(item: NearbyFieldItem): boolean {
 
 export function AppMap() {
   const insets = useSafeAreaInsets();
-  const { status, coords } = useUserLocation();
+  const { status, coords, requestLocation } = useUserLocation();
   const mapRef = useRef<unknown>(null);
   const cameraRef = useRef<{
     setCamera: (opts: { centerCoordinate?: [number, number]; zoomLevel?: number; animationDuration?: number }) => void;
@@ -685,33 +686,76 @@ export function AppMap() {
     void loadVisibleFields(latestStateRef.current);
   }, [showFields, sportFilter, loadVisibleFields]);
 
+  // Stack expo-routera NIE odmontowuje mapy pod pushowanym ekranem (np.
+  // szczegółów eventu) — zostaje żywa w tle, więc każdy otwarty modal/sheet
+  // (filtry, "W pobliżu", szczegóły boiska) zostawałby widoczny NAD nowym
+  // ekranem. Zamykamy je wszystkie przy utracie focusu, nie przy odmontowaniu.
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setFiltersOpen(false);
+        setNearbyEventsOpen(false);
+        setPlayNowOpen(false);
+        setNearbyExpanded(false);
+        setClusterVenues(null);
+        setSelectedField(null);
+      };
+    }, []),
+  );
+
   const onFieldPress = useCallback(
     (event: { features?: GeoJSON.Feature[] }) => {
       const rawFeatures = event.features ?? [];
       const feature = rawFeatures[0];
       if (!feature) return;
 
-      // Tap w grupę (cluster) -> NIE przybliżamy i nie otwieramy losowego boiska —
-      // pokazujemy listę obiektów z tego klastra w panelu "W pobliżu" (pinch/scroll
-      // zoom nadal naturalnie rozdziela klaster dzięki wbudowanemu group'owaniu GL).
+      // Tap w grupę (cluster) -> przybliżamy mapę do obszaru klastra, ten sam
+      // język co pojedynczy marker ("klik = pokaż mi to dokładniej"). Fallback
+      // na starą listę "W pobliżu", gdyby zoom klastra się nie udał.
       if (feature.properties?.point_count != null) {
         fieldTapLockRef.current = true;
         setTimeout(() => {
           fieldTapLockRef.current = false;
         }, 0);
+        const clusterCoords =
+          feature.geometry?.type === 'Point' ? feature.geometry.coordinates : null;
+        const showClusterList = () => {
+          void fieldsSourceRef.current
+            ?.getClusterLeaves(feature, 200, 0)
+            .then((collection) => {
+              const leaves = extractLeafFeatures(collection);
+              const items = leaves.flatMap((leaf) => {
+                const item = featureToNearbyItem(leaf, coords, categoryBreakdown);
+                return item && isNearbyListEligible(item) ? [item] : [];
+              });
+              items.sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity));
+              setClusterVenues(items);
+              setNearbyExpanded(true);
+            })
+            .catch(() => {});
+        };
+        if (!clusterCoords) {
+          showClusterList();
+          return;
+        }
         void fieldsSourceRef.current
-          ?.getClusterLeaves(feature, 200, 0)
-          .then((collection) => {
-            const leaves = extractLeafFeatures(collection);
-            const items = leaves.flatMap((leaf) => {
-              const item = featureToNearbyItem(leaf, coords, categoryBreakdown);
-              return item && isNearbyListEligible(item) ? [item] : [];
+          ?.getClusterExpansionZoom(feature)
+          .then((expansionZoom) => {
+            if (!Number.isFinite(expansionZoom)) {
+              showClusterList();
+              return;
+            }
+            const targetZoom = Math.min(
+              Math.max(expansionZoom, zoomFromState(latestStateRef.current) + 1),
+              20,
+            );
+            cameraRef.current?.setCamera({
+              centerCoordinate: [clusterCoords[0], clusterCoords[1]],
+              zoomLevel: targetZoom,
+              animationDuration: 600,
             });
-            items.sort((a, b) => (a.distanceMeters ?? Infinity) - (b.distanceMeters ?? Infinity));
-            setClusterVenues(items);
-            setNearbyExpanded(true);
           })
-          .catch(() => {});
+          .catch(showClusterList);
         return;
       }
 
@@ -1236,8 +1280,20 @@ export function AppMap() {
       </MapView>
 
       {status === 'denied' ? (
-        <View style={styles.hint} pointerEvents="none">
+        <View style={styles.hint}>
           <Text style={styles.hintText}>{t('map.locationDenied')}</Text>
+          <Pressable
+            onPress={() => {
+              if (canOpenLocationSettings) void openLocationSettings();
+              else requestLocation();
+            }}
+            hitSlop={6}>
+            <Text style={styles.hintAction}>
+              {canOpenLocationSettings
+                ? t('fieldNavigation.openSettings')
+                : t('fieldNavigation.retryLocation')}
+            </Text>
+          </Pressable>
         </View>
       ) : null}
 
@@ -1247,7 +1303,13 @@ export function AppMap() {
 
       {!selectedField ? (
         <Pressable
-          onPress={() => setNearbyEventsOpen(true)}
+          onPress={() => {
+            // Klik = intencja "chcę teraz lokalizację" — nie polegamy tylko
+            // na tym, co hook ustalił raz przy montowaniu mapy (mogło się
+            // nie udać albo user dopiero teraz włączył uprawnienia).
+            requestLocation();
+            setNearbyEventsOpen(true);
+          }}
           style={({ pressed }) => [
             styles.nearbySearchBtn,
             { top: insets.top + 68 },
@@ -1263,6 +1325,8 @@ export function AppMap() {
         onClose={() => setNearbyEventsOpen(false)}
         events={nearbyEventsList}
         userCoords={coords}
+        locationStatus={status}
+        onRetryLocation={requestLocation}
         onSelectEvent={(event) => {
           setNearbyEventsOpen(false);
           router.push({ pathname: '/event/[id]', params: { id: event.id } });
@@ -1345,11 +1409,18 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 12,
+    alignItems: 'center',
+    gap: 6,
   },
   hintText: {
     fontSize: 13,
     color: Brand.textSecondary,
     textAlign: 'center',
+  },
+  hintAction: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: Brand.primary,
   },
   playNowFab: {
     position: 'absolute',

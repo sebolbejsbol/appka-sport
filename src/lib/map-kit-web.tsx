@@ -438,6 +438,7 @@ export type ShapeSourceImperative = {
     limit: number,
     offset: number,
   ) => Promise<GeoJSON.FeatureCollection>;
+  getClusterExpansionZoom: (feature: GeoJSON.Feature) => Promise<number>;
 };
 
 export const ShapeSource = forwardRef<ShapeSourceImperative, ShapeSourceProps>(function ShapeSource(
@@ -567,6 +568,12 @@ export const ShapeSource = forwardRef<ShapeSourceImperative, ShapeSourceProps>(f
         }
         const features = await src.getClusterLeaves(clusterId, limit, offset);
         return { type: 'FeatureCollection', features } as GeoJSON.FeatureCollection;
+      },
+      getClusterExpansionZoom: async (feature) => {
+        const src = map?.getSource(id) as maplibregl.GeoJSONSource | undefined;
+        const clusterId = feature.properties?.cluster_id;
+        if (!src || clusterId == null) return 0;
+        return src.getClusterExpansionZoom(clusterId);
       },
     }),
     [map, id],

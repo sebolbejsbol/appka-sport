@@ -4,15 +4,19 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { EventCard } from '@/components/event-card';
 import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
+import type { LocationStatus } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
 import type { DiscoverEvent } from '@/lib/discover-events';
 import type { LngLat } from '@/lib/geo';
+import { canOpenLocationSettings, openLocationSettings } from '@/lib/location-permission';
 
 type Props = {
   visible: boolean;
   onClose: () => void;
   events: DiscoverEvent[];
   userCoords: LngLat | null;
+  locationStatus: LocationStatus;
+  onRetryLocation: () => void;
   onSelectEvent: (event: DiscoverEvent) => void;
 };
 
@@ -23,7 +27,15 @@ type Props = {
  * gotowa, przefiltrowana lista przekazana z rodzica, ten komponent tylko ją
  * renderuje + obsługuje stan "jeszcze nie mamy lokalizacji"/"pusto".
  */
-export function NearbyEventsSheet({ visible, onClose, events, userCoords, onSelectEvent }: Props) {
+export function NearbyEventsSheet({
+  visible,
+  onClose,
+  events,
+  userCoords,
+  locationStatus,
+  onRetryLocation,
+  onSelectEvent,
+}: Props) {
   const insets = useSafeAreaInsets();
 
   return (
@@ -43,7 +55,31 @@ export function NearbyEventsSheet({ visible, onClose, events, userCoords, onSele
             </Pressable>
           </View>
 
-          {!userCoords ? (
+          {!userCoords && (locationStatus === 'denied' || locationStatus === 'unavailable') ? (
+            <View style={styles.stateWrap}>
+              <Text style={styles.stateEmoji}>📍</Text>
+              <Text style={styles.stateText}>
+                {locationStatus === 'denied'
+                  ? t('map.nearbyEventsLocationDenied')
+                  : t('map.nearbyEventsLocationUnavailable')}
+              </Text>
+              <Pressable
+                onPress={() => {
+                  if (locationStatus === 'denied' && canOpenLocationSettings) {
+                    void openLocationSettings();
+                  } else {
+                    onRetryLocation();
+                  }
+                }}
+                style={styles.retryBtn}>
+                <Text style={styles.retryBtnText}>
+                  {locationStatus === 'denied' && canOpenLocationSettings
+                    ? t('fieldNavigation.openSettings')
+                    : t('fieldNavigation.retryLocation')}
+                </Text>
+              </Pressable>
+            </View>
+          ) : !userCoords ? (
             <View style={styles.stateWrap}>
               <ActivityIndicator color={Brand.primary} />
               <Text style={styles.stateText}>{t('map.nearbyEventsLocating')}</Text>
@@ -136,6 +172,19 @@ const styles = StyleSheet.create({
     color: Brand.textSecondary,
     textAlign: 'center',
     paddingHorizontal: 24,
+  },
+  retryBtn: {
+    marginTop: 6,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 999,
+    borderWidth: 1,
+    borderColor: Brand.primary,
+  },
+  retryBtnText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: Brand.primary,
   },
   list: {
     gap: 12,

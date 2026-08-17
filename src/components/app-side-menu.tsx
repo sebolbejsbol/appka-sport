@@ -36,6 +36,7 @@ import { useLocale } from '@/context/locale';
 import { useIsAdmin } from '@/hooks/use-is-admin';
 import { t } from '@/i18n';
 import { formatRelativeShortTime } from '@/lib/datetime';
+import { getUnreadMessageCount } from '@/lib/messages';
 import {
   getUnreadNotificationCount,
   listMyNotifications,
@@ -46,6 +47,16 @@ import {
   type AppNotification,
 } from '@/lib/notifications';
 import { notifyError, notifyInfo } from '@/lib/toast';
+
+/**
+ * Typy powiadomień, które dublują się z odznaczką "Wiadomości" (patrz
+ * getUnreadMessageCount) — wyłączone z ogólnego dzwonka, żeby ta sama
+ * nieprzeczytana wiadomość nie liczyła się do dwóch różnych odznaczek naraz.
+ */
+const MESSAGE_NOTIFICATION_TYPES = new Set(['dm', 'group_message', 'team_message']);
+function isMessageNotification(type: string): boolean {
+  return MESSAGE_NOTIFICATION_TYPES.has(type);
+}
 
 const DRAWER_WIDTH = 288;
 
@@ -83,13 +94,19 @@ function buildPrimaryItems(): NavItem[] {
   ];
 }
 
-function buildAdvancedItems(): NavItem[] {
+function buildAdvancedItems(unreadMessages = 0): NavItem[] {
   return [
     { key: 'feed', label: t('nav.feed'), path: '/feed' as Href, icon: '📣', hint: t('nav.feedHint') },
     { key: 'ranking', label: t('nav.ranking'), path: '/ranking' as Href, icon: '🏆', hint: t('nav.rankingHint') },
     { key: 'teams', label: t('nav.teams'), path: '/teams' as Href, icon: '🛡️', hint: t('nav.teamsHint') },
     { key: 'friends', label: t('nav.friends'), path: '/social', icon: '🤝' },
-    { key: 'messages', label: t('nav.messages'), path: '/messages' as Href, icon: '💬' },
+    {
+      key: 'messages',
+      label: t('nav.messages'),
+      path: '/messages' as Href,
+      icon: '💬',
+      badge: unreadMessages,
+    },
   ];
 }
 
@@ -188,14 +205,27 @@ function DesktopSidebar() {
   const { isAdmin } = useIsAdmin();
   const { locale } = useLocale();
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
 
   const primaryItems = useMemo(() => buildPrimaryItems(), [locale]);
-  const advancedItems = useMemo(() => buildAdvancedItems(), [locale]);
+  const advancedItems = useMemo(
+    () => buildAdvancedItems(unreadMessages),
+    [locale, unreadMessages],
+  );
 
   useEffect(() => {
-    void getUnreadNotificationCount().then(setUnreadNotifications);
+    void Promise.all([getUnreadNotificationCount(), getUnreadMessageCount()]).then(
+      ([total, messages]) => {
+        setUnreadMessages(messages);
+        setUnreadNotifications(Math.max(0, total - messages));
+      },
+    );
     const unsubscribe = subscribeToMyNotifications((n) => {
-      setUnreadNotifications((prev) => prev + 1);
+      if (isMessageNotification(n.type)) {
+        setUnreadMessages((prev) => prev + 1);
+      } else {
+        setUnreadNotifications((prev) => prev + 1);
+      }
       const { title, body } = notificationDisplayText(n, t);
       notifyInfo(body ? `${title} — ${body}` : title);
     });
@@ -315,8 +345,12 @@ function AppDrawer() {
   const backdropOpacity = useSharedValue(0);
 
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const primaryItems = useMemo(() => buildPrimaryItems(), [locale]);
-  const advancedItems = useMemo(() => buildAdvancedItems(), [locale]);
+  const advancedItems = useMemo(
+    () => buildAdvancedItems(unreadMessages),
+    [locale, unreadMessages],
+  );
   const onAdvancedRoute = ADVANCED_PATHS.includes(pathname);
   const [advancedOpen, setAdvancedOpen] = useState(onAdvancedRoute);
 
@@ -327,7 +361,12 @@ function AppDrawer() {
 
   useEffect(() => {
     if (!open) return;
-    void getUnreadNotificationCount().then(setUnreadNotifications);
+    void Promise.all([getUnreadNotificationCount(), getUnreadMessageCount()]).then(
+      ([total, messages]) => {
+        setUnreadMessages(messages);
+        setUnreadNotifications(Math.max(0, total - messages));
+      },
+    );
   }, [open, pathname]);
 
   // AppDrawer jest zamontowany przez cały czas życia aplikacji (nie tylko gdy
@@ -335,9 +374,18 @@ function AppDrawer() {
   // dzięki niej badge aktualizuje się na żywo niezależnie od tego, na jakim
   // ekranie jest użytkownik, bez konieczności otwierania menu.
   useEffect(() => {
-    void getUnreadNotificationCount().then(setUnreadNotifications);
+    void Promise.all([getUnreadNotificationCount(), getUnreadMessageCount()]).then(
+      ([total, messages]) => {
+        setUnreadMessages(messages);
+        setUnreadNotifications(Math.max(0, total - messages));
+      },
+    );
     const unsubscribe = subscribeToMyNotifications((n) => {
-      setUnreadNotifications((prev) => prev + 1);
+      if (isMessageNotification(n.type)) {
+        setUnreadMessages((prev) => prev + 1);
+      } else {
+        setUnreadNotifications((prev) => prev + 1);
+      }
       const { title, body } = notificationDisplayText(n, t);
       notifyInfo(body ? `${title} — ${body}` : title);
     });

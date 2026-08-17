@@ -1,82 +1,96 @@
 import * as Location from 'expo-location';
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
-import type { LocationStatus, LngLat, UserLocationState } from '@/hooks/use-user-location';
+import { ensureLocationPermission } from '@/lib/location-permission';
+import type { LocationStatus, LngLat } from '@/hooks/use-user-location';
+
+export type UserLocationState = {
+  status: LocationStatus;
+  coords: LngLat | null;
+  /** Ponawia sprawdzenie uprawnień i (ponownie) uruchamia śledzenie na żądanie. */
+  requestLocation: () => void;
+};
 
 /**
  * Ciągłe śledzenie lokalizacji (np. w drodze na event).
  * Odświeża pozycję co kilka sekund lub po przesunięciu ~5 m.
  */
 export function useWatchingLocation(enabled = true): UserLocationState {
-  const [state, setState] = useState<UserLocationState>({
+  const [state, setState] = useState<{ status: LocationStatus; coords: LngLat | null }>({
     status: 'loading',
     coords: null,
   });
+  const requestSeqRef = useRef(0);
+  const subscriptionRef = useRef<Location.LocationSubscription | null>(null);
+
+  const startWatching = useCallback(async () => {
+    const seq = ++requestSeqRef.current;
+    subscriptionRef.current?.remove();
+    subscriptionRef.current = null;
+    setState((prev) => ({ ...prev, status: 'loading' }));
+
+    const permission = await ensureLocationPermission();
+    if (seq !== requestSeqRef.current) return;
+
+    if (permission !== 'granted') {
+      setState({ status: 'denied', coords: null });
+      return;
+    }
+
+    try {
+      const lastKnown = await Location.getLastKnownPositionAsync();
+      if (seq !== requestSeqRef.current) return;
+
+      if (lastKnown) {
+        setState({
+          status: 'granted',
+          coords: [lastKnown.coords.longitude, lastKnown.coords.latitude],
+        });
+      }
+
+      const subscription = await Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.Balanced,
+          distanceInterval: 5,
+          timeInterval: 3000,
+        },
+        (position) => {
+          if (seq !== requestSeqRef.current) return;
+          setState({
+            status: 'granted',
+            coords: [position.coords.longitude, position.coords.latitude],
+          });
+        },
+      );
+
+      if (seq !== requestSeqRef.current) {
+        subscription.remove();
+        return;
+      }
+      subscriptionRef.current = subscription;
+    } catch {
+      if (seq === requestSeqRef.current) {
+        setState((prev) => (prev.coords ? prev : { status: 'unavailable', coords: null }));
+      }
+    }
+  }, []);
 
   useEffect(() => {
     if (!enabled) return;
-
-    let subscription: Location.LocationSubscription | null = null;
-    let cancelled = false;
-
-    async function startWatching() {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (cancelled) return;
-
-        if (status !== 'granted') {
-          setState({ status: 'denied', coords: null });
-          return;
-        }
-
-        const lastKnown = await Location.getLastKnownPositionAsync();
-        if (cancelled) return;
-
-        if (lastKnown) {
-          setState({
-            status: 'granted',
-            coords: [lastKnown.coords.longitude, lastKnown.coords.latitude],
-          });
-        }
-
-        subscription = await Location.watchPositionAsync(
-          {
-            accuracy: Location.Accuracy.Balanced,
-            distanceInterval: 5,
-            timeInterval: 3000,
-          },
-          (position) => {
-            if (cancelled) return;
-            setState({
-              status: 'granted',
-              coords: [position.coords.longitude, position.coords.latitude],
-            });
-          },
-        );
-
-        if (cancelled) {
-          subscription.remove();
-          subscription = null;
-        }
-      } catch {
-        if (!cancelled) {
-          setState((prev) =>
-            prev.coords ? prev : { status: 'unavailable', coords: null },
-          );
-        }
-      }
-    }
-
     void startWatching();
-
     return () => {
-      cancelled = true;
-      subscription?.remove();
-      subscription = null;
+      requestSeqRef.current += 1;
+      subscriptionRef.current?.remove();
+      subscriptionRef.current = null;
     };
-  }, [enabled]);
+  }, [enabled, startWatching]);
 
-  return state;
+  const requestLocation = useCallback(() => {
+    if (!enabled) return;
+    void startWatching();
+  }, [enabled, startWatching]);
+
+  return { ...state, requestLocation };
 }
 
-export type { LocationStatus, LngLat, UserLocationState };
+export type { LocationStatus, LngLat };
