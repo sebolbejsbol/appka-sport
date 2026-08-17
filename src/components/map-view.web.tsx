@@ -60,11 +60,7 @@ import {
   isSportFilterCoveredByPrefetch,
   onFieldsPrefetchUpdate,
 } from '@/lib/fields-prefetch';
-import {
-  canOpenLocationSettings,
-  getLastLocationDebugInfo,
-  openLocationSettings,
-} from '@/lib/location-permission';
+import { canOpenLocationSettings, openLocationSettings } from '@/lib/location-permission';
 import { markInitialDiscoverReady } from '@/lib/map-ready';
 import {
   buildAvailabilityMatchExpression,
@@ -1283,28 +1279,23 @@ export function AppMap() {
         {status === 'granted' ? <LocationPuck pulsing="default" /> : null}
       </MapView>
 
-      {status === 'denied' ? (
-        <View style={styles.hint}>
-          <Text style={styles.hintText}>{t('map.locationDenied')}</Text>
-          {/* TYMCZASOWA diagnostyka na żywo (2026-08-17) — do usunięcia po
-              ustaleniu realnej przyczyny na telefonie usera, patrz
-              location-permission.ts/getLastLocationDebugInfo. */}
-          {getLastLocationDebugInfo() ? (
-            <Text style={styles.hintDebug} selectable>
-              {getLastLocationDebugInfo()}
-            </Text>
-          ) : null}
+      {status === 'denied' && !selectedField ? (
+        <View style={[styles.hint, { top: insets.top + 112 }]}>
+          <Text style={styles.hintText} numberOfLines={1}>
+            {t('map.locationDenied')}
+          </Text>
           <Pressable
             onPress={() => {
+              // Na webie ponowny request nic nie da, jeśli przeglądarka już
+              // raz odmówiła (nie pokaże promptu drugi raz) — jedyna
+              // realna akcja to zaprowadzić do Ustawień, gdzie jest pełny,
+              // działający panel lokalizacji. Na natywnej appce od razu
+              // otwieramy systemowe ustawienia uprawnień.
               if (canOpenLocationSettings) void openLocationSettings();
-              else requestLocation();
+              else router.push('/settings');
             }}
-            hitSlop={6}>
-            <Text style={styles.hintAction}>
-              {canOpenLocationSettings
-                ? t('fieldNavigation.openSettings')
-                : t('fieldNavigation.retryLocation')}
-            </Text>
+            hitSlop={8}>
+            <Text style={styles.hintAction}>{t('settings.open')}</Text>
           </Pressable>
         </View>
       ) : null}
@@ -1416,30 +1407,27 @@ const styles = StyleSheet.create({
   },
   hint: {
     position: 'absolute',
-    left: 16,
-    right: 16,
-    bottom: 24,
-    backgroundColor: 'rgba(255,255,255,0.92)',
-    paddingHorizontal: 14,
-    paddingVertical: 10,
-    borderRadius: 12,
+    alignSelf: 'center',
+    zIndex: 26,
+    flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 10,
+    maxWidth: '90%',
+    backgroundColor: 'rgba(15,23,42,0.85)',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: Radius.pill,
+    ...shadow('float'),
   },
   hintText: {
-    fontSize: 13,
-    color: Brand.textSecondary,
-    textAlign: 'center',
+    fontSize: 12,
+    color: '#ffffff',
+    flexShrink: 1,
   },
   hintAction: {
-    fontSize: 13,
-    fontWeight: '700',
-    color: Brand.primary,
-  },
-  hintDebug: {
-    fontSize: 10,
-    color: Brand.textMuted,
-    textAlign: 'center',
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#93c5fd',
   },
   playNowFab: {
     position: 'absolute',
