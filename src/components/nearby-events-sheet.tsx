@@ -8,6 +8,7 @@ import type { LocationStatus } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
 import type { DiscoverEvent } from '@/lib/discover-events';
 import type { LngLat } from '@/lib/geo';
+import { getGeoDiagTrail } from '@/lib/geo-diag';
 import { isIOSWebBrowser } from '@/lib/get-web-location';
 
 type Props = {
@@ -82,6 +83,15 @@ export function NearbyEventsSheet({
                 <Pressable onPress={onRetryLocation} style={styles.retryBtn}>
                   <Text style={styles.retryBtnText}>{t('common.retry')}</Text>
                 </Pressable>
+              ) : null}
+              {/* TYMCZASOWE (2026-08-17, patrz geo-diag.ts): pokazuje ostatnie
+                  kroki diagnostyczne wprost pod błędem, żeby dało się
+                  zrzutem ekranu ustalić DOKŁADNY kod błędu geolokalizacji
+                  bez zdalnego debugowania. Usunąć razem z resztą geoDiag. */}
+              {Platform.OS === 'web' ? (
+                <Text style={styles.diagText} selectable>
+                  {getGeoDiagTrail(6)}
+                </Text>
               ) : null}
             </View>
           ) : !userCoords ? (
@@ -190,6 +200,13 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: Brand.primary,
+  },
+  diagText: {
+    marginTop: 12,
+    fontSize: 10,
+    color: Brand.textMuted,
+    textAlign: 'left',
+    paddingHorizontal: 12,
   },
   list: {
     gap: 12,
