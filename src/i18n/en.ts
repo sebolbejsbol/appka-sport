@@ -1234,6 +1234,11 @@ export const en: DeepPartialWide<Translations> = {
     locationUnavailable: "Couldn't get your location. Please try again.",
     locationChecking: 'Checking…',
     locationEnable: 'Turn on location',
+    locationEnabledSuccess: 'Location turned on!',
+    locationEnableFailedNative:
+      "Couldn't turn it on — check location permissions in your phone's system settings.",
+    locationEnableFailedWeb:
+      "Your browser remembered the earlier denial and won't ask again automatically. Tap the icon next to the address bar (e.g. \"AA\" or the padlock) → Site Settings → Location → Ask/Allow, then reload the page.",
     notificationsTitle: 'Notifications',
     notificationsHint: 'Event reminders and alerts when someone joins your match.',
     notificationsWebUnavailable: 'Not available in the browser yet — use the mobile app for push notifications.',

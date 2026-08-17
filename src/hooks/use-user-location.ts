@@ -18,8 +18,14 @@ export type LngLat = [number, number];
 export type UserLocationState = {
   status: LocationStatus;
   coords: LngLat | null;
-  /** Ponawia sprawdzenie uprawnień/pobranie pozycji na żądanie (np. przycisk "W pobliżu"). */
-  requestLocation: () => void;
+  /**
+   * Ponawia sprawdzenie uprawnień/pobranie pozycji na żądanie (np. przycisk
+   * "W pobliżu" albo "Włącz lokalizację" w Ustawieniach). Zwraca finalny
+   * status, żeby wołający mógł pokazać feedback (np. toast), gdy nic się
+   * wizualnie nie zmieni — przeglądarka po realnej odmowie nie pokaże już
+   * własnego promptu, więc bez tego klik wyglądał jak "nic nie robi".
+   */
+  requestLocation: () => Promise<LocationStatus>;
 };
 
 /**
@@ -35,16 +41,16 @@ export function useUserLocation(): UserLocationState {
   });
   const requestSeqRef = useRef(0);
 
-  const resolveLocation = useCallback(async () => {
+  const resolveLocation = useCallback(async (): Promise<LocationStatus> => {
     const seq = ++requestSeqRef.current;
     setState((prev) => ({ ...prev, status: 'loading' }));
 
     const permission = await ensureLocationPermission();
-    if (seq !== requestSeqRef.current) return;
+    if (seq !== requestSeqRef.current) return 'loading';
 
     if (permission !== 'granted') {
       setState({ status: 'denied', coords: null });
-      return;
+      return 'denied';
     }
 
     try {
@@ -67,10 +73,12 @@ export function useUserLocation(): UserLocationState {
           coords: [current.coords.longitude, current.coords.latitude],
         });
       }
+      return 'granted';
     } catch {
       if (seq === requestSeqRef.current) {
         setState((prev) => (prev.coords ? prev : { status: 'unavailable', coords: null }));
       }
+      return 'unavailable';
     }
   }, []);
 
@@ -78,9 +86,7 @@ export function useUserLocation(): UserLocationState {
     void resolveLocation();
   }, [resolveLocation]);
 
-  const requestLocation = useCallback(() => {
-    void resolveLocation();
-  }, [resolveLocation]);
+  const requestLocation = useCallback(() => resolveLocation(), [resolveLocation]);
 
   return { ...state, requestLocation };
 }

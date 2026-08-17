@@ -1237,6 +1237,11 @@ export const pl = {
     locationUnavailable: 'Nie udało się ustalić lokalizacji. Spróbuj ponownie.',
     locationChecking: 'Sprawdzanie…',
     locationEnable: 'Włącz lokalizację',
+    locationEnabledSuccess: 'Lokalizacja włączona!',
+    locationEnableFailedNative:
+      'Nie udało się włączyć — sprawdź uprawnienia lokalizacji w ustawieniach systemowych telefonu.',
+    locationEnableFailedWeb:
+      'Przeglądarka zapamiętała wcześniejszą odmowę i nie zapyta ponownie automatycznie. Dotknij ikony obok paska adresu (np. „AA" lub kłódka) → Ustawienia witryny → Lokalizacja → Zapytaj/Zezwól, potem odśwież stronę.',
     notificationsTitle: 'Powiadomienia',
     notificationsHint:
       'Przypomnienia o eventach i informacja, gdy ktoś dołączy do Twojego meczu.',

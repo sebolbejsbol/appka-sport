@@ -35,6 +35,7 @@ import {
   syncLocalEventReminders,
 } from '@/lib/push-notifications';
 import { hasExpoPushToken, setOwnLanguage } from '@/lib/profiles';
+import { notifyError, notifySuccess } from '@/lib/toast';
 import {
   disableWebPush,
   enableWebPush,
@@ -57,10 +58,8 @@ export default function SettingsScreen() {
   );
   const [busy, setBusy] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
-  const {
-    status: locationStatus,
-    requestLocation,
-  } = useUserLocation();
+  const { status: locationStatus, requestLocation } = useUserLocation();
+  const [locationBusy, setLocationBusy] = useState(false);
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -93,6 +92,24 @@ export default function SettingsScreen() {
       void load();
     }, [load]),
   );
+
+  async function handleEnableLocation() {
+    setLocationBusy(true);
+    const result = await requestLocation();
+    setLocationBusy(false);
+
+    if (result === 'granted') {
+      notifySuccess(t('settings.locationEnabledSuccess'));
+      return;
+    }
+    // Przeglądarka/system po realnej odmowie nie pokazuje już własnego
+    // promptu przez JS — bez tego komunikatu klik wyglądał jak "nic nie robi".
+    notifyError(
+      canOpenLocationSettings
+        ? t('settings.locationEnableFailedNative')
+        : t('settings.locationEnableFailedWeb'),
+    );
+  }
 
   async function handleToggle(next: boolean) {
     setBusy(true);
@@ -291,10 +308,10 @@ export default function SettingsScreen() {
 
             {locationStatus !== 'granted' ? (
               <Button
-                label={t('settings.locationEnable')}
+                label={locationBusy ? t('settings.locationChecking') : t('settings.locationEnable')}
                 variant="secondary"
-                onPress={requestLocation}
-                disabled={busy}
+                onPress={() => void handleEnableLocation()}
+                disabled={locationBusy}
               />
             ) : null}
 
