@@ -55,6 +55,7 @@ import { formatCourtName } from '@/lib/field-display';
 import { formatFieldSport } from '@/lib/field-display';
 import { distanceMeters, formatDistance } from '@/lib/geo';
 import { formatPlayersCount } from '@/lib/plural-pl';
+import { geoDiag, getGeoDiagTrail } from '@/lib/geo-diag';
 import { isIOSWebBrowser } from '@/lib/get-web-location';
 import { requireLocationPermission } from '@/lib/location-permission';
 import { goBack } from '@/lib/navigation';
@@ -327,36 +328,63 @@ export default function EventDetailScreen() {
 
   async function handleCheckIn() {
     if (!event) return;
+    geoDiag('click: Melduj się', { eventId: event.id });
     setBusy(true);
-    const locationResult = await getCheckInCoords();
-    const freshCoords = locationResult.coords ?? coords;
-    if (!freshCoords) {
+    try {
+      const locationResult = await getCheckInCoords();
+      geoDiag('handleCheckIn: getCheckInCoords ->', {
+        status: locationResult.status,
+        lat: locationResult.coords?.[1] ?? null,
+        lng: locationResult.coords?.[0] ?? null,
+      });
+      const freshCoords = locationResult.coords ?? coords;
+      if (!freshCoords) {
+        geoDiag('handleCheckIn: no freshCoords, showing error and stopping', {
+          watchingHookCoords: coords ? 'present' : 'null',
+        });
+        setBusy(false);
+        notifyError(
+          (locationResult.status === 'permission_denied'
+            ? Platform.OS === 'web'
+              ? isIOSWebBrowser()
+                ? t('location.permissionDeniedIOS')
+                : t('location.permissionDeniedAndroid')
+              : t('event.errors.checkInPermissionDenied')
+            : locationResult.status === 'timeout'
+              ? t('location.timeout')
+              : Platform.OS === 'web'
+                ? t('location.unavailable')
+                : t('event.errors.checkInNoLocation')) +
+            // TYMCZASOWE (patrz geo-diag.ts): usunąć po ustaleniu i naprawieniu
+            // realnej przyczyny — pozwala userowi przesłać zrzut ekranu zamiast
+            // podłączać zdalne debugowanie.
+            `\n\n${getGeoDiagTrail()}`,
+        );
+        return;
+      }
+
+      geoDiag('handleCheckIn: calling checkInEvent with', {
+        lat: freshCoords[1],
+        lng: freshCoords[0],
+      });
+      const result = await checkInEvent(event.id, freshCoords);
+      geoDiag('handleCheckIn: checkInEvent ->', { result });
       setBusy(false);
-      notifyError(
-        locationResult.status === 'permission_denied'
-          ? Platform.OS === 'web'
-            ? isIOSWebBrowser()
-              ? t('location.permissionDeniedIOS')
-              : t('location.permissionDeniedAndroid')
-            : t('event.errors.checkInPermissionDenied')
-          : locationResult.status === 'timeout'
-            ? t('location.timeout')
-            : Platform.OS === 'web'
-              ? t('location.unavailable')
-              : t('event.errors.checkInNoLocation'),
-      );
-      return;
+
+      if (result !== 'checked_in') {
+        notifyError(checkInErrorMessage(result));
+        return;
+      }
+
+      void load(true);
+    } catch (err) {
+      // TYMCZASOWE (patrz geo-diag.ts): nic w tej ścieżce nie powinno rzucać —
+      // jeśli to loguje, wcześniej był tu cichy błąd pokazywany jako ogólne
+      // "spróbuj ponownie" bez śladu w konsoli.
+      geoDiag('handleCheckIn: UNEXPECTED THROW', { message: String(err) });
+      setBusy(false);
+      notifyError(t('event.errors.checkInFailed'));
     }
-
-    const result = await checkInEvent(event.id, freshCoords);
-    setBusy(false);
-
-    if (result !== 'checked_in') {
-      notifyError(checkInErrorMessage(result));
-      return;
-    }
-
-    void load(true);
   }
 
   async function handleManualCheckIn(targetUserId: string) {

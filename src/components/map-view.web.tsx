@@ -60,6 +60,7 @@ import {
   isSportFilterCoveredByPrefetch,
   onFieldsPrefetchUpdate,
 } from '@/lib/fields-prefetch';
+import { geoDiag } from '@/lib/geo-diag';
 import { markInitialDiscoverReady } from '@/lib/map-ready';
 import {
   buildAvailabilityMatchExpression,
@@ -279,6 +280,17 @@ function isNearbyListEligible(item: NearbyFieldItem): boolean {
 export function AppMap() {
   const insets = useSafeAreaInsets();
   const { status, coords, requestLocation } = useUserLocation();
+
+  // TYMCZASOWA diagnostyka (2026-08-17, patrz geo-diag.ts) — pokazuje co
+  // AppMap faktycznie dostaje z hooka, żeby sprawdzić czy problem jest w
+  // pobraniu współrzędnych, czy w tym, że mapa ich mimo to nie renderuje.
+  useEffect(() => {
+    geoDiag('AppMap (web) received status/coords', {
+      status,
+      lat: coords?.[1] ?? null,
+      lng: coords?.[0] ?? null,
+    });
+  }, [status, coords]);
   const mapRef = useRef<unknown>(null);
   const cameraRef = useRef<{
     setCamera: (opts: { centerCoordinate?: [number, number]; zoomLevel?: number; animationDuration?: number }) => void;
@@ -1288,6 +1300,7 @@ export function AppMap() {
             // Web: "Eventy w pobliżu" jest jedną z akcji, które aktywnie
             // proszą o lokalizację (patrz get-web-location.ts) — pokazuje
             // realny prompt przeglądarki, jeśli user jeszcze nie zdecydował.
+            geoDiag('click: Szukaj w pobliżu');
             void requestLocation();
             setNearbyEventsOpen(true);
           }}

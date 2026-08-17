@@ -12,6 +12,10 @@ import { shadow } from '@/constants/ui';
 import { registerToastHost, type ToastRequest, type ToastVariant } from '@/lib/toast-navigation';
 
 const AUTO_DISMISS_MS = 3000;
+// TYMCZASOWE (2026-08-17, patrz geo-diag.ts): błędy lokalizacyjne dokładają
+// do treści toasta ostatnie kroki z geoDiag — dłuższy czas, żeby dało się to
+// zdążyć zrzucić ekranem zamiast zdalnego debugowania.
+const AUTO_DISMISS_ERROR_MS = 12000;
 let nextId = 1;
 
 function variantStyle(variant: ToastVariant) {
@@ -42,7 +46,7 @@ export function ToastHost() {
       const timer = setTimeout(() => {
         setToasts((prev) => prev.filter((toast) => toast.id !== id));
         timers.current.delete(id);
-      }, AUTO_DISMISS_MS);
+      }, request.variant === 'error' ? AUTO_DISMISS_ERROR_MS : AUTO_DISMISS_MS);
       timers.current.set(id, timer);
     });
     const timersSnapshot = timers.current;

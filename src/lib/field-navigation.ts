@@ -4,6 +4,7 @@ import { Linking, Platform } from 'react-native';
 
 import { t } from '@/i18n';
 import { distanceMeters, formatDistance, type LngLat } from '@/lib/geo';
+import { geoDiag, getGeoDiagTrail } from '@/lib/geo-diag';
 import { getCurrentLocation, isIOSWebBrowser } from '@/lib/get-web-location';
 import { checkLocationPermission } from '@/lib/location-permission';
 import { notifyError } from '@/lib/toast';
@@ -189,43 +190,59 @@ export async function startFieldNavigation(
   dest: FieldDestination,
   options?: { userCoords?: LngLat | null; closeBeforeNavigate?: () => void },
 ): Promise<StartNavigationResult> {
-  if (!Number.isFinite(dest.lat) || !Number.isFinite(dest.lng)) {
-    return 'invalid_destination';
-  }
+  geoDiag('click: Nawiguj', { fieldId: dest.fieldId, hadPropCoords: !!options?.userCoords });
+  try {
+    if (!Number.isFinite(dest.lat) || !Number.isFinite(dest.lng)) {
+      geoDiag('startFieldNavigation: invalid_destination', { lat: dest.lat, lng: dest.lng });
+      return 'invalid_destination';
+    }
 
-  let userCoords = options?.userCoords ?? null;
-  if (!userCoords) {
-    if (Platform.OS === 'web') {
-      // Na webie "Nawiguj" jest jedną z akcji, które aktywnie proszą o
-      // lokalizację (patrz src/lib/get-web-location.ts) — pokazuje realny
-      // prompt przeglądarki, jeśli user jeszcze nie podjął decyzji.
-      const result = await getCurrentLocation();
-      if (!result.ok) {
-        if (result.error === 'PERMISSION_DENIED') return 'location_denied';
-        if (result.error === 'TIMEOUT') return 'location_timeout';
-        return 'location_error';
-      }
-      userCoords = result.coords;
-    } else {
-      userCoords = await getCurrentUserCoordsNative();
-      if (!userCoords) {
-        // Rozróżniamy "brak zgody" od "zgoda jest, ale nie udało się pobrać
-        // pozycji" na podstawie AKTUALNEGO stanu uprawnień, a nie tego, co
-        // ewentualnie przyszło z propsów wcześniej. Tylko odczyt — bez promptu.
-        const permission = await checkLocationPermission();
-        return permission === 'granted' ? 'location_error' : 'location_denied';
+    let userCoords = options?.userCoords ?? null;
+    if (!userCoords) {
+      if (Platform.OS === 'web') {
+        // Na webie "Nawiguj" jest jedną z akcji, które aktywnie proszą o
+        // lokalizację (patrz src/lib/get-web-location.ts) — pokazuje realny
+        // prompt przeglądarki, jeśli user jeszcze nie podjął decyzji.
+        const result = await getCurrentLocation();
+        geoDiag('startFieldNavigation: getCurrentLocation ->', result);
+        if (!result.ok) {
+          if (result.error === 'PERMISSION_DENIED') return 'location_denied';
+          if (result.error === 'TIMEOUT') return 'location_timeout';
+          return 'location_error';
+        }
+        userCoords = result.coords;
+      } else {
+        userCoords = await getCurrentUserCoordsNative();
+        if (!userCoords) {
+          // Rozróżniamy "brak zgody" od "zgoda jest, ale nie udało się pobrać
+          // pozycji" na podstawie AKTUALNEGO stanu uprawnień, a nie tego, co
+          // ewentualnie przyszło z propsów wcześniej. Tylko odczyt — bez promptu.
+          const permission = await checkLocationPermission();
+          geoDiag('startFieldNavigation: native coords null, permission ->', { permission });
+          return permission === 'granted' ? 'location_error' : 'location_denied';
+        }
       }
     }
-  }
 
-  if (await isGoogleMapsInstalled()) {
-    const opened = await openGoogleMapsNavigation(dest);
-    if (opened) return 'google_maps';
-  }
+    geoDiag('startFieldNavigation: have userCoords', { lat: userCoords[1], lng: userCoords[0] });
 
-  options?.closeBeforeNavigate?.();
-  openInAppNavigation(dest);
-  return 'in_app';
+    if (await isGoogleMapsInstalled()) {
+      const opened = await openGoogleMapsNavigation(dest);
+      if (opened) {
+        geoDiag('startFieldNavigation: opened google_maps', {});
+        return 'google_maps';
+      }
+    }
+
+    options?.closeBeforeNavigate?.();
+    openInAppNavigation(dest);
+    geoDiag('startFieldNavigation: opened in_app', {});
+    return 'in_app';
+  } catch (err) {
+    // TYMCZASOWE (patrz geo-diag.ts): nic w tej ścieżce nie powinno rzucać.
+    geoDiag('startFieldNavigation: UNEXPECTED THROW', { message: String(err) });
+    return 'location_error';
+  }
 }
 
 export function showNavigationError(result: Exclude<StartNavigationResult, 'google_maps' | 'in_app'>) {
@@ -243,7 +260,11 @@ export function showNavigationError(result: Exclude<StartNavigationResult, 'goog
           : Platform.OS === 'web'
             ? t('location.unavailable')
             : t('fieldNavigation.locationError');
-  notifyError(message);
+  // TYMCZASOWE (patrz geo-diag.ts): usunąć po ustaleniu i naprawieniu realnej
+  // przyczyny — pozwala userowi przesłać zrzut ekranu zamiast podłączać
+  // zdalne debugowanie.
+  const withTrail = result === 'invalid_destination' ? message : `${message}\n\n${getGeoDiagTrail()}`;
+  notifyError(withTrail);
 }
 
 export function formatRouteSummary(route: FieldRoute): { distance: string; duration: string } {

@@ -3,6 +3,7 @@ import * as Location from 'expo-location';
 import { Linking, Platform } from 'react-native';
 
 import { confirmAction } from '@/lib/confirm';
+import { geoDiag } from '@/lib/geo-diag';
 import { getCurrentLocation } from '@/lib/get-web-location';
 
 export type LocationPermissionState = 'granted' | 'denied' | 'undetermined';
@@ -22,10 +23,20 @@ export type LocationPermissionState = 'granted' | 'denied' | 'undetermined';
 export async function checkLocationPermission(): Promise<LocationPermissionState> {
   try {
     const current = await Location.getForegroundPermissionsAsync();
+    geoDiag('checkLocationPermission: getForegroundPermissionsAsync ->', {
+      status: current.status,
+      canAskAgain: current.canAskAgain,
+    });
     if (current.status === 'granted') return 'granted';
     if (current.status === 'denied' && current.canAskAgain === false) return 'denied';
     return 'undetermined';
-  } catch {
+  } catch (err) {
+    // Na Safari expo-location rzuca tu ZAWSZE (navigator.permissions.query
+    // nie wspiera 'geolocation') — to jest OCZEKIWANE i celowo łapane, nie
+    // "cichy błąd": stąd 'undetermined', nie realny stan uprawnień.
+    geoDiag('checkLocationPermission: getForegroundPermissionsAsync threw (expected on Safari)', {
+      message: String(err),
+    });
     return 'undetermined';
   }
 }
@@ -40,8 +51,11 @@ export async function checkLocationPermission(): Promise<LocationPermissionState
 export async function requestLocationPermission(): Promise<'granted' | 'denied'> {
   try {
     const requested = await Location.requestForegroundPermissionsAsync();
+    geoDiag('requestLocationPermission: requestForegroundPermissionsAsync ->', {
+      status: requested.status,
+    });
     return requested.status === 'granted' ? 'granted' : 'denied';
-  } catch {
+  } catch (err) {
     // Safari (iOS i macOS) w ogóle nie wspiera navigator.permissions.query
     // dla 'geolocation' — rzuca TypeError, i to ZANIM expo-location zdąży w
     // środku wywołać prawdziwe navigator.geolocation.getCurrentPosition().
@@ -49,7 +63,11 @@ export async function requestLocationPermission(): Promise<'granted' | 'denied'>
     // tego zepsutego kroku — to samo miejsce, którego używa KAŻDA inna
     // akcja lokalizacyjna na webie (meldowanie, nawigacja, eventy w
     // pobliżu, tworzenie eventu), więc to jest jedyna kopia tej logiki.
+    geoDiag('requestLocationPermission: requestForegroundPermissionsAsync threw (expected on Safari), falling back to getCurrentLocation', {
+      message: String(err),
+    });
     const result = await getCurrentLocation();
+    geoDiag('requestLocationPermission: fallback getCurrentLocation ->', result);
     return result.ok ? 'granted' : 'denied';
   }
 }
@@ -88,14 +106,21 @@ export async function requireLocationPermission(opts: {
   settingsLabel: string;
   cancelLabel: string;
 }): Promise<boolean> {
+  geoDiag('requireLocationPermission: start (Dołącz/Stwórz event)', {});
   let state = await checkLocationPermission();
+  geoDiag('requireLocationPermission: checkLocationPermission ->', { state });
 
   if (state === 'undetermined') {
     state = await requestLocationPermission();
+    geoDiag('requireLocationPermission: requestLocationPermission ->', { state });
   }
 
-  if (state === 'granted') return true;
+  if (state === 'granted') {
+    geoDiag('requireLocationPermission: granted, proceeding', {});
+    return true;
+  }
 
+  geoDiag('requireLocationPermission: not granted, showing settings modal', { state });
   confirmAction(opts.title, opts.message, opts.settingsLabel, opts.cancelLabel, () => {
     if (canOpenLocationSettings) void openLocationSettings();
     else router.push('/settings');

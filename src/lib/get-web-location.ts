@@ -2,6 +2,7 @@ import * as Location from 'expo-location';
 import { Platform } from 'react-native';
 
 import type { LngLat } from '@/hooks/use-user-location';
+import { geoDiag } from '@/lib/geo-diag';
 
 export type LocationErrorCode = 'PERMISSION_DENIED' | 'POSITION_UNAVAILABLE' | 'TIMEOUT';
 
@@ -23,19 +24,6 @@ export function isIOSWebBrowser(): boolean {
   return /iPad|iPhone|iPod/.test(ua) || (ua.includes('Macintosh') && navigator.maxTouchPoints > 1);
 }
 
-/**
- * TYMCZASOWA diagnostyka (2026-08-17) — do usunięcia po ustaleniu realnej
- * przyczyny problemów z lokalizacją na telefonach userów. Loguje dokładny
- * stan permissions.query + kod błędu z getCurrentPosition, więc widać w
- * konsoli (albo przez zdalne debugowanie: Safari -> Ustawienia -> Safari ->
- * Zaawansowane -> Web Inspector, podłączony do Maca; Chrome Android przez
- * chrome://inspect na komputerze) dokładnie co się dzieje na danym telefonie.
- */
-function logDiagnostic(stage: string, detail: Record<string, unknown>) {
-  // eslint-disable-next-line no-console
-  console.warn(`[geo-diag] ${stage}`, { ios: isIOSWebBrowser(), ua: navigator?.userAgent, ...detail });
-}
-
 const GEOLOCATION_OPTIONS = {
   enableHighAccuracy: true,
   timeout: 10000,
@@ -55,8 +43,18 @@ const GEOLOCATION_OPTIONS = {
  * natywnego promptu.
  */
 export async function getCurrentLocation(): Promise<LocationFetchResult> {
-  if (Platform.OS !== 'web') return getNativeLocation();
-  return getBrowserLocation();
+  geoDiag('getCurrentLocation() called', { platform: Platform.OS });
+  try {
+    const result = Platform.OS !== 'web' ? await getNativeLocation() : await getBrowserLocation();
+    geoDiag('getCurrentLocation() returning', result);
+    return result;
+  } catch (err) {
+    // Nic w tej ścieżce nie powinno rzucać (obie gałęzie mają własne
+    // try/catch) — jeśli to loguje, to znaczy że COŚ NIEOCZEKIWANEGO rzuca
+    // wyjątek, który wcześniej byłby cicho połknięty przez wołającego.
+    geoDiag('getCurrentLocation() UNEXPECTED THROW', { message: String(err) });
+    return { ok: false, error: 'POSITION_UNAVAILABLE' };
+  }
 }
 
 async function getNativeLocation(): Promise<LocationFetchResult> {
@@ -87,44 +85,46 @@ async function getNativeLocation(): Promise<LocationFetchResult> {
 function checkBrowserPermission(): Promise<'granted' | 'denied' | 'prompt'> {
   const permissions = (navigator as { permissions?: Permissions } | undefined)?.permissions;
   if (!permissions?.query) {
-    logDiagnostic('permissions.query unsupported', {});
+    geoDiag('permissions.query unsupported', {});
     return Promise.resolve('prompt');
   }
   return permissions
     .query({ name: 'geolocation' as PermissionName })
     .then((result) => {
-      logDiagnostic('permissions.query result', { state: result.state });
+      geoDiag('permissions.query result', { state: result.state });
       return result.state as 'granted' | 'denied' | 'prompt';
     })
     .catch((err) => {
-      logDiagnostic('permissions.query threw', { message: String(err) });
+      geoDiag('permissions.query threw', { message: String(err) });
       return 'prompt' as const;
     });
 }
 
 function getBrowserLocation(): Promise<LocationFetchResult> {
   if (typeof navigator === 'undefined' || !navigator.geolocation) {
-    logDiagnostic('navigator.geolocation missing', {});
+    geoDiag('navigator.geolocation missing', {});
     return Promise.resolve({ ok: false, error: 'POSITION_UNAVAILABLE' });
   }
 
   return checkBrowserPermission().then((permission) => {
     if (permission === 'denied') {
-      logDiagnostic('skipping getCurrentPosition: permission denied', {});
+      geoDiag('skipping getCurrentPosition: permission denied', {});
       return { ok: false, error: 'PERMISSION_DENIED' };
     }
 
     return new Promise<LocationFetchResult>((resolve) => {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          logDiagnostic('getCurrentPosition success', {
+          geoDiag('getCurrentPosition success', {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
             accuracy: position.coords.accuracy,
           });
           resolve({ ok: true, coords: [position.coords.longitude, position.coords.latitude] });
         },
         (error) => {
           // GeolocationPositionError: 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT.
-          logDiagnostic('getCurrentPosition error', {
+          geoDiag('getCurrentPosition error', {
             code: error.code,
             message: error.message,
           });

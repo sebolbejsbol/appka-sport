@@ -1,7 +1,8 @@
 import * as Location from 'expo-location';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
+import { geoDiag } from '@/lib/geo-diag';
 import { getCurrentLocation } from '@/lib/get-web-location';
 import { checkLocationPermission } from '@/lib/location-permission';
 import type { LocationStatus, LngLat } from '@/hooks/use-user-location';
@@ -30,6 +31,11 @@ export type UserLocationState = {
  *
  * NATYWNA appka: bez zmian — pasywny odczyt przez checkLocationPermission,
  * bez promptu przy montowaniu.
+ *
+ * TYMCZASOWA diagnostyka (2026-08-17, patrz geo-diag.ts): loguje mount,
+ * KAŻDĄ zmianę enabled (jeśli miga -> podejrzenie pętli re-renderów), i
+ * każdy przypadek unieważnienia wyniku przez seq (remount w trakcie
+ * trwającego żądania).
  */
 export function useWatchingLocation(enabled = true): UserLocationState {
   const [state, setState] = useState<{ status: LocationStatus; coords: LngLat | null }>({
@@ -39,10 +45,26 @@ export function useWatchingLocation(enabled = true): UserLocationState {
   const requestSeqRef = useRef(0);
   const subscriptionRef = useRef<Location.LocationSubscription | null>(null);
   const webWatchIdRef = useRef<number | null>(null);
+  const instanceIdRef = useRef<string>(useId());
+
+  useEffect(() => {
+    const id = instanceIdRef.current;
+    geoDiag('useWatchingLocation MOUNTED', { instance: id, enabled });
+    return () => geoDiag('useWatchingLocation UNMOUNTED', { instance: id });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const startWatchingWeb = useCallback(async (seq: number): Promise<LocationStatus> => {
     const result = await getCurrentLocation();
-    if (seq !== requestSeqRef.current) return 'loading';
+    if (seq !== requestSeqRef.current) {
+      geoDiag('useWatchingLocation startWatchingWeb: seq stale after getCurrentLocation — DROPPING', {
+        instance: instanceIdRef.current,
+        seq,
+        current: requestSeqRef.current,
+        result,
+      });
+      return 'loading';
+    }
 
     if (!result.ok) {
       const status: LocationStatus =
@@ -51,10 +73,19 @@ export function useWatchingLocation(enabled = true): UserLocationState {
           : result.error === 'TIMEOUT'
             ? 'timeout'
             : 'unavailable';
+      geoDiag('useWatchingLocation startWatchingWeb: not ok -> setState', {
+        instance: instanceIdRef.current,
+        status,
+      });
       setState({ status, coords: null });
       return status;
     }
 
+    geoDiag('useWatchingLocation startWatchingWeb: ok -> setState granted', {
+      instance: instanceIdRef.current,
+      lat: result.coords[1],
+      lng: result.coords[0],
+    });
     setState({ status: 'granted', coords: result.coords });
 
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
@@ -66,9 +97,14 @@ export function useWatchingLocation(enabled = true): UserLocationState {
             coords: [position.coords.longitude, position.coords.latitude],
           });
         },
-        () => {
+        (err) => {
           // Błąd w trakcie ŚLEDZENIA (nie pierwszego odczytu) — zostajemy przy
           // ostatnio znanej pozycji zamiast czyścić UI na pojedynczy zgubiony fix.
+          geoDiag('useWatchingLocation watchPosition error (ignored, keeping last known)', {
+            instance: instanceIdRef.current,
+            code: err.code,
+            message: err.message,
+          });
         },
         { enableHighAccuracy: true, maximumAge: 5000 },
       );
@@ -129,6 +165,11 @@ export function useWatchingLocation(enabled = true): UserLocationState {
 
   const startWatching = useCallback(async (): Promise<LocationStatus> => {
     const seq = ++requestSeqRef.current;
+    geoDiag('useWatchingLocation startWatching: start', {
+      instance: instanceIdRef.current,
+      seq,
+      platform: Platform.OS,
+    });
     subscriptionRef.current?.remove();
     subscriptionRef.current = null;
     if (webWatchIdRef.current != null && typeof navigator !== 'undefined') {

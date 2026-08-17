@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useId, useRef, useState } from 'react';
 
+import { geoDiag } from '@/lib/geo-diag';
 import { checkLocationPermission, requestLocationPermission } from '@/lib/location-permission';
 
 /**
@@ -38,6 +39,11 @@ export type UserLocationState = {
  * requestLocationPermission() z location-permission.ts, wołane wprost z
  * "Dołącz do eventu" / "Stwórz event" (patrz tam) albo z przycisku w
  * Ustawieniach (przez requestLocation() zwrócone z tego hooka).
+ *
+ * TYMCZASOWA diagnostyka (2026-08-17, patrz geo-diag.ts): loguje mount,
+ * każdą zmianę stanu i KAŻDY przypadek, gdy sekwencyjny numer żądania nie
+ * zgadza się (co oznaczałoby, że komponent zamontował się ponownie / inne
+ * żądanie wystartowało w międzyczasie i unieważniło wynik tego).
  */
 export function useUserLocation(): UserLocationState {
   const [state, setState] = useState<{ status: LocationStatus; coords: LngLat | null }>({
@@ -45,12 +51,30 @@ export function useUserLocation(): UserLocationState {
     coords: null,
   });
   const requestSeqRef = useRef(0);
+  const instanceIdRef = useRef<string>(useId());
+
+  useEffect(() => {
+    const id = instanceIdRef.current;
+    geoDiag('useUserLocation MOUNTED', { instance: id });
+    return () => geoDiag('useUserLocation UNMOUNTED', { instance: id });
+  }, []);
 
   const fetchCoords = useCallback(
     async (seq: number): Promise<LocationStatus> => {
       try {
         const lastKnown = await Location.getLastKnownPositionAsync();
-        if (seq === requestSeqRef.current && lastKnown) {
+        if (seq !== requestSeqRef.current) {
+          geoDiag('useUserLocation fetchCoords: seq stale after getLastKnownPositionAsync', {
+            instance: instanceIdRef.current,
+            seq,
+            current: requestSeqRef.current,
+          });
+        } else if (lastKnown) {
+          geoDiag('useUserLocation fetchCoords: lastKnown', {
+            instance: instanceIdRef.current,
+            lat: lastKnown.coords.latitude,
+            lng: lastKnown.coords.longitude,
+          });
           setState({
             status: 'granted',
             coords: [lastKnown.coords.longitude, lastKnown.coords.latitude],
@@ -60,14 +84,31 @@ export function useUserLocation(): UserLocationState {
         const current = await Location.getCurrentPositionAsync({
           accuracy: Location.Accuracy.Balanced,
         });
-        if (seq === requestSeqRef.current) {
-          setState({
-            status: 'granted',
-            coords: [current.coords.longitude, current.coords.latitude],
+        if (seq !== requestSeqRef.current) {
+          geoDiag('useUserLocation fetchCoords: seq stale after getCurrentPositionAsync — DROPPING RESULT', {
+            instance: instanceIdRef.current,
+            seq,
+            current: requestSeqRef.current,
+            lat: current.coords.latitude,
+            lng: current.coords.longitude,
           });
+          return 'loading';
         }
+        geoDiag('useUserLocation fetchCoords: current position -> setState granted', {
+          instance: instanceIdRef.current,
+          lat: current.coords.latitude,
+          lng: current.coords.longitude,
+        });
+        setState({
+          status: 'granted',
+          coords: [current.coords.longitude, current.coords.latitude],
+        });
         return 'granted';
-      } catch {
+      } catch (err) {
+        geoDiag('useUserLocation fetchCoords: threw', {
+          instance: instanceIdRef.current,
+          message: String(err),
+        });
         if (seq === requestSeqRef.current) {
           setState((prev) => (prev.coords ? prev : { status: 'unavailable', coords: null }));
         }
@@ -79,10 +120,19 @@ export function useUserLocation(): UserLocationState {
 
   const checkOnly = useCallback(async () => {
     const seq = ++requestSeqRef.current;
+    geoDiag('useUserLocation checkOnly: start', { instance: instanceIdRef.current, seq });
     setState((prev) => ({ ...prev, status: 'loading' }));
 
     const permission = await checkLocationPermission();
-    if (seq !== requestSeqRef.current) return;
+    geoDiag('useUserLocation checkOnly: checkLocationPermission ->', {
+      instance: instanceIdRef.current,
+      seq,
+      permission,
+    });
+    if (seq !== requestSeqRef.current) {
+      geoDiag('useUserLocation checkOnly: seq stale, aborting', { instance: instanceIdRef.current, seq });
+      return;
+    }
 
     if (permission !== 'granted') {
       setState({ status: 'denied', coords: null });
@@ -98,10 +148,23 @@ export function useUserLocation(): UserLocationState {
 
   const requestLocation = useCallback(async (): Promise<LocationStatus> => {
     const seq = ++requestSeqRef.current;
+    geoDiag('useUserLocation requestLocation: start', { instance: instanceIdRef.current, seq });
     setState((prev) => ({ ...prev, status: 'loading' }));
 
     const permission = await requestLocationPermission();
-    if (seq !== requestSeqRef.current) return 'loading';
+    geoDiag('useUserLocation requestLocation: requestLocationPermission ->', {
+      instance: instanceIdRef.current,
+      seq,
+      permission,
+    });
+    if (seq !== requestSeqRef.current) {
+      geoDiag('useUserLocation requestLocation: seq stale after permission, aborting', {
+        instance: instanceIdRef.current,
+        seq,
+        current: requestSeqRef.current,
+      });
+      return 'loading';
+    }
 
     if (permission !== 'granted') {
       setState({ status: 'denied', coords: null });
