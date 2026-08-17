@@ -59,7 +59,11 @@ import {
   isSportFilterCoveredByPrefetch,
   onFieldsPrefetchUpdate,
 } from '@/lib/fields-prefetch';
-import { canOpenLocationSettings, openLocationSettings } from '@/lib/location-permission';
+import {
+  canOpenLocationSettings,
+  getLastLocationDebugInfo,
+  openLocationSettings,
+} from '@/lib/location-permission';
 import { markInitialDiscoverReady } from '@/lib/map-ready';
 import {
   buildAvailabilityMatchExpression,
@@ -1331,6 +1335,14 @@ export function AppMap() {
       {status === 'denied' ? (
         <View style={styles.hint}>
           <Text style={styles.hintText}>{t('map.locationDenied')}</Text>
+          {/* TYMCZASOWA diagnostyka na żywo (2026-08-17) — do usunięcia po
+              ustaleniu realnej przyczyny na telefonie usera, patrz
+              location-permission.ts/getLastLocationDebugInfo. */}
+          {getLastLocationDebugInfo() ? (
+            <Text style={styles.hintDebug} selectable>
+              {getLastLocationDebugInfo()}
+            </Text>
+          ) : null}
           <Pressable
             onPress={() => {
               if (canOpenLocationSettings) void openLocationSettings();
@@ -1482,6 +1494,11 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '700',
     color: Brand.primary,
+  },
+  hintDebug: {
+    fontSize: 10,
+    color: Brand.textMuted,
+    textAlign: 'center',
   },
   playNowFab: {
     position: 'absolute',
