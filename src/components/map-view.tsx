@@ -1451,6 +1451,8 @@ export function AppMap() {
       <FieldDetailSheet
         field={selectedField}
         userCoords={coords}
+        locationStatus={status}
+        onRequestLocation={requestLocation}
         onClose={() => setSelectedField(null)}
       />
     </View>

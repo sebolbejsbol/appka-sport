@@ -210,6 +210,7 @@ export const pl = {
 
     errorTitle: 'Błąd',
     mustLogin: 'Musisz być zalogowany.',
+    errLocationRequired: 'Włącz lokalizację, aby utworzyć wydarzenie.',
     errTitle: 'Podaj tytuł wydarzenia (min. 3 znaki).',
     errCategory: 'Wybierz kategorię wydarzenia.',
     errSubcategory: 'Wybierz podkategorię wydarzenia.',
@@ -842,6 +843,7 @@ export const pl = {
       updateFailed: 'Nie udało się zapisać zmian. Spróbuj ponownie.',
       deleteFailed: 'Nie udało się usunąć eventu. Spróbuj ponownie.',
       joinFailed: 'Nie udało się dołączyć. Spróbuj ponownie.',
+      joinLocationRequired: 'Włącz lokalizację, aby dołączyć do eventu.',
       joinFull: 'Brak wolnych miejsc na ten event.',
       joinWaitlisted: 'Jesteś na liście rezerwowej — damy znać, gdy zwolni się miejsce.',
       joinFriendsOnly: 'Ten event jest tylko dla znajomych organizatora.',
@@ -1227,6 +1229,14 @@ export const pl = {
   settings: {
     title: 'Ustawienia',
     open: 'Otwórz ustawienia',
+    locationTitle: 'Lokalizacja',
+    locationHint:
+      'Wymagana, żeby dołączać do eventów, tworzyć własne oraz szukać boisk w pobliżu.',
+    locationOn: 'Włączona',
+    locationDenied: 'Brak dostępu — włącz lokalizację, aby korzystać z eventów.',
+    locationUnavailable: 'Nie udało się ustalić lokalizacji. Spróbuj ponownie.',
+    locationChecking: 'Sprawdzanie…',
+    locationEnable: 'Włącz lokalizację',
     notificationsTitle: 'Powiadomienia',
     notificationsHint:
       'Przypomnienia o eventach i informacja, gdy ktoś dołączy do Twojego meczu.',

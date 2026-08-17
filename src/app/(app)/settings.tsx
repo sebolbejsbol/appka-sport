@@ -21,11 +21,13 @@ import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useLocale } from '@/context/locale';
 import { useSession } from '@/context/session';
+import { useUserLocation } from '@/hooks/use-user-location';
 import { t, SUPPORTED_LOCALES } from '@/i18n';
 import { deleteMyAccount } from '@/lib/account';
 import { confirmAction } from '@/lib/confirm';
 import { getNotificationsEnabled, setNotificationsEnabled } from '@/lib/notification-preferences';
 import { getUpcomingEvents } from '@/lib/events';
+import { canOpenLocationSettings, openLocationSettings } from '@/lib/location-permission';
 import {
   disablePushNotifications,
   enablePushNotifications,
@@ -55,6 +57,10 @@ export default function SettingsScreen() {
   );
   const [busy, setBusy] = useState(false);
   const [hint, setHint] = useState<string | null>(null);
+  const {
+    status: locationStatus,
+    requestLocation,
+  } = useUserLocation();
 
   const load = useCallback(async () => {
     if (!userId) return;
@@ -197,6 +203,19 @@ export default function SettingsScreen() {
     return t('settings.notificationsOn');
   }
 
+  function locationStatusText(): string {
+    switch (locationStatus) {
+      case 'granted':
+        return t('settings.locationOn');
+      case 'denied':
+        return t('settings.locationDenied');
+      case 'unavailable':
+        return t('settings.locationUnavailable');
+      default:
+        return t('settings.locationChecking');
+    }
+  }
+
   return (
     <ScreenScaffold
       title={t('settings.title')}
@@ -263,6 +282,30 @@ export default function SettingsScreen() {
                 ) : null}
               </>
             )}
+          </View>
+
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>{t('settings.locationTitle')}</Text>
+            <Text style={styles.cardHint}>{t('settings.locationHint')}</Text>
+            <Text style={styles.status}>{locationStatusText()}</Text>
+
+            {locationStatus !== 'granted' ? (
+              <Button
+                label={t('settings.locationEnable')}
+                variant="secondary"
+                onPress={requestLocation}
+                disabled={busy}
+              />
+            ) : null}
+
+            {locationStatus === 'denied' && canOpenLocationSettings ? (
+              <Button
+                label={t('fieldNavigation.openSettings')}
+                variant="secondary"
+                onPress={() => void openLocationSettings()}
+                disabled={busy}
+              />
+            ) : null}
           </View>
 
           <View style={styles.card}>

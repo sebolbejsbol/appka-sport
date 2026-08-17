@@ -114,7 +114,7 @@ function bboxFromMapState(state: MapState | undefined): { bbox: Bbox; zoom: numb
 export default function CreateEventScreen() {
   const insets = useSafeAreaInsets();
   const { session } = useSession();
-  const { coords } = useUserLocation();
+  const { coords, status: locationStatus, requestLocation } = useUserLocation();
   const userId = session?.user?.id;
 
   const start = defaultEventStart();
@@ -556,6 +556,11 @@ export default function CreateEventScreen() {
   async function handleSubmit() {
     if (!userId) {
       notifyError(t('createEvent.mustLogin'));
+      return;
+    }
+    if (locationStatus !== 'granted') {
+      notifyError(t('createEvent.errLocationRequired'));
+      requestLocation();
       return;
     }
     // Pełna walidacja wszystkich kroków przed publikacją.

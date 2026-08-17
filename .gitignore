@@ -61,3 +61,6 @@ scripts/.cache/
 
 # local git worktrees used for isolated feature work
 .claude/worktrees/
+
+.vercel
+.env*
