@@ -184,20 +184,7 @@ export default function MessagesListScreen() {
 
   return (
     <View style={styles.container}>
-      <ScreenHeader
-        insetTop={insets.top}
-        title={t('messages.title')}
-        subtitle={subtitle}
-        rightActions={[
-          {
-            key: 'compose',
-            icon: '✎',
-            primary: true,
-            accessibilityLabel: t('chat.newChat'),
-            onPress: () => router.push({ pathname: '/social/search', params: { intent: 'message' } }),
-          },
-        ]}
-      />
+      <ScreenHeader insetTop={insets.top} title={t('messages.title')} subtitle={subtitle} />
 
       <View style={styles.searchWrap}>
         <TextInput
