@@ -3,7 +3,7 @@ import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { Platform } from 'react-native';
 
 import { geoDiag } from '@/lib/geo-diag';
-import { checkBrowserPermission } from '@/lib/get-web-location';
+import { checkBrowserPermission, getCurrentLocation } from '@/lib/get-web-location';
 import { checkLocationPermission, requestLocationPermission } from '@/lib/location-permission';
 
 /**
@@ -61,8 +61,58 @@ export function useUserLocation(): UserLocationState {
     return () => geoDiag('useUserLocation UNMOUNTED', { instance: id });
   }, []);
 
+  /**
+   * WEB: przechodzi przez getCurrentLocation() (get-web-location.ts) zamiast
+   * wołać expo-location bezpośrednio. Dwa realne bugi, które to naprawia:
+   *
+   *  1. Location.getCurrentPositionAsync() na webie nie ma ŻADNEGO timeoutu
+   *     (przekazuje opcje wprost do navigator.geolocation.getCurrentPosition
+   *     bez pola `timeout`) — przy słabym sygnale/zablokowanej lokalizacji
+   *     zawieszało się w nieskończoność w stanie "ustalanie lokalizacji".
+   *     getCurrentLocation() ma twardy timeout 10s.
+   *  2. Każdy błąd lądował jako ten sam ogólny status 'unavailable' — user z
+   *     realnie zablokowaną lokalizacją (np. iOS: Ustawienia → Safari →
+   *     Lokalizacja wyłączone na poziomie systemu, mimo że per-strona w
+   *     Safari pokazuje "Allow") dostawał to samo mylące "spróbuj ponownie"
+   *     co przy zwykłym błędzie GPS, zamiast dedykowanej instrukcji
+   *     odblokowania (patrz location.permissionDeniedIOS/Android w i18n).
+   *     getCurrentLocation() poprawnie czyta GeolocationPositionError.code.
+   */
   const fetchCoords = useCallback(
     async (seq: number): Promise<LocationStatus> => {
+      if (Platform.OS === 'web') {
+        const result = await getCurrentLocation();
+        if (seq !== requestSeqRef.current) {
+          geoDiag('useUserLocation fetchCoords (web): seq stale — DROPPING RESULT', {
+            instance: instanceIdRef.current,
+            seq,
+            current: requestSeqRef.current,
+          });
+          return 'loading';
+        }
+        if (!result.ok) {
+          const status: LocationStatus =
+            result.error === 'PERMISSION_DENIED'
+              ? 'denied'
+              : result.error === 'TIMEOUT'
+                ? 'timeout'
+                : 'unavailable';
+          geoDiag('useUserLocation fetchCoords (web): not ok -> setState', {
+            instance: instanceIdRef.current,
+            status,
+          });
+          setState({ status, coords: null });
+          return status;
+        }
+        geoDiag('useUserLocation fetchCoords (web): ok -> setState granted', {
+          instance: instanceIdRef.current,
+          lat: result.coords[1],
+          lng: result.coords[0],
+        });
+        setState({ status: 'granted', coords: result.coords });
+        return 'granted';
+      }
+
       try {
         const lastKnown = await Location.getLastKnownPositionAsync();
         if (seq !== requestSeqRef.current) {
