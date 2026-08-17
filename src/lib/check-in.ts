@@ -1,4 +1,5 @@
 import * as Location from 'expo-location';
+import { Platform } from 'react-native';
 
 import type { LngLat } from '@/hooks/use-user-location';
 import { supabase } from '@/lib/supabase';
@@ -28,7 +29,7 @@ export type CheckInResult =
   | 'no_location'
   | 'error';
 
-export type CheckInLocationStatus = 'ok' | 'permission_denied' | 'unavailable';
+export type CheckInLocationStatus = 'ok' | 'permission_denied' | 'unavailable' | 'timeout';
 
 export type CheckInLocationResult = {
   status: CheckInLocationStatus;
@@ -65,8 +66,73 @@ function getPositionWithTimeout(
   });
 }
 
+/**
+ * WEB: expo-location deleguje do przeglądarkowego navigator.geolocation, ale
+ * jego shim NAJPIERW sprawdza uprawnienia przez navigator.permissions.query —
+ * którego Safari (iOS i macOS) w ogóle nie wspiera dla 'geolocation' i rzuca
+ * TypeError ZANIM w ogóle dojdzie do prawdziwego navigator.geolocation.
+ * getCurrentPosition(). Efekt: na Safari meldowanie nigdy realnie nie pytało
+ * o zgodę — apka po prostu pokazywała własny tekst "włącz w ustawieniach",
+ * mimo że przeglądarka nigdy nie została zapytana. Ta funkcja woła
+ * navigator.geolocation BEZPOŚREDNIO, z pominięciem expo-location, żeby
+ * realny systemowy/przeglądarkowy prompt faktycznie się pokazał.
+ *
+ * WAŻNE: musi być wywoływana możliwie blisko (najlepiej pierwsza rzecz w)
+ * handlera kliknięcia „Melduj się" — bez zbędnych awaitów przed nią — Safari
+ * na iOS bywa marudny co do promptów oderwanych od oryginalnego gestu usera.
+ */
+function checkWebGeolocationPermission(): Promise<'granted' | 'denied' | 'prompt'> {
+  const permissions = (navigator as { permissions?: Permissions } | undefined)?.permissions;
+  if (!permissions?.query) return Promise.resolve('prompt');
+  return permissions
+    .query({ name: 'geolocation' as PermissionName })
+    .then((result) => result.state as 'granted' | 'denied' | 'prompt')
+    .catch(() => 'prompt' as const);
+}
+
+function getWebCheckInCoords(): Promise<CheckInLocationResult> {
+  return new Promise((resolve) => {
+    if (typeof navigator === 'undefined' || !navigator.geolocation) {
+      resolve({ status: 'unavailable', coords: null });
+      return;
+    }
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          status: 'ok',
+          coords: [position.coords.longitude, position.coords.latitude],
+        });
+      },
+      (error) => {
+        // GeolocationPositionError: 1=PERMISSION_DENIED, 2=POSITION_UNAVAILABLE, 3=TIMEOUT.
+        if (error.code === error.PERMISSION_DENIED) {
+          resolve({ status: 'permission_denied', coords: null });
+        } else if (error.code === error.TIMEOUT) {
+          resolve({ status: 'timeout', coords: null });
+        } else {
+          resolve({ status: 'unavailable', coords: null });
+        }
+      },
+      // Meldowanie sprawdza konkretną odległość do boiska — dokładność ma
+      // znaczenie, stąd enableHighAccuracy zamiast domyślnej (siecowej) pozycji.
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+    );
+  });
+}
+
 /** Pobiera świeżą pozycję GPS do meldowania, próbując uzyskać jak najlepszy odczyt. */
 export async function getCheckInCoords(): Promise<CheckInLocationResult> {
+  if (Platform.OS === 'web') {
+    // Sam getCurrentPosition() już poprawnie odróżnia denied/unavailable/timeout
+    // w swoim error callbacku (patrz wyżej) — ten pre-check tylko pozwala
+    // pominąć zbędne wywołanie, gdy WIADOMO, że jest odmówione na stałe.
+    const permission = await checkWebGeolocationPermission();
+    if (permission === 'denied') {
+      return { status: 'permission_denied', coords: null };
+    }
+    return getWebCheckInCoords();
+  }
+
   const current = await Location.getForegroundPermissionsAsync();
   if (current.status !== 'granted') {
     const requested = await Location.requestForegroundPermissionsAsync();

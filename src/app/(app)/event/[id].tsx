@@ -4,6 +4,7 @@ import {
   ActivityIndicator,
   Image,
   Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -332,8 +333,12 @@ export default function EventDetailScreen() {
       setBusy(false);
       notifyError(
         locationResult.status === 'permission_denied'
-          ? t('event.errors.checkInPermissionDenied')
-          : t('event.errors.checkInNoLocation'),
+          ? Platform.OS === 'web'
+            ? t('event.errors.checkInPermissionDeniedWeb')
+            : t('event.errors.checkInPermissionDenied')
+          : locationResult.status === 'timeout'
+            ? t('event.errors.checkInTimeout')
+            : t('event.errors.checkInNoLocation'),
       );
       return;
     }

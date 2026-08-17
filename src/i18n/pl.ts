@@ -862,6 +862,9 @@ export const pl = {
       checkInTooFar: 'Jesteś za daleko od boiska (wymagane 100 m).',
       checkInNoLocation: 'Nie udało się uzyskać wystarczająco dokładnej lokalizacji. Wyjdź na otwartą przestrzeń i spróbuj ponownie.',
       checkInPermissionDenied: 'Dostęp do lokalizacji jest wyłączony. Włącz go w ustawieniach urządzenia, żeby się zameldować.',
+      checkInPermissionDeniedWeb:
+        'Ta strona nie ma dostępu do lokalizacji. Kliknij ikonę kłódki (lub „AA") obok adresu strony → Ustawienia witryny → Lokalizacja → Zezwól, potem spróbuj ponownie.',
+      checkInTimeout: 'Ustalanie lokalizacji trwa zbyt długo. Spróbuj ponownie.',
       checkInNotYet: 'Meldowanie jeszcze niedostępne.',
       checkInWindowClosed: 'Okno meldowania już się zamknęło.',
       checkInAlready: 'Już jesteś zameldowany.',

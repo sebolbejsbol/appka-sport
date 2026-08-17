@@ -862,6 +862,9 @@ export const en: DeepPartialWide<Translations> = {
       checkInTooFar: 'You are too far from the court (100 m required).',
       checkInNoLocation: 'Could not get a precise enough location. Move to an open area and try again.',
       checkInPermissionDenied: 'Location access is off. Enable it in your device settings to check in.',
+      checkInPermissionDeniedWeb:
+        "This site doesn't have location access. Click the padlock (or \"AA\") icon next to the address → Site Settings → Location → Allow, then try again.",
+      checkInTimeout: 'Finding your location is taking too long. Please try again.',
       checkInNotYet: 'Check-in is not available yet.',
       checkInWindowClosed: 'The check-in window has already closed.',
       checkInAlready: 'You are already checked in.',
