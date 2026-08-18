@@ -6,7 +6,7 @@ import { Animated, Image, Platform, StyleSheet, View } from 'react-native';
 import { ActionSheetHost } from '@/components/action-sheet-host';
 import { ConfirmModalHost } from '@/components/confirm-modal-host';
 import { LegalDocumentHost } from '@/components/legal-document-host';
-import { LoadingRunner } from '@/components/loading-runner';
+import { LoadingDots } from '@/components/loading-dots';
 import { ToastHost } from '@/components/toast-host';
 import { WebAppShell } from '@/components/web-app-shell';
 import { LocaleProvider, useLocale } from '@/context/locale';
@@ -23,10 +23,10 @@ import { onInitialMapDataReady } from '@/lib/map-ready';
  * więc splash częściej niż powinien poddawał się zanim dane realnie
  * dotarły, i mapa doładowywała boiska dopiero po wejściu. */
 const MAP_READY_TIMEOUT_MS = 8000;
-/** Minimalny czas, przez jaki splash (z animacją biegacza — patrz LoadingRunner)
+/** Minimalny czas, przez jaki splash (z animacją kropek — patrz LoadingDots)
  * zostaje na ekranie, nawet gdy dane są gotowe szybciej. Z ciepłym cache'em
  * boisk (fields-prefetch.ts) dane potrafią być gotowe w ułamku sekundy —
- * bez tego splash znikał, zanim biegacz w ogóle zdążył się pokazać. */
+ * bez tego splash znikał, zanim kropki w ogóle zdążyły się pokazać. */
 const MIN_SPLASH_VISIBLE_MS = 700;
 
 // Web MUSI używać dokładnie tego samego URL-a co statyczny splash w
@@ -171,8 +171,8 @@ function RootNavigator() {
           style={[styles.splash, { opacity: splashOpacity }]}
           pointerEvents={isLoading ? 'auto' : 'none'}>
           <Image source={LOGO} style={styles.splashLogo} resizeMode="contain" />
-          <View style={styles.splashRunner}>
-            <LoadingRunner size={44} />
+          <View style={styles.splashDots}>
+            <LoadingDots />
           </View>
         </Animated.View>
       ) : null}
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     width: 340,
     aspectRatio: 752 / 509,
   },
-  splashRunner: {
+  splashDots: {
     marginTop: 28,
   },
 });

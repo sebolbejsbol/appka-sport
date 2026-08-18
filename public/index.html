@@ -44,15 +44,12 @@
          PUSTY dopóki nie doładuje się i wykona cały bundle (kilka MB, patrz
          zgłoszenie 2026-08-16 "boisk długo się ładuje" — bez tego użytkownik
          przez ten cały czas patrzy na białą, pustą stronę, zanim React w
-         ogóle zdąży zamontować właściwy splash z biegaczem z LoadingRunner,
-         patrz src/app/_layout.tsx i src/components/loading-runner.tsx). TEN
-         SAM rysunek (prosta sylwetka biegacza, kolor marki) i TA SAMA
-         animacja co LoadingRunner (2026-08-17, siódma runda: głowa+tułów
-         statyczne, nogi/ręce PŁYNNIE tweenowane tam i z powrotem między
-         dwiema pozycjami biegu — patrz komentarz przy #static-splash-runner
-         niżej i loading-runner.tsx). TEN SAM layout co React splash (logo, potem pod nim
-         biegacz) — biegacz ma być ZAWSZE pod logiem DUDIE DAY, nie najpierw
-         sam biegacz a dopiero potem logo, więc logo musi być tutaj od razu,
+         ogóle zdąży zamontować właściwy splash z kropkami z LoadingDots,
+         patrz src/app/_layout.tsx i src/components/loading-dots.tsx). TA SAMA
+         animacja (trzy podskakujące kropki, kolor marki, przesunięte w fazie)
+         co LoadingDots. TEN SAM layout co React splash (logo, potem pod nim
+         kropki) — kropki mają być ZAWSZE pod logiem DUDIE DAY, nie najpierw
+         same kropki a dopiero potem logo, więc logo musi być tutaj od razu,
          nie dopiero w React. Logo skopiowane do public/splash-logo.png (nie
          assets/images/ — Expo haszuje nazwy plików z assets/ przy buildzie,
          więc statyczny HTML nie miałby stabilnej ścieżki do niego; pliki w
@@ -82,120 +79,41 @@
       #root:not(:empty) ~ #static-splash {
         display: none;
       }
-      #static-splash-runner {
+      #static-splash-dots {
         margin-top: 28px;
-        width: 44px;
-        height: 44px;
+        display: flex;
+        align-items: flex-end;
+        height: 20px;
+        gap: 8px;
       }
-      #static-splash-shadow {
-        margin-top: 6px;
-        width: 31px;
-        height: 8px;
+      #static-splash-dots .dot {
+        width: 10px;
+        height: 10px;
         border-radius: 999px;
-        background: #0a0e16;
-        opacity: 0.18;
+        background: #1f6bff;
+        animation: static-dot-bounce 900ms ease-in-out infinite;
       }
-      /* Dokładnie ta sama animacja co loading-runner.tsx —
-         2026-08-17 (siódma runda): "on jakby skakał" — poprzednie
-         steps(1)/opacity-swap między dwiema statycznymi klatkami zawsze
-         wygląda jak teleportowanie, nie bieg. Zamienione na PŁYNNE
-         tweenowanie współrzędnych każdego stawu z osobna (CSS `d: path()` i
-         `cx`/`cy` są animowalne, o ile oba stany mają tę samą liczbę i typ
-         komend — tu zawsze M+L, więc działa), tam i z powrotem w pętli
-         (ease-in-out, alternate) — dokładnie ten sam mechanizm co
-         `interpolate()` w loading-runner.tsx. Głowa+tułów nadal statyczne.
-         Bez wsparcia dla animowanego `d` (starsze silniki) element po
-         prostu zostaje w pozycji bazowej (klatka A) — nieruchomy, ale wciąż
-         poprawna, czytelna sylwetka biegacza, nie zepsuty layout. */
-      #static-splash-runner .leg1 {
-        d: path('M17 25L26 32L34 42');
-        animation: static-leg1 260ms ease-in-out infinite alternate;
+      #static-splash-dots .dot:nth-child(1) {
+        animation-delay: 0ms;
       }
-      #static-splash-runner .leg1-cap {
-        cx: 34px;
-        cy: 42px;
-        animation: static-leg1-cap 260ms ease-in-out infinite alternate;
+      #static-splash-dots .dot:nth-child(2) {
+        animation-delay: 150ms;
       }
-      #static-splash-runner .leg2 {
-        d: path('M17 25L10 33L4 40');
-        animation: static-leg2 260ms ease-in-out infinite alternate;
+      #static-splash-dots .dot:nth-child(3) {
+        animation-delay: 300ms;
       }
-      #static-splash-runner .leg2-cap {
-        cx: 4px;
-        cy: 40px;
-        animation: static-leg2-cap 260ms ease-in-out infinite alternate;
-      }
-      #static-splash-runner .arm1 {
-        d: path('M23 12L35 15');
-        animation: static-arm1 260ms ease-in-out infinite alternate;
-      }
-      #static-splash-runner .arm1-cap {
-        cx: 35px;
-        cy: 15px;
-        animation: static-arm1-cap 260ms ease-in-out infinite alternate;
-      }
-      #static-splash-runner .arm2 {
-        d: path('M23 12L6 19');
-        animation: static-arm2 260ms ease-in-out infinite alternate;
-      }
-      #static-splash-runner .arm2-cap {
-        cx: 6px;
-        cy: 19px;
-        animation: static-arm2-cap 260ms ease-in-out infinite alternate;
-      }
-      @keyframes static-leg1 {
-        to {
-          d: path('M17 25L25 29L23 38');
+      @keyframes static-dot-bounce {
+        0%,
+        80%,
+        100% {
+          transform: translateY(0);
         }
-      }
-      @keyframes static-leg1-cap {
-        to {
-          cx: 23px;
-          cy: 38px;
-        }
-      }
-      @keyframes static-leg2 {
-        to {
-          d: path('M17 25L9 23L11 31');
-        }
-      }
-      @keyframes static-leg2-cap {
-        to {
-          cx: 11px;
-          cy: 31px;
-        }
-      }
-      @keyframes static-arm1 {
-        to {
-          d: path('M23 12L8 16');
-        }
-      }
-      @keyframes static-arm1-cap {
-        to {
-          cx: 8px;
-          cy: 16px;
-        }
-      }
-      @keyframes static-arm2 {
-        to {
-          d: path('M23 12L34 18');
-        }
-      }
-      @keyframes static-arm2-cap {
-        to {
-          cx: 34px;
-          cy: 18px;
+        40% {
+          transform: translateY(-10px);
         }
       }
       @media (prefers-reduced-motion: reduce) {
-        #static-splash-runner .leg1,
-        #static-splash-runner .leg1-cap,
-        #static-splash-runner .leg2,
-        #static-splash-runner .leg2-cap,
-        #static-splash-runner .arm1,
-        #static-splash-runner .arm1-cap,
-        #static-splash-runner .arm2,
-        #static-splash-runner .arm2-cap {
+        #static-splash-dots .dot {
           animation: none;
         }
       }
@@ -211,19 +129,11 @@
     <div id="root"></div>
     <div id="static-splash">
       <img id="static-splash-logo" src="/splash-logo.png" alt="" />
-      <svg id="static-splash-runner" viewBox="0 0 48 48">
-        <circle cx="24" cy="6" r="4" fill="#1f6bff" />
-        <path d="M23 12 L17 25" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
-        <path class="leg1" d="M17 25 L26 32 L34 42" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-        <circle class="leg1-cap" cx="34" cy="42" r="2.3" fill="#1f6bff" />
-        <path class="leg2" d="M17 25 L10 33 L4 40" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none" />
-        <circle class="leg2-cap" cx="4" cy="40" r="2.3" fill="#1f6bff" />
-        <path class="arm1" d="M23 12 L35 15" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
-        <circle class="arm1-cap" cx="35" cy="15" r="2" fill="#1f6bff" />
-        <path class="arm2" d="M23 12 L6 19" stroke="#1f6bff" stroke-width="4" stroke-linecap="round" fill="none" />
-        <circle class="arm2-cap" cx="6" cy="19" r="2" fill="#1f6bff" />
-      </svg>
-      <div id="static-splash-shadow"></div>
+      <div id="static-splash-dots">
+        <span class="dot"></span>
+        <span class="dot"></span>
+        <span class="dot"></span>
+      </div>
     </div>
   </body>
 </html>
