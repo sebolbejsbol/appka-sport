@@ -117,6 +117,18 @@ const MAX_CACHED_FIELDS = 2200;
  */
 const SZUKAJ_TERAZ_BUTTON_VISIBLE = false;
 const FIELD_LOAD_MIN_ZOOM = 6.3;
+/**
+ * Od tego zoomu (miasto/miejscowość, nie już cały kraj) używamy ZAWSZE
+ * żywego zapytania per-viewport zamiast preładowanego cache'u —
+ * fields-prefetch.ts trzyma dla całej Polski tylko PREFETCH_ROW_CAP (2000)
+ * punktów jako przestrzenną próbkę, więc konkretna miejscowość (np. wieś
+ * poza rdzeniem Trójmiasta) może w tej próbce w ogóle nie wystąpić, mimo że
+ * fields_in_bbox dla jej lokalnego bboxa zwraca komplet poprawnie (boisko
+ * jest w bazie, po prostu nie trafiło do ogólnopolskiej próbki 2000).
+ * Zgłoszenie 2026-08-18: boisko do kosza w Pręgowie widoczne przy tworzeniu
+ * eventu (żywe zapytanie), ale nie na mapie (wtedy jeszcze zawsze cache).
+ */
+const PREFETCH_ONLY_MAX_ZOOM = 8;
 const MAX_BADGE_COUNT = 20;
 /** Promień przycisku "Szukaj w pobliżu" — górny limit niezależnie od tego, co
  * akurat jest ustawione w filtrach (ciaśniejszy istniejący filtr odległości
@@ -482,9 +494,10 @@ export function AppMap() {
       // go lokalnie zamiast pytać serwer o punkty od nowa przy każdym
       // pan/zoom. Liczniki eventów zostają siecią (naprawdę dynamiczne dane),
       // ale najcięższa część (same punkty) nie czeka na round-trip.
-      const cachedFields = isSportFilterCoveredByPrefetch(sportFilter)
-        ? filterPrefetchedFields(padded, sportFilter, maxRowsForZoom(mapZoom))
-        : null;
+      const cachedFields =
+        mapZoom < PREFETCH_ONLY_MAX_ZOOM && isSportFilterCoveredByPrefetch(sportFilter)
+          ? filterPrefetchedFields(padded, sportFilter, maxRowsForZoom(mapZoom))
+          : null;
 
       const [fieldsRes, countsRes, categoryCountsRes] = await Promise.all([
         cachedFields
