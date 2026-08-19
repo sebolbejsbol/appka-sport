@@ -112,13 +112,11 @@ const LOAD_DEBOUNCE_MS = 320;
 const BBOX_PADDING = 1.6;
 const MAX_CACHED_FIELDS = 2200;
 /**
- * Tymczasowo ukryty przycisk FAB "Szukaj teraz" (kolejka dopasowań graczy —
+ * Kompaktowy przycisk "Szukaj teraz" (kolejka dopasowań graczy —
  * SzukajTerazSheet, playNowOpen) — osobna funkcja od przycisku "Szukaj w
  * pobliżu" (NearbyEventsSheet, nearbyEventsOpen) niżej, który POKAZUJE
- * aktywne wydarzenia w promieniu, a nie zapisuje do kolejki. Logika kolejki
- * zostaje nietknięta na wypadek gdyby ten FAB też miał kiedyś wrócić.
+ * aktywne wydarzenia w promieniu, a nie zapisuje do kolejki.
  */
-const SZUKAJ_TERAZ_BUTTON_VISIBLE = false;
 /**
  * Poniżej tego zoomu nie pobieramy pojedynczych boisk — widok obejmuje (prawie)
  * cały kraj, boiska i tak są niewidoczne pod bąblami województw, a zapytanie
@@ -1357,6 +1355,19 @@ export function AppMap() {
         </Pressable>
       ) : null}
 
+      {!selectedField && !nearbyExpanded ? (
+        <Pressable
+          onPress={() => setPlayNowOpen(true)}
+          style={({ pressed }) => [
+            styles.nearbySearchBtn,
+            { top: insets.top + 116 },
+            pressed && styles.nearbySearchBtnPressed,
+          ]}>
+          <Text style={styles.nearbySearchBtnIcon}>🔎</Text>
+          <Text style={styles.nearbySearchBtnText}>{t('playNow.button')}</Text>
+        </Pressable>
+      ) : null}
+
       <NearbyEventsSheet
         visible={nearbyEventsOpen}
         onClose={() => setNearbyEventsOpen(false)}
@@ -1387,20 +1398,6 @@ export function AppMap() {
         onClose={() => setFiltersOpen(false)}
         resultCount={visibleEvents.length}
       />
-
-      {SZUKAJ_TERAZ_BUTTON_VISIBLE && !selectedField && !nearbyExpanded ? (
-        <Pressable
-          onPress={() => setPlayNowOpen(true)}
-          style={({ pressed }) => [
-            styles.playNowFab,
-            {
-              bottom: insets.bottom + BOTTOM_NAV_HEIGHT + (nearbyClearance ?? 24),
-            },
-            pressed && styles.playNowFabPressed,
-          ]}>
-          <Text style={styles.playNowFabText}>🔎 {t('playNow.button')}</Text>
-        </Pressable>
-      ) : null}
 
       {!selectedField ? (
         <MapNearbySheet
@@ -1448,27 +1445,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Brand.danger,
     textAlign: 'center',
-  },
-  playNowFab: {
-    position: 'absolute',
-    alignSelf: 'center',
-    backgroundColor: Brand.success,
-    paddingHorizontal: 22,
-    paddingVertical: 14,
-    borderRadius: 999,
-    shadowColor: '#000',
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 5,
-  },
-  playNowFabPressed: {
-    opacity: 0.9,
-  },
-  playNowFabText: {
-    color: '#ffffff',
-    fontWeight: '800',
-    fontSize: 15,
   },
   nearbySearchBtn: {
     position: 'absolute',
