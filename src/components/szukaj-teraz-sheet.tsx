@@ -20,7 +20,6 @@ import { formatTime } from '@/lib/datetime';
 import {
   categoryEmoji,
   categoryLabel,
-  EVENT_CATEGORIES,
   markerEmoji,
   subcategoriesFor,
   subcategoryLabel,
@@ -66,12 +65,14 @@ type Props = {
   onCreate: () => void;
 };
 
+/** Kolejka szukania jest teraz tylko dla Sportu — inne kategorie (hobby, kultura, ...) usunięte na życzenie. */
+const category: EventCategory = 'sport';
+
 export function SzukajTerazSheet({ visible, userCoords, onClose, onCreate }: Props) {
   const insets = useSafeAreaInsets();
 
   const [inQueue, setInQueue] = useState(false);
-  const [joinStep, setJoinStep] = useState<1 | 2 | 3 | 4>(1);
-  const [category, setCategory] = useState<EventCategory>('sport');
+  const [joinStep, setJoinStep] = useState<1 | 2 | 3>(1);
   const [sport, setSport] = useState<string | null>(null);
   const [skill, setSkill] = useState<PlayNowSkill | null>(null);
   const [note, setNote] = useState('');
@@ -119,8 +120,7 @@ export function SzukajTerazSheet({ visible, userCoords, onClose, onCreate }: Pro
 
   function goBack() {
     setJoinStep((s) => {
-      if (s === 4) return 3;
-      if (s === 3) return subcategoriesFor(category).length > 0 ? 2 : 1;
+      if (s === 3) return 2;
       if (s === 2) return 1;
       return s;
     });
@@ -194,7 +194,7 @@ export function SzukajTerazSheet({ visible, userCoords, onClose, onCreate }: Pro
           {!inQueue ? (
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
               <View style={styles.progressTrack}>
-                {[1, 2, 3, 4].map((i) => (
+                {[1, 2, 3].map((i) => (
                   <View
                     key={i}
                     style={[styles.progressSeg, i <= joinStep && styles.progressSegActive]}
@@ -202,31 +202,10 @@ export function SzukajTerazSheet({ visible, userCoords, onClose, onCreate }: Pro
                 ))}
               </View>
               <Text style={styles.stepCounter}>
-                {t('playNow.stepOf').replace('{current}', String(joinStep)).replace('{total}', '4')}
+                {t('playNow.stepOf').replace('{current}', String(joinStep)).replace('{total}', '3')}
               </Text>
 
               {joinStep === 1 ? (
-                <>
-                  <Text style={styles.stepTitle}>{t('playNow.step1Title')}</Text>
-                  <Text style={styles.subtitle}>{t('playNow.step1Subtitle')}</Text>
-                  <View style={styles.chipsWrap}>
-                    {EVENT_CATEGORIES.map((c) => (
-                      <Chip
-                        key={c}
-                        label={`${categoryEmoji(c)} ${categoryLabel(c)}`}
-                        active={category === c}
-                        onPress={() => {
-                          setCategory(c);
-                          setSport(null);
-                          setJoinStep(subcategoriesFor(c).length > 0 ? 2 : 3);
-                        }}
-                      />
-                    ))}
-                  </View>
-                </>
-              ) : null}
-
-              {joinStep === 2 ? (
                 <>
                   <Text style={styles.stepTitle}>{t('playNow.step2Title')}</Text>
                   <Text style={styles.subtitle}>{t('playNow.step2Subtitle')}</Text>
@@ -236,7 +215,7 @@ export function SzukajTerazSheet({ visible, userCoords, onClose, onCreate }: Pro
                       active={sport === null}
                       onPress={() => {
                         setSport(null);
-                        setJoinStep(3);
+                        setJoinStep(2);
                       }}
                     />
                     {subcategoriesFor(category).map((s) => (
@@ -246,7 +225,7 @@ export function SzukajTerazSheet({ visible, userCoords, onClose, onCreate }: Pro
                         active={sport === s.id}
                         onPress={() => {
                           setSport(s.id);
-                          setJoinStep(3);
+                          setJoinStep(2);
                         }}
                       />
                     ))}
@@ -254,7 +233,7 @@ export function SzukajTerazSheet({ visible, userCoords, onClose, onCreate }: Pro
                 </>
               ) : null}
 
-              {joinStep === 3 ? (
+              {joinStep === 2 ? (
                 <>
                   <Text style={styles.stepTitle}>{t('playNow.step3Title')}</Text>
                   <Text style={styles.subtitle}>{t('playNow.step3Subtitle')}</Text>
@@ -266,7 +245,7 @@ export function SzukajTerazSheet({ visible, userCoords, onClose, onCreate }: Pro
                         active={skill === opt.id}
                         onPress={() => {
                           setSkill(opt.id);
-                          setJoinStep(4);
+                          setJoinStep(3);
                         }}
                       />
                     ))}
@@ -274,19 +253,14 @@ export function SzukajTerazSheet({ visible, userCoords, onClose, onCreate }: Pro
                 </>
               ) : null}
 
-              {joinStep === 4 ? (
+              {joinStep === 3 ? (
                 <>
                   <Text style={styles.stepTitle}>{t('playNow.step4Title')}</Text>
                   <Text style={styles.subtitle}>{t('playNow.step4Subtitle')}</Text>
                   <View style={styles.summaryRow}>
                     <Text style={styles.summaryChip}>
-                      {categoryEmoji(category)} {categoryLabel(category)}
+                      {sport ? `${markerEmoji(category, sport)} ${subcategoryLabel(sport)}` : `${categoryEmoji(category)} ${categoryLabel(category)}`}
                     </Text>
-                    {sport ? (
-                      <Text style={styles.summaryChip}>
-                        {markerEmoji(category, sport)} {subcategoryLabel(sport)}
-                      </Text>
-                    ) : null}
                   </View>
                   <TextInput
                     value={note}
