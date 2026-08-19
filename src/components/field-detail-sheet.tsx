@@ -32,6 +32,7 @@ import {
 } from '@/lib/events';
 import { formatCourtName, formatFieldSport, parseStoredFieldName } from '@/lib/field-display';
 import { bucketEventsBySport } from '@/lib/field-event-breakdown';
+import { getFieldRatingSummary, type FieldRatingSummary } from '@/lib/field-ratings';
 import { reverseGeocode } from '@/lib/map-geocoding';
 import { previewEventNotes, previewEventTitle } from '@/lib/event-display';
 import { formatPlayersCount, formatRatingCount } from '@/lib/plural-pl';
@@ -64,6 +65,7 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
   const [loadError, setLoadError] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
   const [opinionsOpen, setOpinionsOpen] = useState(false);
+  const [ratingSummary, setRatingSummary] = useState<FieldRatingSummary | null>(null);
   const [geoAddress, setGeoAddress] = useState<string | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
   const [favoriteBusy, setFavoriteBusy] = useState(false);
@@ -137,6 +139,20 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
     }
     void loadEvents();
   }, [fieldId, loadEvents]);
+
+  useEffect(() => {
+    if (!fieldId) {
+      setRatingSummary(null);
+      return;
+    }
+    let active = true;
+    void getFieldRatingSummary(fieldId).then(({ data }) => {
+      if (active) setRatingSummary(data);
+    });
+    return () => {
+      active = false;
+    };
+  }, [fieldId]);
 
   const storedStreet = useMemo(() => parseStoredFieldName(field?.name).street, [field?.name]);
 
@@ -291,6 +307,27 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
           </Text>
         </View>
 
+        <View style={styles.ratingsRow}>
+          <View style={styles.ratingBadge}>
+            {ratingSummary?.avg_rating != null ? (
+              <>
+                <FieldRatingStars value={Math.round(ratingSummary.avg_rating)} size="sm" />
+                <Text style={styles.ratingBadgeText}>
+                  {ratingSummary.avg_rating.toFixed(1)} · {formatRatingCount(ratingSummary.rating_count)}
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.ratingBadgeText}>{t('fieldRatings.noRatingsYet')}</Text>
+            )}
+          </View>
+          <Pressable
+            style={({ pressed }) => [styles.opinionsBtn, pressed && styles.pressed]}
+            onPress={() => setOpinionsOpen(true)}
+            accessibilityRole="button">
+            <Text style={styles.opinionsBtnText}>{t('fieldRatings.viewOpinions')}</Text>
+          </Pressable>
+        </View>
+
         {eventsByCategory.length > 0 ? (
           <View style={styles.categoryChips}>
             {eventsByCategory.map((c) => (
@@ -336,6 +373,12 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
           <Text style={styles.createButtonText}>{t('field.createEvent')}</Text>
         </Pressable>
       </View>
+
+      <FieldOpinionsSheet
+        fieldId={fieldId ?? null}
+        visible={opinionsOpen}
+        onClose={() => setOpinionsOpen(false)}
+      />
     </View>
   );
 }
