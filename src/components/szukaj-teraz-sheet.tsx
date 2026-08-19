@@ -189,6 +189,7 @@ export function SzukajTerazSheet({ visible, userCoords, onClose, onCreate }: Pro
               <Text style={styles.close}>✕</Text>
             </Pressable>
           </View>
+          <Text style={styles.headerSubtitle}>{t('playNow.pickSubtitle')}</Text>
 
           {!inQueue ? (
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.body}>
@@ -502,6 +503,7 @@ const styles = StyleSheet.create({
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { fontSize: 22, fontWeight: '800', color: Brand.textPrimary },
   close: { fontSize: 18, color: Brand.textMuted, padding: 4 },
+  headerSubtitle: { fontSize: 13, color: Brand.textMuted, marginTop: 4 },
   subtitle: { fontSize: 14, color: Brand.textMuted, marginTop: 2, marginBottom: 8 },
   body: { paddingBottom: 24 },
   progressTrack: { flexDirection: 'row', gap: 6, marginTop: 10, marginBottom: 8 },
