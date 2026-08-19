@@ -645,6 +645,9 @@ export const pl = {
     eventsEmpty: 'Nie ma jeszcze żadnego eventu. Zorganizuj pierwszy!',
     eventsError: 'Nie udało się wczytać eventów.',
     createEvent: 'Zorganizuj event',
+    viewDetails: 'Zobacz szczegóły',
+    detailsTitle: 'Szczegóły boiska',
+    loadError: 'Nie udało się wczytać boiska.',
   },
   fieldNavigation: {
     navigate: 'Nawiguj',

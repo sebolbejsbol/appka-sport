@@ -637,6 +637,9 @@ export const en: DeepPartialWide<Translations> = {
     eventsEmpty: 'No events yet. Organize the first one!',
     eventsError: 'Could not load events.',
     createEvent: 'Organize an event',
+    viewDetails: 'View details',
+    detailsTitle: 'Court details',
+    loadError: 'Could not load the court.',
   },
   fieldNavigation: {
     navigate: 'Navigate',

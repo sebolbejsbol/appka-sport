@@ -14,8 +14,6 @@ import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring } 
 
 import { useAppMenu } from '@/components/app-side-menu';
 import { EventMetaBadges } from '@/components/event-meta-badges';
-import { FieldOpinionsSheet } from '@/components/field-opinions-sheet';
-import { FieldRatingStars } from '@/components/field-rating-stars';
 import { Brand, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useEventFilters } from '@/context/event-filters';
@@ -32,10 +30,9 @@ import {
 } from '@/lib/events';
 import { formatCourtName, formatFieldSport, parseStoredFieldName } from '@/lib/field-display';
 import { bucketEventsBySport } from '@/lib/field-event-breakdown';
-import { getFieldRatingSummary, type FieldRatingSummary } from '@/lib/field-ratings';
 import { reverseGeocode } from '@/lib/map-geocoding';
 import { previewEventNotes, previewEventTitle } from '@/lib/event-display';
-import { formatPlayersCount, formatRatingCount } from '@/lib/plural-pl';
+import { formatPlayersCount } from '@/lib/plural-pl';
 import { applyEventFilters } from '@/lib/event-filters';
 import type { CourtAvailability, FieldPoint } from '@/lib/fields';
 import { listMyFavoriteFieldIds, toggleFieldFavorite } from '@/lib/favorites';
@@ -64,8 +61,6 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
   const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState(false);
   const [busyId, setBusyId] = useState<string | null>(null);
-  const [opinionsOpen, setOpinionsOpen] = useState(false);
-  const [ratingSummary, setRatingSummary] = useState<FieldRatingSummary | null>(null);
   const [geoAddress, setGeoAddress] = useState<string | null>(null);
   const [isFavorited, setIsFavorited] = useState(false);
   const [favoriteBusy, setFavoriteBusy] = useState(false);
@@ -139,20 +134,6 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
     }
     void loadEvents();
   }, [fieldId, loadEvents]);
-
-  useEffect(() => {
-    if (!fieldId) {
-      setRatingSummary(null);
-      return;
-    }
-    let active = true;
-    void getFieldRatingSummary(fieldId).then(({ data }) => {
-      if (active) setRatingSummary(data);
-    });
-    return () => {
-      active = false;
-    };
-  }, [fieldId]);
 
   const storedStreet = useMemo(() => parseStoredFieldName(field?.name).street, [field?.name]);
 
@@ -244,6 +225,12 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
     });
   }
 
+  function handleViewDetails() {
+    if (!field) return;
+    onClose();
+    router.push({ pathname: '/field/[id]', params: { id: field.id } });
+  }
+
   const visibleEvents = useMemo(() => {
     if (!field) return [];
     const withCoords = events.map((event) => ({
@@ -307,26 +294,12 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
           </Text>
         </View>
 
-        <View style={styles.ratingsRow}>
-          <View style={styles.ratingBadge}>
-            {ratingSummary?.avg_rating != null ? (
-              <>
-                <FieldRatingStars value={Math.round(ratingSummary.avg_rating)} size="sm" />
-                <Text style={styles.ratingBadgeText}>
-                  {ratingSummary.avg_rating.toFixed(1)} · {formatRatingCount(ratingSummary.rating_count)}
-                </Text>
-              </>
-            ) : (
-              <Text style={styles.ratingBadgeText}>{t('fieldRatings.noRatingsYet')}</Text>
-            )}
-          </View>
-          <Pressable
-            style={({ pressed }) => [styles.opinionsBtn, pressed && styles.pressed]}
-            onPress={() => setOpinionsOpen(true)}
-            accessibilityRole="button">
-            <Text style={styles.opinionsBtnText}>{t('fieldRatings.viewOpinions')}</Text>
-          </Pressable>
-        </View>
+        <Pressable
+          style={({ pressed }) => [styles.detailsBtn, pressed && styles.pressed]}
+          onPress={handleViewDetails}
+          accessibilityRole="button">
+          <Text style={styles.detailsBtnText}>{t('field.viewDetails')}</Text>
+        </Pressable>
 
         {eventsByCategory.length > 0 ? (
           <View style={styles.categoryChips}>
@@ -373,12 +346,6 @@ export function FieldDetailSheet({ field, userCoords, onClose }: Props) {
           <Text style={styles.createButtonText}>{t('field.createEvent')}</Text>
         </Pressable>
       </View>
-
-      <FieldOpinionsSheet
-        fieldId={fieldId ?? null}
-        visible={opinionsOpen}
-        onClose={() => setOpinionsOpen(false)}
-      />
     </View>
   );
 }
@@ -548,33 +515,17 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Brand.textSecondary,
   },
-  ratingsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
+  detailsBtn: {
+    alignSelf: 'flex-start',
     marginTop: 12,
     marginBottom: 4,
-    flexWrap: 'wrap',
-  },
-  ratingBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  ratingBadgeText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: Brand.textPrimary,
-  },
-  opinionsBtn: {
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 999,
     borderWidth: 1,
     borderColor: Brand.primary,
   },
-  opinionsBtnText: {
+  detailsBtnText: {
     fontSize: 13,
     fontWeight: '600',
     color: Brand.primary,
