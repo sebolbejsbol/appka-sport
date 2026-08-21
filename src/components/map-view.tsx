@@ -27,7 +27,6 @@ import {
 } from '@/components/map-nearby-sheet';
 import { MapFiltersSheet } from '@/components/map-filters-sheet';
 import { MapLocationSearch } from '@/components/map-location-search';
-import { SportFilterChips } from '@/components/sport-filter-chips';
 import { SzukajTerazSheet } from '@/components/szukaj-teraz-sheet';
 
 import { Brand, BrandFonts, Radius } from '@/constants/theme';
@@ -105,9 +104,6 @@ if (token) {
 }
 
 const POLAND_CENTER_COORD: LngLat = POLAND_CENTER;
-/** Wysokość paska kategorii sportu pod wyszukiwarką — reszta pływających
- * przycisków (w pobliżu, szukaj teraz) musi zejść o tyle niżej. */
-const CATEGORY_CHIPS_CLEARANCE = 54;
 const DEFAULT_ZOOM = 6;
 const USER_ZOOM = 11;
 const SEARCH_ZOOM = 12;
@@ -1343,18 +1339,7 @@ export function AppMap() {
       </MapView>
 
       {!selectedField ? (
-        <MapLocationSearch
-          topOffset={insets.top + 10}
-          onSelectPlace={flyToPlace}
-          onFilterPress={() => setFiltersOpen(true)}
-          filterActiveCount={activeFilterCount}
-        />
-      ) : null}
-
-      {!selectedField ? (
-        <View style={[styles.categoryChipsAnchor, { top: insets.top + 62 }]} pointerEvents="box-none">
-          <SportFilterChips hideLabel />
-        </View>
+        <MapLocationSearch topOffset={insets.top + 10} onSelectPlace={flyToPlace} />
       ) : null}
 
       {!selectedField ? (
@@ -1362,7 +1347,7 @@ export function AppMap() {
           onPress={() => setNearbyEventsOpen(true)}
           style={({ pressed }) => [
             styles.nearbySearchBtn,
-            { top: insets.top + 68 + CATEGORY_CHIPS_CLEARANCE },
+            { top: insets.top + 68 },
             pressed && styles.nearbySearchBtnPressed,
           ]}>
           <Text style={styles.nearbySearchBtnIcon}>📍</Text>
@@ -1375,7 +1360,7 @@ export function AppMap() {
           onPress={() => setPlayNowOpen(true)}
           style={({ pressed }) => [
             styles.nearbySearchBtn,
-            { top: insets.top + 116 + CATEGORY_CHIPS_CLEARANCE },
+            { top: insets.top + 116 },
             pressed && styles.nearbySearchBtnPressed,
           ]}>
           <Text style={styles.nearbySearchBtnIcon}>🔎</Text>
@@ -1461,12 +1446,6 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: Brand.danger,
     textAlign: 'center',
-  },
-  categoryChipsAnchor: {
-    position: 'absolute',
-    left: 14,
-    right: 14,
-    zIndex: 26,
   },
   nearbySearchBtn: {
     position: 'absolute',

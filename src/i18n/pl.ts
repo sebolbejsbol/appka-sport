@@ -567,7 +567,6 @@ export const pl = {
       availabilityEmpty: 'Brak eventów',
     },
     nearbySearchButton: 'Szukaj w pobliżu',
-    filtersButton: 'Filtry',
     nearbyEventsTitle: 'Wydarzenia w pobliżu',
     nearbyEventsSubtitle: 'Aktywne wydarzenia w promieniu do 10 km, zgodne z Twoimi filtrami.',
     nearbyEventsLocating: 'Ustalamy Twoją lokalizację…',
