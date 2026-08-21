@@ -1,7 +1,8 @@
 import { memo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Brand, Radius } from '@/constants/theme';
+import { CalendarIcon, PeopleIcon, PinIcon } from '@/components/icons';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { formatEventDateTime, parseLocalDateTime } from '@/lib/datetime';
@@ -68,7 +69,7 @@ function TournamentCardComponent({ tournament, onPress }: Props) {
         </Text>
 
         <View style={styles.metaRow}>
-          <Text style={styles.metaIcon}>📅</Text>
+          <CalendarIcon size={14} color={Brand.textMuted} />
           <Text style={styles.metaText} numberOfLines={1}>
             {formatWhen(tournament)}
           </Text>
@@ -76,22 +77,32 @@ function TournamentCardComponent({ tournament, onPress }: Props) {
 
         {place ? (
           <View style={styles.metaRow}>
-            <Text style={styles.metaIcon}>📍</Text>
+            <PinIcon size={14} color={Brand.textMuted} />
             <Text style={styles.metaText} numberOfLines={1}>
               {place}
             </Text>
           </View>
         ) : null}
+      </View>
 
-        <View style={styles.footer}>
-          <View style={styles.sportChip}>
-            <Text style={styles.sportChipText}>
-              {emoji} {formatTeamSport(tournament.sport)}
-            </Text>
-          </View>
-          <View style={styles.footerSpacer} />
+      {/* Ta sama perforacja "linii boiska" co event-card.tsx — spójny system. */}
+      <View style={styles.perforationRow}>
+        <View style={styles.notchLeft} />
+        <View style={styles.perforationLine} />
+        <View style={styles.notchRight} />
+      </View>
+
+      <View style={styles.stub}>
+        <View style={styles.sportChip}>
+          <Text style={styles.sportChipText}>
+            {emoji} {formatTeamSport(tournament.sport)}
+          </Text>
+        </View>
+        <View style={styles.footerSpacer} />
+        <View style={styles.teamsRow}>
+          <PeopleIcon size={14} color={Brand.textSecondary} />
           <Text style={styles.teams}>
-            👥 {tournament.approved_teams_count}/{tournament.max_teams}
+            {tournament.approved_teams_count}/{tournament.max_teams}
           </Text>
         </View>
       </View>
@@ -146,38 +157,65 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primary,
   },
   statusBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
-    fontWeight: '700',
     color: '#ffffff',
   },
   body: {
     padding: 14,
+    paddingBottom: 12,
     gap: 6,
   },
   title: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
-    fontWeight: '800',
     color: Brand.textPrimary,
     letterSpacing: -0.2,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-  },
-  metaIcon: {
-    fontSize: 13,
+    gap: 7,
   },
   metaText: {
     flex: 1,
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
   },
-  footer: {
+  perforationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 1,
+  },
+  perforationLine: {
+    flex: 1,
+    height: 0,
+    borderTopWidth: 1.5,
+    borderTopColor: Brand.border,
+    borderStyle: 'dashed',
+    marginHorizontal: -4,
+  },
+  notchLeft: {
+    width: 14,
+    height: 14,
+    borderRadius: 999,
+    backgroundColor: Brand.screenBackground,
+    marginLeft: -7,
+  },
+  notchRight: {
+    width: 14,
+    height: 14,
+    borderRadius: 999,
+    backgroundColor: Brand.screenBackground,
+    marginRight: -7,
+  },
+  stub: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 6,
+    padding: 14,
+    paddingTop: 12,
   },
   footerSpacer: {
     flex: 1,
@@ -190,13 +228,19 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   sportChipText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 11,
-    fontWeight: '700',
     color: Brand.textSecondary,
   },
+  teamsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
   teams: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
+    fontSize: 13,
     color: Brand.textSecondary,
   },
 });
