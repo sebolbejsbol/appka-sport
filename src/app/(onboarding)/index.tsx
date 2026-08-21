@@ -13,20 +13,29 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import CreateEventScreen from '@/components/create-event-screen';
-import { Brand, Radius } from '@/constants/theme';
+import {
+  ChatIcon,
+  CheckCircleIcon,
+  CompassIcon,
+  PeopleIcon,
+  PinIcon,
+  TrophyIcon,
+} from '@/components/icons';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { Typography } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { t, type TKey } from '@/i18n';
 import { supabase } from '@/lib/supabase';
 
-type Slide = { emoji: string; titleKey: TKey; bodyKey: TKey };
+type IconComponent = typeof CompassIcon;
+type Slide = { Icon: IconComponent; color: string; titleKey: TKey; bodyKey: TKey };
 
 const SLIDES: Slide[] = [
-  { emoji: '🗺️', titleKey: 'onboarding.slide1Title', bodyKey: 'onboarding.slide1Body' },
-  { emoji: '🙌', titleKey: 'onboarding.slide2Title', bodyKey: 'onboarding.slide2Body' },
-  { emoji: '💬', titleKey: 'onboarding.slide3Title', bodyKey: 'onboarding.slide3Body' },
-  { emoji: '📍', titleKey: 'onboarding.slide4Title', bodyKey: 'onboarding.slide4Body' },
-  { emoji: '🏆', titleKey: 'onboarding.slide5Title', bodyKey: 'onboarding.slide5Body' },
+  { Icon: CompassIcon, color: Brand.primary, titleKey: 'onboarding.slide1Title', bodyKey: 'onboarding.slide1Body' },
+  { Icon: PeopleIcon, color: Brand.pitch, titleKey: 'onboarding.slide2Title', bodyKey: 'onboarding.slide2Body' },
+  { Icon: ChatIcon, color: Brand.teal, titleKey: 'onboarding.slide3Title', bodyKey: 'onboarding.slide3Body' },
+  { Icon: PinIcon, color: Brand.amberDark, titleKey: 'onboarding.slide4Title', bodyKey: 'onboarding.slide4Body' },
+  { Icon: TrophyIcon, color: Brand.ink, titleKey: 'onboarding.slide5Title', bodyKey: 'onboarding.slide5Body' },
 ];
 
 /**
@@ -90,7 +99,9 @@ export default function OnboardingScreen() {
   if (phase === 'done') {
     return (
       <View style={[styles.flex1, styles.doneContainer, { paddingTop: insets.top + 24 }]}>
-        <Text style={styles.doneEmoji}>🎉</Text>
+        <View style={[styles.badge, { backgroundColor: Brand.pitch }]}>
+          <CheckCircleIcon size={44} color="#ffffff" strokeWidth={2} />
+        </View>
         <Text style={styles.doneTitle}>{t('onboarding.doneTitle')}</Text>
         <Text style={styles.doneBody}>{t('onboarding.doneBody')}</Text>
         <Button
@@ -122,7 +133,9 @@ export default function OnboardingScreen() {
         style={styles.flex1}>
         {SLIDES.map((slide) => (
           <View key={slide.titleKey} style={[styles.slide, { width, paddingTop: insets.top + 80 }]}>
-            <Text style={styles.slideEmoji}>{slide.emoji}</Text>
+            <View style={[styles.badge, { backgroundColor: slide.color }]}>
+              <slide.Icon size={44} color="#ffffff" strokeWidth={1.6} />
+            </View>
             <Text style={styles.slideTitle}>{t(slide.titleKey)}</Text>
             <Text style={styles.slideBody}>{t(slide.bodyKey)}</Text>
           </View>
@@ -163,16 +176,20 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   skipText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
-    fontWeight: '700',
     color: Brand.textSecondary,
   },
   slide: {
     alignItems: 'center',
     paddingHorizontal: 32,
   },
-  slideEmoji: {
-    fontSize: 72,
+  badge: {
+    width: 108,
+    height: 108,
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 28,
   },
   slideTitle: {
@@ -182,6 +199,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   slideBody: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
     lineHeight: 24,
     color: Brand.textSecondary,
@@ -204,7 +222,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.borderStrong,
   },
   dotActive: {
-    backgroundColor: Brand.primary,
+    backgroundColor: Brand.amber,
     width: 22,
   },
   nextButton: {
@@ -216,17 +234,15 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     gap: 4,
   },
-  doneEmoji: {
-    fontSize: 64,
-    marginBottom: 12,
-  },
   doneTitle: {
     ...Typography.screenTitle,
     fontSize: 26,
     textAlign: 'center',
+    marginTop: 4,
     marginBottom: 12,
   },
   doneBody: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
     lineHeight: 24,
     color: Brand.textSecondary,

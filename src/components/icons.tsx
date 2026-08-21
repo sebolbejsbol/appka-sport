@@ -42,6 +42,48 @@ export function PinIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: Ico
   );
 }
 
+export function ChatIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M4 5.5A2.5 2.5 0 0 1 6.5 3h11A2.5 2.5 0 0 1 20 5.5v8A2.5 2.5 0 0 1 17.5 16H10l-4.5 4v-4H6.5A2.5 2.5 0 0 1 4 13.5v-8Z"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function TrophyIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M7 4h10v5a5 5 0 0 1-10 0V4Z"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinejoin="round"
+      />
+      <Path
+        d="M7 5.5H4.5A1.5 1.5 0 0 0 3 7c0 2 1.5 3.5 4 3.5M17 5.5h2.5A1.5 1.5 0 0 1 21 7c0 2-1.5 3.5-4 3.5"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+      <Path d="M12 14v3.5M9 20.5h6M9.5 17.5h5l.5 3H9l.5-3Z" stroke={color} strokeWidth={strokeWidth} strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
+export function CheckCircleIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={strokeWidth} />
+      <Path d="M7.5 12.5l3 3 6-6.5" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" />
+    </Svg>
+  );
+}
+
 export function ShareIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
