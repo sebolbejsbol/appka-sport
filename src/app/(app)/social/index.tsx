@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { ScreenHeader } from '@/components/screen-header';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand, Layout, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Layout, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import {
@@ -237,6 +237,7 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   error: {
+    fontFamily: BrandFonts.body,
     color: Brand.danger,
     marginTop: 24,
     textAlign: 'center',
@@ -267,6 +268,7 @@ const styles = StyleSheet.create({
     color: Brand.primaryText,
   },
   addFriendText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '800',
     color: Brand.primaryText,
@@ -286,6 +288,7 @@ const styles = StyleSheet.create({
     color: Brand.textMuted,
   },
   friendSearchInput: {
+    fontFamily: BrandFonts.body,
     flex: 1,
     paddingVertical: 11,
     fontSize: 15,
@@ -297,6 +300,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   noMatch: {
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     textAlign: 'center',
     marginTop: 24,
@@ -323,11 +327,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   inviteTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   inviteMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
   },
@@ -344,11 +350,14 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.textMuted,
   },
   inviteBadgeText: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     color: Brand.primaryText,
     fontSize: 13,
     fontWeight: '800',
   },
   sectionTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.textMuted,
@@ -375,6 +384,7 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
   empty: {
+    fontFamily: BrandFonts.body,
     color: Brand.textSecondary,
     textAlign: 'center',
     fontSize: 15,
@@ -388,6 +398,7 @@ const styles = StyleSheet.create({
     ...shadow('sm'),
   },
   emptyBtnText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontWeight: '700',
     fontSize: 14,
@@ -414,6 +425,7 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   rowName: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
     fontWeight: '700',
     color: Brand.textPrimary,
@@ -430,10 +442,12 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.success,
   },
   rowMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
   },
   rowMetaOnline: {
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.success,
     fontWeight: '600',
   },

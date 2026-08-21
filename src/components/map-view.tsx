@@ -29,7 +29,7 @@ import { MapFiltersSheet } from '@/components/map-filters-sheet';
 import { MapLocationSearch } from '@/components/map-location-search';
 import { SzukajTerazSheet } from '@/components/szukaj-teraz-sheet';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useUserLocation, type LngLat } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
@@ -1442,6 +1442,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.screenBackground,
   },
   fallbackText: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     color: Brand.danger,
     textAlign: 'center',
@@ -1465,9 +1466,11 @@ const styles = StyleSheet.create({
     opacity: 0.9,
   },
   nearbySearchBtnIcon: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
   },
   nearbySearchBtnText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.textPrimary,
@@ -1489,6 +1492,7 @@ const styles = StyleSheet.create({
     elevation: 4,
   },
   searchPinLabel: {
+    fontFamily: BrandFonts.bodyBold,
     color: '#ffffff',
     fontWeight: '700',
     fontSize: 12,
@@ -1509,6 +1513,7 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   searchPinGlyph: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
   },
   searchPinTail: {

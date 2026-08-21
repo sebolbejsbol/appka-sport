@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScreenHeader } from '@/components/screen-header';
 import { TeamAvatar } from '@/components/team-avatar';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { getLocale, t } from '@/i18n';
@@ -374,7 +374,8 @@ const styles = StyleSheet.create({
     paddingBottom: 4,
     gap: 10,
   },
-  name: { fontSize: 24, fontWeight: '800', color: Brand.textPrimary, textAlign: 'center' },
+  name: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 24, fontWeight: '800', color: Brand.textPrimary, textAlign: 'center' },
   heroPills: { flexDirection: 'row', alignItems: 'center', gap: 10 },
   sportPill: {
     paddingHorizontal: 12,
@@ -382,9 +383,12 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     backgroundColor: Brand.primaryLight,
   },
-  sportPillText: { color: Brand.primary, fontSize: 13, fontWeight: '700' },
-  founded: { fontSize: 13, color: Brand.textMuted },
+  sportPillText: {
+    fontFamily: BrandFonts.bodyBold, color: Brand.primary, fontSize: 13, fontWeight: '700' },
+  founded: {
+    fontFamily: BrandFonts.body, fontSize: 13, color: Brand.textMuted },
   description: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     lineHeight: 22,
     color: Brand.textSecondary,
@@ -406,13 +410,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   actionPrimary: { backgroundColor: Brand.primary, ...shadow('sm') },
-  actionPrimaryText: { color: Brand.primaryText, fontWeight: '800', fontSize: 15 },
+  actionPrimaryText: {
+    fontFamily: BrandFonts.bodyBold, color: Brand.primaryText, fontWeight: '800', fontSize: 15 },
   actionSecondary: {
     backgroundColor: Brand.surface,
     borderWidth: 1,
     borderColor: Brand.border,
   },
-  actionSecondaryText: { color: Brand.textPrimary, fontWeight: '700', fontSize: 15 },
+  actionSecondaryText: {
+    fontFamily: BrandFonts.bodyBold, color: Brand.textPrimary, fontWeight: '700', fontSize: 15 },
 
   statsRow: {
     flexDirection: 'row',
@@ -430,10 +436,13 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
     gap: 4,
   },
-  statValue: { fontSize: 22, fontWeight: '800', color: Brand.textPrimary },
+  statValue: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 22, fontWeight: '800', color: Brand.textPrimary },
   statValueOnline: { color: Brand.success },
-  statValueSmall: { fontSize: 14, fontWeight: '800', color: Brand.textPrimary, textAlign: 'center' },
+  statValueSmall: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 14, fontWeight: '800', color: Brand.textPrimary, textAlign: 'center' },
   statLabel: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 11,
     color: Brand.textMuted,
     textTransform: 'uppercase',
@@ -443,6 +452,7 @@ const styles = StyleSheet.create({
 
   section: { paddingHorizontal: 20, paddingTop: 22 },
   sectionTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '800',
     color: Brand.textMuted,
@@ -470,8 +480,10 @@ const styles = StyleSheet.create({
   },
   memberMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12, minWidth: 0 },
   memberText: { flex: 1, gap: 2, minWidth: 0 },
-  memberName: { fontSize: 16, fontWeight: '600', color: Brand.textPrimary },
-  memberRole: { fontSize: 13, color: Brand.textMuted },
+  memberName: {
+    fontFamily: BrandFonts.bodySemibold, fontSize: 16, fontWeight: '600', color: Brand.textPrimary },
+  memberRole: {
+    fontFamily: BrandFonts.body, fontSize: 13, color: Brand.textMuted },
   ownerBadge: {
     width: 28,
     height: 28,
@@ -480,7 +492,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  ownerBadgeText: { color: Brand.primary, fontSize: 14, fontWeight: '800' },
+  ownerBadgeText: {
+    fontFamily: BrandFonts.bodyBold, color: Brand.primary, fontSize: 14, fontWeight: '800' },
   menuBtn: {
     width: 36,
     height: 36,
@@ -489,7 +502,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: Brand.surfaceMuted,
   },
-  menuIcon: { fontSize: 20, color: Brand.textSecondary, fontWeight: '800', marginTop: -6 },
+  menuIcon: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 20, color: Brand.textSecondary, fontWeight: '800', marginTop: -6 },
 
   requestRow: {
     flexDirection: 'row',
@@ -505,8 +519,10 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
     borderRadius: 999,
   },
-  approveText: { color: Brand.primaryText, fontSize: 13, fontWeight: '700' },
-  dangerLink: { color: Brand.danger, fontSize: 13, fontWeight: '600' },
+  approveText: {
+    fontFamily: BrandFonts.bodyBold, color: Brand.primaryText, fontSize: 13, fontWeight: '700' },
+  dangerLink: {
+    fontFamily: BrandFonts.bodySemibold, color: Brand.danger, fontSize: 13, fontWeight: '600' },
   leaveBtn: { alignItems: 'center', paddingVertical: 24 },
   pressed: { opacity: 0.85 },
 });

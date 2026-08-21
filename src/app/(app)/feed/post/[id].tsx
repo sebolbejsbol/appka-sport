@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { PostCard } from '@/components/post-card';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { confirmAction } from '@/lib/confirm';
 import { formatRelativeShortTime } from '@/lib/datetime';
@@ -361,6 +361,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   backText: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
     color: Brand.textSecondary,
   },
@@ -368,12 +369,14 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   error: {
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     textAlign: 'center',
     marginTop: 32,
     paddingHorizontal: 24,
   },
   sectionTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.textMuted,
@@ -384,6 +387,7 @@ const styles = StyleSheet.create({
     paddingBottom: 10,
   },
   emptyComments: {
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     fontSize: 14,
     paddingHorizontal: 16,
@@ -412,15 +416,18 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   commentName: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   commentTime: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
   },
   commentBody: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     lineHeight: 20,
     color: Brand.textPrimary,
@@ -432,11 +439,13 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   replyComment: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
     fontWeight: '700',
     color: Brand.primary,
   },
   deleteComment: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
     fontWeight: '600',
     color: Brand.danger,
@@ -453,12 +462,14 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primaryLight,
   },
   replyBannerText: {
+    fontFamily: BrandFonts.bodySemibold,
     flex: 1,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.primaryDark,
   },
   replyBannerCancel: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
     fontWeight: '700',
     color: Brand.primaryDark,
@@ -476,6 +487,7 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   composerInput: {
+    fontFamily: BrandFonts.body,
     minHeight: 44,
     maxHeight: 100,
     fontSize: 15,
@@ -490,6 +502,8 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   charCount: {
+    fontFamily: BrandFonts.monoMedium,
+    fontVariant: ['tabular-nums'],
     fontSize: 12,
     color: Brand.textMuted,
   },
@@ -503,11 +517,13 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   sendBtnText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontSize: 14,
     fontWeight: '700',
   },
   postError: {
+    fontFamily: BrandFonts.body,
     color: Brand.danger,
     fontSize: 13,
     marginTop: 6,

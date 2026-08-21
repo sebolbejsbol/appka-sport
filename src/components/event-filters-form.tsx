@@ -4,7 +4,7 @@ import { Pressable, StyleSheet, Switch, Text, View } from 'react-native';
 import { DistanceFilterSlider } from '@/components/distance-filter-slider';
 import { FilterDropdown } from '@/components/filter-dropdown';
 import { SportFilterChips } from '@/components/sport-filter-chips';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useEventFilters } from '@/context/event-filters';
 import { t } from '@/i18n';
 import type { DateFilter, EventType, PaymentFilter, SkillLevel } from '@/lib/event-filters';
@@ -107,6 +107,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   switchLabel: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     color: Brand.textPrimary,
     flex: 1,
@@ -127,6 +128,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   advancedToggleText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
     fontWeight: '700',
     color: Brand.textSecondary,

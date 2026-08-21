@@ -5,7 +5,7 @@ import * as WebBrowser from 'expo-web-browser';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
 
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   closeText: { color: '#fff', fontSize: 18, fontWeight: '700' },
-  error: { color: '#fff' },
+  error: { fontFamily: BrandFonts.body, color: '#fff' },
   downloadBtn: {
     position: 'absolute',
     alignSelf: 'center',
@@ -69,5 +69,5 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 999,
   },
-  downloadText: { color: Brand.primaryText, fontWeight: '700' },
+  downloadText: { fontFamily: BrandFonts.bodyBold, color: Brand.primaryText, fontWeight: '700' },
 });

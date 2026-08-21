@@ -4,7 +4,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/screen-header';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { formatTeamSport } from '@/lib/sports';
@@ -143,7 +143,7 @@ export default function AdminTournamentsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Brand.screenBackground },
   loader: { marginTop: 32 },
-  muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
+  muted: { fontSize: 15, fontFamily: BrandFonts.body, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
   filtersRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   filterChipActive: { backgroundColor: Brand.primary, borderColor: Brand.primary },
-  filterChipText: { fontSize: 13, fontWeight: '600', color: Brand.textPrimary },
+  filterChipText: { fontSize: 13, fontWeight: '600', fontFamily: BrandFonts.bodySemibold, color: Brand.textPrimary },
   filterChipTextActive: { color: Brand.primaryText },
   row: {
     flexDirection: 'row',
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
   },
   pressed: { opacity: 0.85 },
   rowMain: { flex: 1, gap: 4 },
-  rowTitle: { fontSize: 15, fontWeight: '700', color: Brand.primary },
-  rowMeta: { fontSize: 13, color: Brand.textSecondary },
-  statusBadge: { fontSize: 12, fontWeight: '600', color: Brand.textMuted },
+  rowTitle: { fontSize: 15, fontWeight: '700', fontFamily: BrandFonts.bodyBold, color: Brand.primary },
+  rowMeta: { fontSize: 13, fontFamily: BrandFonts.body, color: Brand.textSecondary },
+  statusBadge: { fontSize: 12, fontWeight: '600', fontFamily: BrandFonts.bodySemibold, color: Brand.textMuted },
 });

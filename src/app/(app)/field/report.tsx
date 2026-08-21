@@ -18,7 +18,7 @@ import {
   type FieldReportLocation,
 } from '@/components/field-report-map-picker';
 import { TextField } from '@/components/text-field';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { Typography } from '@/constants/ui';
 import { t } from '@/i18n';
 import { submitFieldReport } from '@/lib/field-reports';
@@ -202,6 +202,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   backText: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
     color: Brand.textSecondary,
   },
@@ -211,6 +212,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   hint: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     marginBottom: 20,
@@ -219,29 +221,34 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sectionTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
     fontWeight: '700',
     color: Brand.textPrimary,
     marginTop: 4,
   },
   sectionHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
     marginBottom: 4,
   },
   mapLink: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.primary,
     marginTop: 4,
   },
   fieldHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
     marginTop: -4,
     marginBottom: 4,
   },
   errorText: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.danger,
   },
@@ -257,11 +264,13 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   successTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 18,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   successBody: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     marginBottom: 8,

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AppleIcon, FacebookIcon, GoogleIcon } from '@/components/provider-icons';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
 import { signInWithProvider, type OAuthProvider } from '@/lib/oauth';
 
@@ -123,6 +123,7 @@ const styles = StyleSheet.create({
   dividerLabel: {
     fontSize: 13,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
@@ -161,6 +162,7 @@ const styles = StyleSheet.create({
   providerLabel: {
     fontSize: 15,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textPrimary,
   },
   providerLabelDark: {

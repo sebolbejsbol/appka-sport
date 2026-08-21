@@ -2,7 +2,7 @@ import { FlatList, Pressable, StyleSheet, Text, View, useWindowDimensions } from
 import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import type { CourtAvailability } from '@/lib/fields';
@@ -139,11 +139,13 @@ const styles = StyleSheet.create({
     alignSelf: 'stretch',
   },
   title: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '800',
     color: Brand.textPrimary,
   },
   subtitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.textMuted,
@@ -168,6 +170,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   emoji: {
+    fontFamily: BrandFonts.body,
     fontSize: 18,
   },
   rowMain: {
@@ -175,11 +178,13 @@ const styles = StyleSheet.create({
     gap: 1,
   },
   rowName: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   rowMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
   },
@@ -196,11 +201,13 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   categoryChipText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
     fontWeight: '600',
     color: Brand.textSecondary,
   },
   chevron: {
+    fontFamily: BrandFonts.body,
     fontSize: 20,
     color: Brand.textMuted,
     fontWeight: '300',

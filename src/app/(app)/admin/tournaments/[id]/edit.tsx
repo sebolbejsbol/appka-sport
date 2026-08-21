@@ -12,7 +12,7 @@ import {
   validateTournamentForm,
   type TournamentFormValue,
 } from '@/components/tournament-form';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { confirmAction } from '@/lib/confirm';
@@ -310,9 +310,10 @@ export default function EditTournamentScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Brand.screenBackground },
   loader: { marginTop: 32 },
-  muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
+  muted: { fontFamily: BrandFonts.body, fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
   content: { paddingHorizontal: 20, paddingTop: 8 },
   notice: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     backgroundColor: Brand.surface,
@@ -320,10 +321,10 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 12,
   },
-  errorText: { fontSize: 14, color: Brand.danger, marginTop: 12 },
+  errorText: { fontFamily: BrandFonts.body, fontSize: 14, color: Brand.danger, marginTop: 12 },
   submit: { marginTop: 20 },
   manageTeamsBtn: { marginTop: 12 },
-  sectionTitle: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 8 },
+  sectionTitle: { fontFamily: BrandFonts.bodyBold, fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 8 },
   transitions: { marginTop: 28, gap: 10 },
   transitionBtn: { marginTop: 0 },
 });

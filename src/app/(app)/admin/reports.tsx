@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
 import {
@@ -261,16 +261,19 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   backText: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
     color: Brand.textSecondary,
   },
   title: {
+    fontFamily: BrandFonts.display,
     fontSize: 32,
     fontWeight: '700',
     color: Brand.textPrimary,
     marginBottom: 8,
   },
   hint: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     marginBottom: 16,
@@ -294,6 +297,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   filterChipText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.textPrimary,
@@ -305,11 +309,13 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   muted: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     color: Brand.textMuted,
     marginTop: 24,
   },
   errorText: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.danger,
     marginBottom: 8,
@@ -331,20 +337,24 @@ const styles = StyleSheet.create({
     maxWidth: 120,
   },
   rowTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '700',
     color: Brand.primary,
   },
   rowMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
   },
   rowDetails: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textPrimary,
     fontStyle: 'italic',
   },
   rowDate: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
     marginTop: 2,
@@ -356,6 +366,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primary,
   },
   reviewBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
     fontWeight: '600',
     color: Brand.primaryText,
@@ -370,6 +381,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   dismissBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
     fontWeight: '600',
     color: Brand.danger,

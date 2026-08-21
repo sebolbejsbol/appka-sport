@@ -8,7 +8,7 @@ import {
   View,
 } from 'react-native';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { distanceFilterLabel } from '@/lib/event-filter-display';
@@ -122,11 +122,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   label: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.textSecondary,
   },
   value: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
     fontWeight: '600',
     color: Brand.primary,
@@ -177,6 +179,7 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   scaleText: {
+    fontFamily: BrandFonts.body,
     fontSize: 11,
     color: Brand.textMuted,
   },
@@ -194,6 +197,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primaryLight,
   },
   unlimitedText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.textSecondary,

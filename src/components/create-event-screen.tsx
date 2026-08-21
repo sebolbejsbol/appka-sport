@@ -1586,6 +1586,7 @@ const styles = StyleSheet.create({
     ...shadow('sm'),
   },
   catEmoji: {
+    fontFamily: BrandFonts.body,
     fontSize: 34,
   },
   catLabel: {
@@ -1607,9 +1608,11 @@ const styles = StyleSheet.create({
     ...shadow('sm'),
   },
   subEmoji: {
+    fontFamily: BrandFonts.body,
     fontSize: 26,
   },
   subLabel: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
     fontWeight: '700',
     color: Brand.textPrimary,
@@ -1627,6 +1630,7 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   input: {
+    fontFamily: BrandFonts.body,
     backgroundColor: Brand.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
@@ -1652,11 +1656,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   hint: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
     marginTop: 6,
   },
   emptyHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
     marginTop: 12,
@@ -1686,9 +1692,11 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   locCtxEmoji: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
   },
   locCtxLabel: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '800',
     color: Brand.primary,
@@ -1703,6 +1711,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   locCtxCountText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
     fontWeight: '700',
     color: Brand.textSecondary,
@@ -1717,10 +1726,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   searchInputIcon: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     marginRight: 8,
   },
   searchInput: {
+    fontFamily: BrandFonts.body,
     flex: 1,
     paddingVertical: 12,
     fontSize: 15,
@@ -1735,6 +1746,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   searchClearText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
     fontWeight: '800',
     color: Brand.textMuted,
@@ -1761,19 +1773,23 @@ const styles = StyleSheet.create({
     borderBottomColor: Brand.border,
   },
   suggestIcon: {
+    fontFamily: BrandFonts.body,
     fontSize: 20,
   },
   suggestLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   suggestSub: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
     marginTop: 2,
   },
   suggestDist: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
     fontWeight: '700',
     color: Brand.primary,
@@ -1787,6 +1803,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primaryMuted,
   },
   selectedLabel: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.4,
@@ -1794,6 +1811,7 @@ const styles = StyleSheet.create({
     color: Brand.primary,
   },
   selectedName: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '700',
     color: Brand.textPrimary,
@@ -1815,11 +1833,13 @@ const styles = StyleSheet.create({
     borderBottomColor: Brand.border,
   },
   searchResultLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   searchResultSub: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
     marginTop: 2,
@@ -1833,7 +1853,8 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surfaceMuted,
     alignItems: 'center',
   },
-  mapDisabledText: { color: Brand.textMuted, fontSize: 14, textAlign: 'center', lineHeight: 20 },
+  mapDisabledText: {
+    fontFamily: BrandFonts.body, color: Brand.textMuted, fontSize: 14, textAlign: 'center', lineHeight: 20 },
   mapWrap: {
     marginTop: 16,
     height: 220,
@@ -1846,6 +1867,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mapPickHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
     marginTop: 14,
@@ -1853,6 +1875,7 @@ const styles = StyleSheet.create({
     lineHeight: 19,
   },
   fieldSportLockedHint: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     color: Brand.primary,
     marginTop: 10,
@@ -1903,6 +1926,7 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.15 }],
   },
   markerEmoji: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
   },
   customPointBtn: {
@@ -1918,21 +1942,25 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   customPointEmoji: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 22,
     color: Brand.primary,
     fontWeight: '800',
   },
   customPointText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '800',
     color: Brand.textPrimary,
   },
   customPointHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
     marginTop: 2,
   },
   customPointChevron: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 24,
     color: Brand.textMuted,
     fontWeight: '700',
@@ -1960,6 +1988,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   skillChipText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.textSecondary,
@@ -1980,11 +2009,13 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surfaceMuted,
   },
   moreToggleText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '700',
     color: Brand.textSecondary,
   },
   moreChevron: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
   },
@@ -1998,10 +2029,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   crosshairPin: {
+    fontFamily: BrandFonts.body,
     fontSize: 34,
     marginBottom: 24,
   },
   selectedPin: {
+    fontFamily: BrandFonts.body,
     fontSize: 34,
   },
   fullClose: {
@@ -2016,6 +2049,7 @@ const styles = StyleSheet.create({
     ...shadow('md'),
   },
   fullCloseText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 18,
     fontWeight: '800',
     color: Brand.textPrimary,
@@ -2030,6 +2064,7 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   expandBtnText: {
+    fontFamily: BrandFonts.bodyBold,
     color: '#fff',
     fontSize: 12,
     fontWeight: '800',
@@ -2044,6 +2079,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   setHereText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primary,
     fontSize: 15,
     fontWeight: '800',
@@ -2060,11 +2096,13 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   switchLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   errorText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.danger,
@@ -2090,6 +2128,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   footerBackText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '700',
     color: Brand.textSecondary,
@@ -2127,9 +2166,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   imagePlaceholderEmoji: {
+    fontFamily: BrandFonts.body,
     fontSize: 40,
   },
   imagePlaceholderText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.textMuted,
@@ -2161,6 +2202,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   coverBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontSize: 10,
     fontWeight: '800',
@@ -2177,6 +2219,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   thumbRemoveText: {
+    fontFamily: BrandFonts.bodyBold,
     color: '#fff',
     fontSize: 16,
     fontWeight: '800',
@@ -2195,11 +2238,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   thumbAddPlus: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 24,
     color: Brand.primary,
     fontWeight: '700',
   },
   thumbAddText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
     fontWeight: '700',
     color: Brand.textMuted,
@@ -2214,6 +2259,7 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   summaryTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 22,
     fontWeight: '800',
     color: Brand.textPrimary,
@@ -2260,6 +2306,7 @@ const styles = StyleSheet.create({
     ...shadow('md'),
   },
   fullSearchInput: {
+    fontFamily: BrandFonts.body,
     backgroundColor: Brand.surface,
     borderRadius: Radius.md,
     borderWidth: 1,
@@ -2278,6 +2325,7 @@ const styles = StyleSheet.create({
     borderTopColor: Brand.border,
   },
   fullHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
     textAlign: 'center',
@@ -2302,6 +2350,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primaryMuted,
   },
   fullToggleText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primary,
     fontSize: 14,
     fontWeight: '800',
@@ -2319,6 +2368,7 @@ const styles = StyleSheet.create({
     ...shadow('md'),
   },
   fullConfirmText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontSize: 16,
     fontWeight: '800',

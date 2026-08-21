@@ -383,20 +383,27 @@ export default function TournamentDetailScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Brand.screenBackground },
   loader: { marginTop: 32 },
-  muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
+  muted: {
+    fontFamily: BrandFonts.body, fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
   content: { paddingHorizontal: 20, paddingTop: 12 },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 12 },
   logo: { width: 64, height: 64, borderRadius: Radius.md, backgroundColor: Brand.surface },
   headerText: { gap: 6 },
-  sportBadge: { fontSize: 13, fontWeight: '600', color: Brand.textSecondary },
-  statusBadge: { fontSize: 13, fontWeight: '700', color: Brand.primary },
-  description: { fontSize: 14, color: Brand.textPrimary, marginBottom: 16, lineHeight: 20 },
+  sportBadge: {
+    fontFamily: BrandFonts.bodySemibold, fontSize: 13, fontWeight: '600', color: Brand.textSecondary },
+  statusBadge: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 13, fontWeight: '700', color: Brand.primary },
+  description: {
+    fontFamily: BrandFonts.body, fontSize: 14, color: Brand.textPrimary, marginBottom: 16, lineHeight: 20 },
   infoBlock: { gap: 8 },
-  infoLine: { fontSize: 14, color: Brand.textSecondary },
-  sectionHeading: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 10 },
+  infoLine: {
+    fontFamily: BrandFonts.body, fontSize: 14, color: Brand.textSecondary },
+  sectionHeading: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 10 },
   registerBlock: { marginTop: 24 },
   registerBtn: { marginTop: 4 },
-  regErrorText: { fontSize: 13, color: Brand.danger, marginTop: 8 },
+  regErrorText: {
+    fontFamily: BrandFonts.body, fontSize: 13, color: Brand.danger, marginTop: 8 },
   teamLinkRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -410,17 +417,24 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   teamLinkText: { flex: 1, gap: 2 },
-  teamLinkName: { fontSize: 15, fontWeight: '700', color: Brand.textPrimary },
-  teamLinkMeta: { fontSize: 13, color: Brand.textSecondary },
-  teamLinkChevron: { fontSize: 13, fontWeight: '700', color: Brand.primary },
+  teamLinkName: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 15, fontWeight: '700', color: Brand.textPrimary },
+  teamLinkMeta: {
+    fontFamily: BrandFonts.body, fontSize: 13, color: Brand.textSecondary },
+  teamLinkChevron: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 13, fontWeight: '700', color: Brand.primary },
   teamsBlock: { marginTop: 24 },
-  emptyText: { fontSize: 14, color: Brand.textMuted },
+  emptyText: {
+    fontFamily: BrandFonts.body, fontSize: 14, color: Brand.textMuted },
   teamRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 8 },
-  teamRowChevron: { fontSize: 13, fontWeight: '700', color: Brand.primary },
+  teamRowChevron: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 13, fontWeight: '700', color: Brand.primary },
   teamLogo: { width: 32, height: 32, borderRadius: 8, backgroundColor: Brand.surface },
   teamLogoFallback: { width: 32, height: 32, borderRadius: 8, backgroundColor: Brand.surfaceMuted },
-  teamRowName: { flex: 1, fontSize: 14, color: Brand.textPrimary, fontWeight: '600' },
-  teamRowGroup: { fontSize: 12, color: Brand.textMuted },
+  teamRowName: {
+    fontFamily: BrandFonts.bodySemibold, flex: 1, fontSize: 14, color: Brand.textPrimary, fontWeight: '600' },
+  teamRowGroup: {
+    fontFamily: BrandFonts.body, fontSize: 12, color: Brand.textMuted },
   groupsBlock: { marginTop: 24 },
   groupSection: { marginBottom: 24 },
   standingsHeaderRow: {
@@ -450,7 +464,9 @@ const styles = StyleSheet.create({
   },
   fixturesHeading: { marginTop: 16 },
   matchRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 8 },
-  matchTeamText: { flex: 1, fontSize: 13, color: Brand.textPrimary },
+  matchTeamText: {
+    fontFamily: BrandFonts.body, flex: 1, fontSize: 13, color: Brand.textPrimary },
   matchTeamTextRight: { textAlign: 'right' },
-  matchScoreText: { fontSize: 13, fontWeight: '700', color: Brand.textSecondary, minWidth: 48, textAlign: 'center' },
+  matchScoreText: {
+    fontFamily: BrandFonts.monoSemibold, fontVariant: ['tabular-nums'], fontSize: 13, color: Brand.textSecondary, minWidth: 48, textAlign: 'center' },
 });

@@ -4,7 +4,7 @@ import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from '
 
 import { TextField } from '@/components/text-field';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { listFriends, type SocialUserRow } from '@/lib/social';
 import { inviteToTeam } from '@/lib/teams';
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
   container: { flex: 1 },
   loader: { marginTop: 24 },
   list: { flex: 1 },
-  empty: { textAlign: 'center', color: Brand.textMuted, marginTop: 32, paddingHorizontal: 24 },
+  empty: { fontFamily: BrandFonts.body, textAlign: 'center', color: Brand.textMuted, marginTop: 32, paddingHorizontal: 24 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   rowMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
-  name: { fontSize: 16, fontWeight: '600', color: Brand.textPrimary },
+  name: { fontFamily: BrandFonts.bodySemibold, fontSize: 16, fontWeight: '600', color: Brand.textPrimary },
   inviteBtn: {
     backgroundColor: Brand.primary,
     paddingHorizontal: 12,
@@ -126,5 +126,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   inviteBtnDisabled: { opacity: 0.5 },
-  inviteText: { color: Brand.primaryText, fontSize: 13, fontWeight: '700' },
+  inviteText: { fontFamily: BrandFonts.bodyBold, color: Brand.primaryText, fontSize: 13, fontWeight: '700' },
 });

@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import type { LegalDocument } from '@/content/legal/types';
 
@@ -69,6 +69,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   backText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 16,
     color: Brand.textSecondary,
     fontWeight: '600',
@@ -81,12 +82,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   title: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 18,
     fontWeight: '600',
     color: Brand.textSecondary,
     marginBottom: 4,
   },
   updated: {
+    fontFamily: BrandFonts.body,
     fontSize: 11,
     color: Brand.textMuted,
     marginBottom: 20,
@@ -96,11 +99,13 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sectionTitle: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.textSecondary,
   },
   paragraph: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     lineHeight: 17,
     color: Brand.textMuted,

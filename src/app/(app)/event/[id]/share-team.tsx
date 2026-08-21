@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { ScreenHeader } from '@/components/screen-header';
 import { TeamAvatar } from '@/components/team-avatar';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
 import { listMyTeams, shareEventInTeamChat, type TeamListItem } from '@/lib/teams';
@@ -86,6 +86,7 @@ export default function ShareEventToTeamScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Brand.screenBackground },
   hint: {
+    fontFamily: BrandFonts.body,
     paddingHorizontal: 16,
     paddingBottom: 8,
     color: Brand.textMuted,
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   loader: { marginTop: 32 },
-  empty: { textAlign: 'center', color: Brand.textMuted, marginTop: 32 },
+  empty: { fontFamily: BrandFonts.body, textAlign: 'center', color: Brand.textMuted, marginTop: 32 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Brand.border,
   },
-  name: { flex: 1, fontSize: 16, fontWeight: '600', color: Brand.textPrimary },
-  status: { color: Brand.primary, fontWeight: '700', fontSize: 13 },
+  name: { fontFamily: BrandFonts.bodySemibold, flex: 1, fontSize: 16, fontWeight: '600', color: Brand.textPrimary },
+  status: { fontFamily: BrandFonts.bodyBold, color: Brand.primary, fontWeight: '700', fontSize: 13 },
   pressed: { opacity: 0.85 },
 });

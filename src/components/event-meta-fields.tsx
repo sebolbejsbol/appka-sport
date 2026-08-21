@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import {
   eventTypeLabel,
@@ -133,6 +133,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   fieldLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.textSecondary,
@@ -156,10 +157,12 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   segmentText: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textPrimary,
   },
   segmentTextSelected: {
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.primaryText,
     fontWeight: '600',
   },

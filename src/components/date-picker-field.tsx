@@ -3,7 +3,7 @@ import { FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { SlideInDown, SlideOutDown } from 'react-native-reanimated';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { getLocale, t } from '@/i18n';
 
@@ -128,11 +128,13 @@ const styles = StyleSheet.create({
   fieldValue: {
     fontSize: 15,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textPrimary,
   },
   fieldPlaceholder: {
     color: Brand.textMuted,
     fontWeight: '400',
+    fontFamily: BrandFonts.body,
   },
   fieldIcon: {
     fontSize: 15,
@@ -154,6 +156,7 @@ const styles = StyleSheet.create({
   sheetTitle: {
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textPrimary,
     textAlign: 'center',
     marginBottom: 12,
@@ -181,18 +184,21 @@ const styles = StyleSheet.create({
   dayWeekday: {
     fontSize: 11,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textMuted,
     textTransform: 'uppercase',
   },
   dayNumber: {
     fontSize: 18,
     fontWeight: '800',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textPrimary,
     marginVertical: 2,
   },
   dayMonth: {
     fontSize: 11,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textMuted,
   },
   dayTextActive: {

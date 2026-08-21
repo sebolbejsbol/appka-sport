@@ -7,7 +7,7 @@ import Animated, {
   Layout as ReanimatedLayout,
 } from 'react-native-reanimated';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { registerToastHost, type ToastRequest, type ToastVariant } from '@/lib/toast-navigation';
 
@@ -99,11 +99,13 @@ const styles = StyleSheet.create({
     ...shadow('lg'),
   },
   icon: {
+    fontFamily: BrandFonts.bodyBold,
     color: '#ffffff',
     fontSize: 14,
     fontWeight: '800',
   },
   message: {
+    fontFamily: BrandFonts.bodySemibold,
     flex: 1,
     color: '#ffffff',
     fontSize: 14,

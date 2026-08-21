@@ -16,7 +16,7 @@ import { Button } from '@/components/button';
 import { ScreenHeader } from '@/components/screen-header';
 import { TextField } from '@/components/text-field';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { confirmAction } from '@/lib/confirm';
 import { goBack } from '@/lib/navigation';
@@ -292,6 +292,7 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   sectionTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '800',
     color: Brand.textMuted,
@@ -314,7 +315,8 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   logoPreview: { width: '100%', height: '100%' },
-  logoPlaceholder: { color: Brand.primary, fontWeight: '700', fontSize: 32 },
+  logoPlaceholder: {
+    fontFamily: BrandFonts.bodyBold, color: Brand.primary, fontWeight: '700', fontSize: 32 },
   logoEditBadge: {
     position: 'absolute',
     right: 4,
@@ -328,11 +330,15 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Brand.surface,
   },
-  logoEditIcon: { color: Brand.primaryText, fontSize: 13, fontWeight: '800' },
-  logoHint: { fontSize: 12, color: Brand.textMuted, textAlign: 'center' },
-  counter: { fontSize: 12, color: Brand.textMuted, textAlign: 'right', marginTop: -6 },
+  logoEditIcon: {
+    fontFamily: BrandFonts.bodyBold, color: Brand.primaryText, fontSize: 13, fontWeight: '800' },
+  logoHint: {
+    fontFamily: BrandFonts.body, fontSize: 12, color: Brand.textMuted, textAlign: 'center' },
+  counter: {
+    fontFamily: BrandFonts.body, fontSize: 12, color: Brand.textMuted, textAlign: 'right', marginTop: -6 },
   descriptionInput: { minHeight: 88, textAlignVertical: 'top' },
-  label: { fontSize: 14, fontWeight: '600', color: Brand.textSecondary },
+  label: {
+    fontFamily: BrandFonts.bodySemibold, fontSize: 14, fontWeight: '600', color: Brand.textSecondary },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   chip: {
     paddingHorizontal: 12,
@@ -343,29 +349,35 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   chipActive: { backgroundColor: Brand.primary, borderColor: Brand.primary },
-  chipText: { fontSize: 13, fontWeight: '600', color: Brand.textPrimary },
+  chipText: {
+    fontFamily: BrandFonts.bodySemibold, fontSize: 13, fontWeight: '600', color: Brand.textPrimary },
   chipTextActive: { color: Brand.primaryText },
   error: { color: Brand.danger },
-  muted: { color: Brand.textMuted, fontSize: 14 },
+  muted: {
+    fontFamily: BrandFonts.body, color: Brand.textMuted, fontSize: 14 },
   transferRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
     paddingVertical: 8,
   },
-  transferName: { flex: 1, fontSize: 15, fontWeight: '600', color: Brand.textPrimary },
-  transferArrow: { fontSize: 22, color: Brand.textMuted, fontWeight: '700' },
+  transferName: {
+    fontFamily: BrandFonts.bodySemibold, flex: 1, fontSize: 15, fontWeight: '600', color: Brand.textPrimary },
+  transferArrow: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 22, color: Brand.textMuted, fontWeight: '700' },
   dangerCard: {
     borderColor: '#fecaca',
   },
   dangerTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '800',
     color: Brand.danger,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
   },
-  dangerHint: { fontSize: 13, color: Brand.textMuted, lineHeight: 18 },
+  dangerHint: {
+    fontFamily: BrandFonts.body, fontSize: 13, color: Brand.textMuted, lineHeight: 18 },
   deleteBtn: {
     marginTop: 4,
     paddingVertical: 13,
@@ -376,5 +388,6 @@ const styles = StyleSheet.create({
     backgroundColor: '#fef2f2',
   },
   deletePressed: { opacity: 0.85 },
-  deleteBtnText: { color: Brand.danger, fontWeight: '800', fontSize: 15 },
+  deleteBtnText: {
+    fontFamily: BrandFonts.bodyBold, color: Brand.danger, fontWeight: '800', fontSize: 15 },
 });

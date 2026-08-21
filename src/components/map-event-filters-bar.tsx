@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EventFiltersForm } from '@/components/event-filters-form';
 import { EventQuickFilterChips } from '@/components/event-quick-filter-chips';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useEventFilters } from '@/context/event-filters';
 import { t } from '@/i18n';
@@ -105,11 +105,13 @@ const styles = StyleSheet.create({
     ...shadow('float'),
   },
   liveBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
     fontWeight: '700',
     color: Brand.primaryText,
   },
   liveBadgeEmpty: {
+    fontFamily: BrandFonts.body,
     fontSize: 11,
     color: 'rgba(255,255,255,0.85)',
     marginTop: 2,
@@ -134,20 +136,24 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   prompt: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   resultsHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
   },
   activeSummary: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
     fontWeight: '600',
     color: Brand.primary,
   },
   chevron: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     paddingTop: 2,
@@ -174,6 +180,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   clearText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.primary,

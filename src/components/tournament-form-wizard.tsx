@@ -7,7 +7,7 @@ import {
   type TournamentFormValue,
 } from '@/components/tournament-form';
 import { WizardStepper } from '@/components/wizard-stepper';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { formatTeamSport } from '@/lib/sports';
 
@@ -127,15 +127,18 @@ function ReviewSummary({ value }: { value: TournamentFormValue }) {
 
 const styles = StyleSheet.create({
   error: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.danger,
     textAlign: 'center',
   },
   reviewRow: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     color: Brand.textPrimary,
   },
   reviewLabel: {
+    fontFamily: BrandFonts.bodyBold,
     fontWeight: '700',
     color: Brand.textSecondary,
   },

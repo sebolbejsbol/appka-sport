@@ -1,7 +1,7 @@
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 
 type Props = {
   nick: string | null;
@@ -75,6 +75,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   initials: {
+    fontFamily: BrandFonts.bodyBold,
     color: '#fff',
     fontWeight: '700',
   },

@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/screen-header';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 14,
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     marginBottom: 16,
     paddingHorizontal: 4,
@@ -123,6 +124,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 40,
     fontSize: 15,
+    fontFamily: BrandFonts.body,
     paddingHorizontal: 24,
     lineHeight: 22,
   },
@@ -149,10 +151,12 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textPrimary,
   },
   itemHint: {
     fontSize: 13,
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     marginTop: 4,
   },
@@ -160,5 +164,6 @@ const styles = StyleSheet.create({
     fontSize: 22,
     color: Brand.textMuted,
     fontWeight: '300',
+    fontFamily: BrandFonts.body,
   },
 });

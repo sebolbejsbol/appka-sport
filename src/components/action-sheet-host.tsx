@@ -3,7 +3,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { SlideInDown, SlideOutDown } from 'react-native-reanimated';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import {
   registerActionSheetHost,
@@ -94,8 +94,8 @@ const styles = StyleSheet.create({
     borderBottomColor: Brand.border,
     marginBottom: 4,
   },
-  title: { fontSize: 15, fontWeight: '700', color: Brand.textPrimary, textAlign: 'center' },
-  message: { fontSize: 13, color: Brand.textMuted, textAlign: 'center', marginTop: 4 },
+  title: { fontSize: 15, fontWeight: '700', fontFamily: BrandFonts.bodyBold, color: Brand.textPrimary, textAlign: 'center' },
+  message: { fontSize: 13, fontFamily: BrandFonts.body, color: Brand.textMuted, textAlign: 'center', marginTop: 4 },
   option: {
     paddingVertical: 16,
     borderBottomWidth: 1,
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
   },
   optionLast: { borderBottomWidth: 0 },
   optionPressed: { opacity: 0.6 },
-  optionText: { fontSize: 16, fontWeight: '600', color: Brand.primary, textAlign: 'center' },
+  optionText: { fontSize: 16, fontWeight: '600', fontFamily: BrandFonts.bodySemibold, color: Brand.primary, textAlign: 'center' },
   optionTextDanger: { color: Brand.danger },
   cancelBtn: {
     marginTop: 8,
@@ -111,5 +111,5 @@ const styles = StyleSheet.create({
     borderRadius: Radius.md,
     backgroundColor: Brand.surfaceMuted,
   },
-  cancelText: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary, textAlign: 'center' },
+  cancelText: { fontSize: 16, fontWeight: '700', fontFamily: BrandFonts.bodyBold, color: Brand.textPrimary, textAlign: 'center' },
 });

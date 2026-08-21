@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TextField } from '@/components/text-field';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { getAdminUserList, setUserRole, type AdminUserRow } from '@/lib/admin-users';
@@ -308,16 +308,19 @@ const styles = StyleSheet.create({
   },
   backText: {
     fontSize: 16,
+    fontFamily: BrandFonts.body,
     color: Brand.textSecondary,
   },
   title: {
     fontSize: 32,
     fontWeight: '700',
+    fontFamily: BrandFonts.display,
     color: Brand.textPrimary,
     marginBottom: 8,
   },
   hint: {
     fontSize: 14,
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     marginBottom: 16,
   },
@@ -343,6 +346,7 @@ const styles = StyleSheet.create({
   filterChipText: {
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textPrimary,
   },
   filterChipTextActive: {
@@ -353,16 +357,20 @@ const styles = StyleSheet.create({
   },
   muted: {
     fontSize: 15,
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     marginTop: 24,
   },
   errorText: {
     fontSize: 14,
+    fontFamily: BrandFonts.body,
     color: Brand.danger,
     marginBottom: 8,
   },
   countLabel: {
     fontSize: 13,
+    fontFamily: BrandFonts.monoMedium,
+    fontVariant: ['tabular-nums'],
     color: Brand.textMuted,
     marginBottom: 8,
   },
@@ -385,15 +393,18 @@ const styles = StyleSheet.create({
   rowTitle: {
     fontSize: 15,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primary,
   },
   rowMeta: {
     fontSize: 13,
+    fontFamily: BrandFonts.body,
     color: Brand.textSecondary,
   },
   roleBadge: {
     fontSize: 12,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textMuted,
     marginTop: 2,
   },
@@ -406,6 +417,7 @@ const styles = StyleSheet.create({
   grantBtnText: {
     fontSize: 11,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.primaryText,
     textAlign: 'center',
   },
@@ -420,6 +432,7 @@ const styles = StyleSheet.create({
   removeBtnText: {
     fontSize: 11,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.danger,
     textAlign: 'center',
   },
@@ -441,6 +454,7 @@ const styles = StyleSheet.create({
   loadMoreText: {
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textPrimary,
   },
 });

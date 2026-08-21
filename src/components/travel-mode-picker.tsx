@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
 import type { TravelProfile } from '@/lib/field-navigation';
 
@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
     opacity: 0.85,
   },
   label: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
     fontWeight: '600',
     color: Brand.textSecondary,

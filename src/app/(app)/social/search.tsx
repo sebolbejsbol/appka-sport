@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/screen-header';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
@@ -135,12 +135,14 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   search: {
+    fontFamily: BrandFonts.body,
     flex: 1,
     paddingVertical: 12,
     fontSize: 16,
     color: Brand.textPrimary,
   },
   hint: {
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     textAlign: 'center',
     marginTop: 24,
@@ -152,6 +154,7 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   empty: {
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     textAlign: 'center',
     marginTop: 32,
@@ -189,11 +192,13 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
   rowName: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   rowMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
   },

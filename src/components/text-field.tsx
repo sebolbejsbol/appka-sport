@@ -8,7 +8,7 @@ import {
   type TextInputProps,
 } from 'react-native';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
 
 type Props = TextInputProps & {
@@ -61,6 +61,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   label: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 0.15,
@@ -72,6 +73,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   input: {
+    fontFamily: BrandFonts.body,
     backgroundColor: Brand.surface,
     borderWidth: 1,
     borderColor: Brand.border,
@@ -100,6 +102,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   errorText: {
+    fontFamily: BrandFonts.bodyMedium,
     fontSize: 13,
     color: Brand.danger,
     fontWeight: '500',

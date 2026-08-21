@@ -1091,6 +1091,7 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
   errorText: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.danger,
   },
@@ -1105,13 +1106,14 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   adminBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
-    fontWeight: '700',
     color: Brand.primary,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
   adminHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
     marginTop: 4,
@@ -1146,9 +1148,9 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   galleryCountText: {
+    fontFamily: BrandFonts.bodyBold,
     color: '#fff',
     fontSize: 12,
-    fontWeight: '800',
   },
   categoryRow: {
     flexDirection: 'row',
@@ -1333,11 +1335,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   teamInviteName: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
-    fontWeight: '600',
     color: Brand.textPrimary,
   },
   teamInviteStats: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
   },
@@ -1387,10 +1390,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   participantName: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     color: Brand.textPrimary,
   },
   participantStatus: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
   },
   participantPresent: {
@@ -1408,8 +1413,8 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   manualCheckInText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
-    fontWeight: '600',
     color: Brand.primary,
   },
   removeParticipantBtn: {
@@ -1421,8 +1426,8 @@ const styles = StyleSheet.create({
     borderColor: Brand.danger,
   },
   removeParticipantText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
-    fontWeight: '600',
     color: Brand.danger,
   },
   friendsOnlyBadge: {
@@ -1435,8 +1440,8 @@ const styles = StyleSheet.create({
     borderColor: Brand.info,
   },
   friendsOnlyBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
-    fontWeight: '700',
     color: Brand.info,
   },
   checkInCard: {
@@ -1488,8 +1493,8 @@ const styles = StyleSheet.create({
     color: Brand.success,
   },
   checkInLateBadge: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
-    fontWeight: '600',
     color: Brand.warning,
     backgroundColor: Brand.warningLight,
     paddingHorizontal: 8,

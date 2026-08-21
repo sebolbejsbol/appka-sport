@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import type { BlockedCoPlayer } from '@/lib/events';
 
@@ -40,11 +40,13 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   title: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
     fontWeight: '700',
     color: '#8a5a00',
   },
   body: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     lineHeight: 19,
     color: Brand.textSecondary,

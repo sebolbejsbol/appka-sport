@@ -1007,11 +1007,13 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   advancedHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
     marginTop: -4,
   },
   advancedChevron: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
     color: Brand.textMuted,
     fontWeight: '700',
@@ -1030,6 +1032,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   navIcon: {
+    fontFamily: BrandFonts.body,
     fontSize: 18,
   },
   navBadge: {
@@ -1082,11 +1085,13 @@ const styles = StyleSheet.create({
     color: Brand.primary,
   },
   navItemHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
     marginTop: 2,
   },
   navItemChevron: {
+    fontFamily: BrandFonts.body,
     fontSize: 22,
     color: Brand.textMuted,
     fontWeight: '300',
@@ -1112,6 +1117,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primaryLight,
   },
   settingsIcon: {
+    fontFamily: BrandFonts.body,
     fontSize: 20,
     marginRight: 10,
     color: Brand.textPrimary,
@@ -1153,6 +1159,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.screenBackground,
   },
   closeText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 16,
     color: Brand.textSecondary,
     fontWeight: '600',
@@ -1191,6 +1198,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bottomNavIcon: {
+    fontFamily: BrandFonts.body,
     fontSize: 20,
   },
   bottomNavLabel: {
@@ -1219,6 +1227,7 @@ const styles = StyleSheet.create({
     ...shadow('lg'),
   },
   bottomNavCreateIcon: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 24,
     lineHeight: 26,
     color: Brand.primaryText,
@@ -1240,6 +1249,7 @@ const bellStyles = StyleSheet.create({
     position: 'relative',
   },
   triggerIcon: {
+    fontFamily: BrandFonts.body,
     fontSize: 18,
   },
   root: {
@@ -1292,6 +1302,7 @@ const bellStyles = StyleSheet.create({
     backgroundColor: Brand.screenBackground,
   },
   headerActionText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
     color: Brand.textSecondary,
     fontWeight: '700',
@@ -1300,6 +1311,7 @@ const bellStyles = StyleSheet.create({
     marginVertical: 32,
   },
   empty: {
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     textAlign: 'center',
     paddingVertical: 32,
@@ -1334,15 +1346,18 @@ const bellStyles = StyleSheet.create({
     marginTop: 6,
   },
   rowTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   rowBody: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textSecondary,
   },
   rowTime: {
+    fontFamily: BrandFonts.body,
     fontSize: 11,
     color: Brand.textMuted,
     marginTop: 2,

@@ -1,6 +1,6 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { chatMediaUrl } from '@/lib/chat-media-storage';
 import { formatTime } from '@/lib/datetime';
@@ -196,6 +196,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   sender: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
     marginBottom: 3,
@@ -221,6 +222,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 4,
   },
   body: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
     color: Brand.textPrimary,
     lineHeight: 22,
@@ -234,6 +236,7 @@ const styles = StyleSheet.create({
     paddingBottom: 2,
   },
   deleted: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     fontStyle: 'italic',
     color: Brand.textMuted,
@@ -249,6 +252,7 @@ const styles = StyleSheet.create({
     marginTop: 3,
   },
   metaText: {
+    fontFamily: BrandFonts.body,
     fontSize: 11,
     color: Brand.textMuted,
   },
@@ -313,6 +317,7 @@ const styles = StyleSheet.create({
     fontSize: 22,
   },
   fileName: {
+    fontFamily: BrandFonts.bodySemibold,
     flex: 1,
     fontSize: 14,
     color: Brand.textPrimary,
@@ -335,11 +340,13 @@ const styles = StyleSheet.create({
     borderLeftColor: Brand.textMuted,
   },
   replyName: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
     fontWeight: '700',
     color: Brand.textSecondary,
   },
   replyBody: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
   },
@@ -374,6 +381,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   reactionCount: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
     color: Brand.textSecondary,
     fontWeight: '600',
@@ -384,6 +392,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   systemText: {
+    fontFamily: BrandFonts.body,
     fontSize: 12.5,
     color: Brand.textMuted,
     textAlign: 'center',

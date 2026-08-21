@@ -15,7 +15,7 @@ import { PlayerProfileCard } from '@/components/player-profile-card';
 import { PostCard } from '@/components/post-card';
 import { RankCard } from '@/components/rank-card';
 import { getPlayerRank, type PlayerRank } from '@/lib/ranking';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { showActionSheet } from '@/lib/action-sheet-navigation';
 import { confirmAction } from '@/lib/confirm';
@@ -434,12 +434,14 @@ const styles = StyleSheet.create({
   error: {
     color: Brand.danger,
     fontSize: 15,
+    fontFamily: BrandFonts.body,
     marginTop: 24,
     textAlign: 'center',
   },
   sectionTitle: {
     fontSize: 13,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -465,10 +467,13 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 18,
     fontWeight: '800',
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     color: Brand.textPrimary,
   },
   statLabel: {
     fontSize: 11,
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     marginTop: 2,
     textAlign: 'center',
@@ -479,10 +484,12 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textPrimary,
   },
   status: {
     fontSize: 14,
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     marginTop: 2,
     lineHeight: 20,
@@ -490,6 +497,7 @@ const styles = StyleSheet.create({
   messageHint: {
     flexBasis: '100%',
     fontSize: 13,
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     textAlign: 'center',
     marginTop: 4,
@@ -534,6 +542,7 @@ const styles = StyleSheet.create({
   actionBtnText: {
     fontSize: 14,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     textAlign: 'center',
   },
   actionBtnTextPrimary: {
@@ -553,6 +562,7 @@ const styles = StyleSheet.create({
   emptyPosts: {
     color: Brand.textMuted,
     fontSize: 14,
+    fontFamily: BrandFonts.body,
     textAlign: 'center',
     paddingVertical: 16,
   },
@@ -565,12 +575,14 @@ const styles = StyleSheet.create({
   blockedTitle: {
     fontSize: 18,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textPrimary,
     textAlign: 'center',
   },
   blockedBody: {
     fontSize: 15,
     lineHeight: 22,
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     textAlign: 'center',
     marginBottom: 8,
@@ -579,6 +591,7 @@ const styles = StyleSheet.create({
     width: '100%',
     fontSize: 13,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
@@ -609,6 +622,7 @@ const styles = StyleSheet.create({
   moderationBtnText: {
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textPrimary,
   },
   moderationBtnTextDanger: {

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, type StyleProp, type ViewStyle } from 'react-native';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import type { LngLat } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
 import {
@@ -81,6 +81,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   label: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
   },

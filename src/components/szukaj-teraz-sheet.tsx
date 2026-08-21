@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import type { LngLat } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
@@ -475,18 +475,25 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 22, fontWeight: '800', color: Brand.textPrimary },
-  close: { fontSize: 18, color: Brand.textMuted, padding: 4 },
-  headerSubtitle: { fontSize: 13, color: Brand.textMuted, marginTop: 4 },
-  subtitle: { fontSize: 14, color: Brand.textMuted, marginTop: 2, marginBottom: 8 },
+  title: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 22, fontWeight: '800', color: Brand.textPrimary },
+  close: {
+    fontFamily: BrandFonts.body, fontSize: 18, color: Brand.textMuted, padding: 4 },
+  headerSubtitle: {
+    fontFamily: BrandFonts.body, fontSize: 13, color: Brand.textMuted, marginTop: 4 },
+  subtitle: {
+    fontFamily: BrandFonts.body, fontSize: 14, color: Brand.textMuted, marginTop: 2, marginBottom: 8 },
   body: { paddingBottom: 24 },
   progressTrack: { flexDirection: 'row', gap: 6, marginTop: 10, marginBottom: 8 },
   progressSeg: { flex: 1, height: 5, borderRadius: 3, backgroundColor: Brand.border },
   progressSegActive: { backgroundColor: Brand.primary },
-  stepCounter: { fontSize: 12, fontWeight: '700', color: Brand.textMuted, marginBottom: 4 },
-  stepTitle: { fontSize: 19, fontWeight: '800', color: Brand.textPrimary, marginTop: 6 },
+  stepCounter: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 12, fontWeight: '700', color: Brand.textMuted, marginBottom: 4 },
+  stepTitle: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 19, fontWeight: '800', color: Brand.textPrimary, marginTop: 6 },
   summaryRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8, marginBottom: 4 },
   summaryChip: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.textSecondary,
@@ -497,8 +504,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   backBtn: { alignSelf: 'flex-start', marginTop: 18, paddingVertical: 8, paddingHorizontal: 4 },
-  backBtnText: { fontSize: 15, fontWeight: '700', color: Brand.textSecondary },
+  backBtnText: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 15, fontWeight: '700', color: Brand.textSecondary },
   label: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.textSecondary,
@@ -515,9 +524,11 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   chipActive: { backgroundColor: Brand.primary, borderColor: Brand.primary },
-  chipText: { fontSize: 13, fontWeight: '600', color: Brand.textSecondary },
+  chipText: {
+    fontFamily: BrandFonts.bodySemibold, fontSize: 13, fontWeight: '600', color: Brand.textSecondary },
   chipTextActive: { color: Brand.primaryText },
   noteInput: {
+    fontFamily: BrandFonts.body,
     borderWidth: 1,
     borderColor: Brand.border,
     backgroundColor: Brand.surface,
@@ -536,8 +547,10 @@ const styles = StyleSheet.create({
     ...shadow('sm'),
   },
   disabled: { opacity: 0.6 },
-  searchBtnText: { color: '#ffffff', fontSize: 16, fontWeight: '800' },
-  note: { marginTop: 12, fontSize: 13, color: Brand.textMuted, textAlign: 'center' },
+  searchBtnText: {
+    fontFamily: BrandFonts.bodyBold, color: '#ffffff', fontSize: 16, fontWeight: '800' },
+  note: {
+    fontFamily: BrandFonts.body, marginTop: 12, fontSize: 13, color: Brand.textMuted, textAlign: 'center' },
   loader: { marginTop: 24 },
   queueBar: {
     flexDirection: 'row',
@@ -550,8 +563,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   queueDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: Brand.success },
-  queueText: { flex: 1, fontSize: 14, fontWeight: '700', color: '#166534' },
-  leaveText: { fontSize: 13, fontWeight: '700', color: Brand.danger },
+  queueText: {
+    fontFamily: BrandFonts.bodyBold, flex: 1, fontSize: 14, fontWeight: '700', color: '#166534' },
+  leaveText: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 13, fontWeight: '700', color: Brand.danger },
   listHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -559,8 +574,10 @@ const styles = StyleSheet.create({
     marginTop: 18,
     marginBottom: 8,
   },
-  listHeader: { fontSize: 13, fontWeight: '800', color: Brand.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
-  refresh: { fontSize: 20, color: Brand.primary },
+  listHeader: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 13, fontWeight: '800', color: Brand.textMuted, textTransform: 'uppercase', letterSpacing: 0.5 },
+  refresh: {
+    fontFamily: BrandFonts.body, fontSize: 20, color: Brand.primary },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -573,26 +590,33 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     ...shadow('sm'),
   },
-  rowEmoji: { fontSize: 24 },
+  rowEmoji: {
+    fontFamily: BrandFonts.body, fontSize: 24 },
   rowMain: { flex: 1, minWidth: 0, gap: 2 },
-  rowTitle: { fontSize: 15, fontWeight: '700', color: Brand.textPrimary },
-  rowMeta: { fontSize: 13, color: Brand.textSecondary },
-  rowNote: { fontSize: 12, color: Brand.textMuted, fontStyle: 'italic' },
-  rowMeta2: { fontSize: 12, color: Brand.textMuted },
+  rowTitle: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 15, fontWeight: '700', color: Brand.textPrimary },
+  rowMeta: {
+    fontFamily: BrandFonts.body, fontSize: 13, color: Brand.textSecondary },
+  rowNote: {
+    fontFamily: BrandFonts.body, fontSize: 12, color: Brand.textMuted, fontStyle: 'italic' },
+  rowMeta2: {
+    fontFamily: BrandFonts.body, fontSize: 12, color: Brand.textMuted },
   joinBtn: {
     backgroundColor: Brand.primary,
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: Radius.pill,
   },
-  joinBtnText: { color: Brand.primaryText, fontWeight: '800', fontSize: 13 },
+  joinBtnText: {
+    fontFamily: BrandFonts.bodyBold, color: Brand.primaryText, fontWeight: '800', fontSize: 13 },
   invitedBadge: {
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: Radius.pill,
     backgroundColor: '#dcfce7',
   },
-  invitedText: { color: '#166534', fontWeight: '700', fontSize: 12 },
+  invitedText: {
+    fontFamily: BrandFonts.bodyBold, color: '#166534', fontWeight: '700', fontSize: 12 },
   pickerBackdrop: {
     flex: 1,
     backgroundColor: 'rgba(15, 23, 42, 0.5)',
@@ -605,7 +629,8 @@ const styles = StyleSheet.create({
     padding: 18,
     maxHeight: '70%',
   },
-  pickerTitle: { fontSize: 17, fontWeight: '800', color: Brand.textPrimary, marginBottom: 12 },
+  pickerTitle: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 17, fontWeight: '800', color: Brand.textPrimary, marginBottom: 12 },
   pickerEmpty: { alignItems: 'center', gap: 14, paddingVertical: 12 },
   pickerList: { maxHeight: 320 },
   pickerRow: {
@@ -620,7 +645,8 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
     marginBottom: 8,
   },
-  invitePlus: { fontSize: 22, fontWeight: '800', color: Brand.primary, paddingHorizontal: 4 },
+  invitePlus: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 22, fontWeight: '800', color: Brand.primary, paddingHorizontal: 4 },
   createBtn: {
     backgroundColor: Brand.primary,
     paddingHorizontal: 20,
@@ -628,8 +654,10 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     ...shadow('sm'),
   },
-  createBtnText: { color: Brand.primaryText, fontWeight: '800', fontSize: 14 },
+  createBtnText: {
+    fontFamily: BrandFonts.bodyBold, color: Brand.primaryText, fontWeight: '800', fontSize: 14 },
   pickerCancel: { alignItems: 'center', paddingVertical: 12, marginTop: 4 },
-  pickerCancelText: { color: Brand.textMuted, fontWeight: '700', fontSize: 14 },
+  pickerCancelText: {
+    fontFamily: BrandFonts.bodyBold, color: Brand.textMuted, fontWeight: '700', fontSize: 14 },
   pressed: { opacity: 0.85 },
 });

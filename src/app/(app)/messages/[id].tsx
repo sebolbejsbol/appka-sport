@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ChatMessageItem } from '@/components/chat-message-item';
 import { ConversationAvatar } from '@/components/conversation-avatar';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
 import { showActionSheet, type ActionSheetOption } from '@/lib/action-sheet-navigation';
@@ -475,17 +475,17 @@ const styles = StyleSheet.create({
     borderBottomColor: Brand.border,
     backgroundColor: Brand.surface,
   },
-  backText: { fontSize: 16, color: Brand.primary, fontWeight: '600' },
+  backText: { fontFamily: BrandFonts.bodySemibold, fontSize: 16, color: Brand.primary, fontWeight: '600' },
   headerMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
   headerText: { flex: 1, minWidth: 0 },
-  headerName: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary },
-  headerStatus: { fontSize: 12, color: Brand.textMuted },
+  headerName: { fontFamily: BrandFonts.bodyBold, fontSize: 16, fontWeight: '700', color: Brand.textPrimary },
+  headerStatus: { fontFamily: BrandFonts.body, fontSize: 12, color: Brand.textMuted },
   loader: { marginTop: 40 },
-  error: { color: Brand.danger, textAlign: 'center', marginTop: 24 },
+  error: { fontFamily: BrandFonts.body, color: Brand.danger, textAlign: 'center', marginTop: 24 },
   listContent: { padding: 16, flexGrow: 1 },
-  emptyChat: { textAlign: 'center', color: Brand.textMuted, marginTop: 40 },
+  emptyChat: { fontFamily: BrandFonts.body, textAlign: 'center', color: Brand.textMuted, marginTop: 40 },
   loadMore: { alignItems: 'center', paddingVertical: 10, marginBottom: 6 },
-  loadMoreText: { color: Brand.primary, fontWeight: '600', fontSize: 14 },
+  loadMoreText: { fontFamily: BrandFonts.bodySemibold, color: Brand.primary, fontWeight: '600', fontSize: 14 },
   replyBar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -497,8 +497,8 @@ const styles = StyleSheet.create({
     borderTopColor: Brand.border,
   },
   replyBarText: { flex: 1, minWidth: 0 },
-  replyBarName: { fontSize: 13, fontWeight: '700', color: Brand.textSecondary },
-  replyBarBody: { fontSize: 13, color: Brand.textMuted },
+  replyBarName: { fontFamily: BrandFonts.bodyBold, fontSize: 13, fontWeight: '700', color: Brand.textSecondary },
+  replyBarBody: { fontFamily: BrandFonts.body, fontSize: 13, color: Brand.textMuted },
   replyBarClose: { fontSize: 16, color: Brand.textMuted, paddingHorizontal: 4 },
   composer: {
     flexDirection: 'row',
@@ -511,6 +511,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   input: {
+    fontFamily: BrandFonts.body,
     flex: 1,
     minHeight: 44,
     maxHeight: 120,
@@ -530,7 +531,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   sendBtnDisabled: { opacity: 0.45 },
-  sendText: { color: Brand.primaryText, fontWeight: '700', fontSize: 15 },
+  sendText: { fontFamily: BrandFonts.bodyBold, color: Brand.primaryText, fontWeight: '700', fontSize: 15 },
   attachBtn: {
     width: 44,
     height: 44,
@@ -541,5 +542,5 @@ const styles = StyleSheet.create({
   },
   attachIcon: { fontSize: 24, color: Brand.primary, fontWeight: '700', marginTop: -2 },
   pressed: { opacity: 0.85 },
-  muted: { color: Brand.textMuted },
+  muted: { fontFamily: BrandFonts.body, color: Brand.textMuted },
 });

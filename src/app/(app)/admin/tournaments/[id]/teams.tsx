@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { ScreenHeader } from '@/components/screen-header';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { confirmAction } from '@/lib/confirm';
@@ -303,11 +303,12 @@ export default function ManageTournamentTeamsScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Brand.screenBackground },
   loader: { marginTop: 32 },
-  muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
-  actionErrorText: { fontSize: 13, color: Brand.danger, marginTop: 8, marginHorizontal: 20 },
+  muted: { fontFamily: BrandFonts.body, fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
+  actionErrorText: { fontFamily: BrandFonts.body, fontSize: 13, color: Brand.danger, marginTop: 8, marginHorizontal: 20 },
   organizeBlock: { paddingHorizontal: 20, marginTop: 12, gap: 8 },
   organizeBtn: { alignSelf: 'flex-start' },
   organizeSuccessText: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
     marginTop: 8,
@@ -330,7 +331,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   filterChipActive: { backgroundColor: Brand.primary, borderColor: Brand.primary },
-  filterChipText: { fontSize: 13, fontWeight: '600', color: Brand.textPrimary },
+  filterChipText: { fontFamily: BrandFonts.bodySemibold, fontSize: 13, fontWeight: '600', color: Brand.textPrimary },
   filterChipTextActive: { color: Brand.primaryText },
   row: {
     paddingVertical: 14,
@@ -339,12 +340,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   rowHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  rowTitle: { fontSize: 15, fontWeight: '700', color: Brand.textPrimary },
-  rowStatus: { fontSize: 12, fontWeight: '600', color: Brand.textMuted },
+  rowTitle: { fontFamily: BrandFonts.bodyBold, fontSize: 15, fontWeight: '700', color: Brand.textPrimary },
+  rowStatus: { fontFamily: BrandFonts.bodySemibold, fontSize: 12, fontWeight: '600', color: Brand.textMuted },
   actionsRow: { flexDirection: 'row', gap: 10 },
   actionBtn: { flex: 1 },
   groupRow: { flexDirection: 'row', flexWrap: 'wrap', alignItems: 'center', gap: 8 },
-  groupLabel: { fontSize: 13, color: Brand.textSecondary, marginRight: 2 },
+  groupLabel: { fontFamily: BrandFonts.body, fontSize: 13, color: Brand.textSecondary, marginRight: 2 },
   groupChip: {
     paddingHorizontal: 12,
     paddingVertical: 6,
@@ -354,6 +355,6 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   groupChipActive: { backgroundColor: Brand.primary, borderColor: Brand.primary },
-  groupChipText: { fontSize: 12, fontWeight: '600', color: Brand.textPrimary },
+  groupChipText: { fontFamily: BrandFonts.bodySemibold, fontSize: 12, fontWeight: '600', color: Brand.textPrimary },
   groupChipTextActive: { color: Brand.primaryText },
 });

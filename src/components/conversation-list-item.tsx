@@ -1,7 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
 import { formatConversationPreview } from '@/lib/conversation-preview';
 import { formatRelativeShortTime } from '@/lib/datetime';
@@ -66,14 +66,17 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   name: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 16,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   nameUnread: {
+    fontFamily: BrandFonts.bodyBold,
     fontWeight: '700',
   },
   previewLine: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     lineHeight: 18,
   },
@@ -81,6 +84,7 @@ const styles = StyleSheet.create({
     color: Brand.textMuted,
   },
   previewUnread: {
+    fontFamily: BrandFonts.bodyMedium,
     color: Brand.textSecondary,
     fontWeight: '500',
   },

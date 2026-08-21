@@ -16,7 +16,7 @@ import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { ChatListItem } from '@/components/chat-list-item';
 import { ConversationAvatar } from '@/components/conversation-avatar';
 import { ScreenHeader } from '@/components/screen-header';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
 import { showActionSheet } from '@/lib/action-sheet-navigation';
@@ -316,6 +316,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   search: {
+    fontFamily: BrandFonts.body,
     height: 40,
     borderRadius: 20,
     paddingHorizontal: 16,
@@ -350,9 +351,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   emptyIconText: {
+    fontFamily: BrandFonts.body,
     fontSize: 32,
   },
   empty: {
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     textAlign: 'center',
     fontSize: 15,
@@ -368,12 +371,14 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   resultName: {
+    fontFamily: BrandFonts.bodySemibold,
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   sayHiHint: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.primary,
@@ -385,6 +390,7 @@ const styles = StyleSheet.create({
     borderBottomColor: '#efefef',
   },
   friendsSectionTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.textMuted,
@@ -401,12 +407,14 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   friendName: {
+    fontFamily: BrandFonts.bodySemibold,
     flex: 1,
     fontSize: 16,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   sayHiAction: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.primary,

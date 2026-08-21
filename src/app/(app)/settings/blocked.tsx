@@ -12,7 +12,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/screen-header';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
 import { listBlockedUsers, unblockUser, type BlockedUserRow } from '@/lib/moderation';
@@ -114,6 +114,7 @@ const styles = StyleSheet.create({
     marginTop: 32,
     paddingHorizontal: 24,
     fontSize: 15,
+    fontFamily: BrandFonts.body,
   },
   list: {
     paddingBottom: 24,
@@ -133,6 +134,7 @@ const styles = StyleSheet.create({
   name: {
     fontSize: 15,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textPrimary,
   },
   unblockBtn: {
@@ -149,6 +151,7 @@ const styles = StyleSheet.create({
   unblockBtnText: {
     fontSize: 13,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textSecondary,
   },
   pressed: {

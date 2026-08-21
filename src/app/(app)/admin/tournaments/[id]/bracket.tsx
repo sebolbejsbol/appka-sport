@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { ScreenHeader } from '@/components/screen-header';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
@@ -236,15 +236,17 @@ export default function ManageTournamentBracketScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Brand.screenBackground },
   loader: { marginTop: 32 },
-  muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
+  muted: { fontFamily: BrandFonts.body, fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
   generateBlock: { paddingHorizontal: 20, marginTop: 24, gap: 10 },
   generateBtn: { marginTop: 4 },
   roundSection: { marginTop: 20 },
-  roundHeading: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 8 },
+  roundHeading: { fontFamily: BrandFonts.bodyBold, fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 8 },
   row: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Brand.border, gap: 8 },
-  rowTitle: { fontSize: 14, fontWeight: '600', color: Brand.textPrimary },
+  rowTitle: { fontFamily: BrandFonts.bodySemibold, fontSize: 14, fontWeight: '600', color: Brand.textPrimary },
   scoreRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   scoreInput: {
+    fontFamily: BrandFonts.monoMedium,
+    fontVariant: ['tabular-nums'],
     width: 64,
     borderWidth: 1,
     borderColor: Brand.border,
@@ -256,6 +258,12 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   saveBtn: { flex: 1 },
-  finalScoreText: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary },
-  actionErrorText: { fontSize: 12, color: Brand.danger },
+  finalScoreText: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
+    fontSize: 16,
+    fontWeight: '700',
+    color: Brand.textPrimary,
+  },
+  actionErrorText: { fontFamily: BrandFonts.body, fontSize: 12, color: Brand.danger },
 });

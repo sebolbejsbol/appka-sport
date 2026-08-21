@@ -1,6 +1,6 @@
 import { ScrollView, StyleSheet, Pressable, Text, View } from 'react-native';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import {
@@ -187,6 +187,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   filterBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     color: '#ffffff',
     fontSize: 10,
     fontWeight: '800',
@@ -205,6 +206,7 @@ const styles = StyleSheet.create({
     ...shadow('sm'),
   },
   chipText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.textSecondary,
@@ -226,6 +228,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   subChipText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
     fontWeight: '600',
     color: Brand.textSecondary,

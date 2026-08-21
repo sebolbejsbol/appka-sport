@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
 import { StyleSheet, Text } from 'react-native';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import type { PostMention } from '@/lib/posts';
 
 const MENTION_PATTERN = /@([A-Za-z0-9_]{2,24})/g;
@@ -70,11 +70,13 @@ export function PostBodyText({ body, mentions = [], onMentionPress, style }: Pro
 
 const styles = StyleSheet.create({
   body: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     lineHeight: 22,
     color: Brand.textPrimary,
   },
   mention: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primary,
     fontWeight: '700',
   },

@@ -3,7 +3,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { AppState, type AppStateStatus, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
@@ -149,8 +149,10 @@ const styles = StyleSheet.create({
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   headerText: { flex: 1, gap: 2 },
-  title: { fontSize: 18, fontWeight: '900', color: Brand.textPrimary },
-  body: { fontSize: 14, color: Brand.textSecondary },
+  title: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 18, fontWeight: '900', color: Brand.textPrimary },
+  body: {
+    fontFamily: BrandFonts.body, fontSize: 14, color: Brand.textSecondary },
   eventCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -162,12 +164,16 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
     backgroundColor: Brand.surface,
   },
-  eventEmoji: { fontSize: 28 },
+  eventEmoji: {
+    fontFamily: BrandFonts.body, fontSize: 28 },
   eventMain: { flex: 1, minWidth: 0, gap: 2 },
-  eventTitle: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary },
-  eventMeta: { fontSize: 13, color: Brand.textMuted },
+  eventTitle: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 16, fontWeight: '700', color: Brand.textPrimary },
+  eventMeta: {
+    fontFamily: BrandFonts.body, fontSize: 13, color: Brand.textMuted },
   detailsBtn: { alignItems: 'center', paddingVertical: 12, marginTop: 6 },
-  detailsText: { fontSize: 14, fontWeight: '700', color: Brand.primary },
+  detailsText: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 14, fontWeight: '700', color: Brand.primary },
   actionsRow: { flexDirection: 'row', gap: 10, marginTop: 4 },
   declineBtn: {
     flex: 1,
@@ -178,7 +184,8 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
     backgroundColor: Brand.surface,
   },
-  declineText: { color: Brand.textSecondary, fontWeight: '700', fontSize: 15 },
+  declineText: {
+    fontFamily: BrandFonts.bodyBold, color: Brand.textSecondary, fontWeight: '700', fontSize: 15 },
   acceptBtn: {
     flex: 1,
     paddingVertical: 13,
@@ -186,7 +193,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Brand.success,
   },
-  acceptText: { color: '#ffffff', fontWeight: '800', fontSize: 15 },
+  acceptText: {
+    fontFamily: BrandFonts.bodyBold, color: '#ffffff', fontWeight: '800', fontSize: 15 },
   disabled: { opacity: 0.6 },
   pressed: { opacity: 0.85 },
 });

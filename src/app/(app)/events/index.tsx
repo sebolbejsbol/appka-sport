@@ -552,9 +552,9 @@ const styles = StyleSheet.create({
     ...shadow('sm'),
   },
   playNowText: {
+    fontFamily: BrandFonts.bodyBold,
     color: '#ffffff',
     fontSize: 15,
-    fontWeight: '800',
   },
   statusPill: {
     flexDirection: 'row',
@@ -573,8 +573,8 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   statusText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
-    fontWeight: '700',
   },
   pressed: {
     opacity: 0.9,

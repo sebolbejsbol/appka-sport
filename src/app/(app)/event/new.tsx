@@ -17,7 +17,7 @@ import { Button } from '@/components/button';
 import { DatePickerField } from '@/components/date-picker-field';
 import { TimePickerField } from '@/components/time-picker-field';
 import { TextField } from '@/components/text-field';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { Typography } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { useEventFilters } from '@/context/event-filters';
@@ -346,6 +346,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   backText: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
     color: Brand.textSecondary,
   },
@@ -363,6 +364,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   courtLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
     fontWeight: '600',
     color: Brand.textMuted,
@@ -371,6 +373,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   courtName: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
     color: Brand.textPrimary,
   },
@@ -384,6 +387,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   opinionsLinkText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.primary,
@@ -402,6 +406,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   fieldLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.textSecondary,
@@ -428,18 +433,22 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   segmentText: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textPrimary,
   },
   segmentTextSelected: {
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.primaryText,
     fontWeight: '600',
   },
   errorText: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.danger,
   },
   hint: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
     marginTop: 6,

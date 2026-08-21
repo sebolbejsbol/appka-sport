@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, View } from 'react-native';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 
 type Props = {
   name: string;
@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   initials: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontWeight: '800',
   },

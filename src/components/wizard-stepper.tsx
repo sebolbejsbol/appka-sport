@@ -2,7 +2,7 @@ import type { ReactNode } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/button';
-import { Brand, Radius, Spacing } from '@/constants/theme';
+import { Brand, BrandFonts, Radius, Spacing } from '@/constants/theme';
 import { t } from '@/i18n';
 
 type Props = {
@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primaryMuted,
   },
   title: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 19,
     fontWeight: '800',
     color: Brand.textPrimary,
@@ -103,6 +104,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   hint: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     textAlign: 'center',

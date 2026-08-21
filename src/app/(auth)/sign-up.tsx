@@ -16,7 +16,7 @@ import { Button } from '@/components/button';
 import { LegalFooterLinks } from '@/components/legal-footer-links';
 import { ScreenHeader } from '@/components/screen-header';
 import { TextField } from '@/components/text-field';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { Typography } from '@/constants/ui';
 import { useLocale } from '@/context/locale';
 import { t, SUPPORTED_LOCALES, type Locale, type TKey } from '@/i18n';
@@ -477,6 +477,7 @@ const styles = StyleSheet.create({
   stepCounter: {
     fontSize: 13,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textMuted,
     marginBottom: 10,
   },
@@ -512,6 +513,7 @@ const styles = StyleSheet.create({
   fieldLabel: {
     fontSize: 13,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     letterSpacing: 0.15,
     color: Brand.textSecondary,
     textTransform: 'uppercase',
@@ -519,6 +521,7 @@ const styles = StyleSheet.create({
   },
   hint: {
     fontSize: 13,
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     marginTop: 6,
     marginBottom: 8,
@@ -547,11 +550,13 @@ const styles = StyleSheet.create({
   },
   countryChipText: {
     fontSize: 14,
+    fontFamily: BrandFonts.body,
     color: Brand.textPrimary,
   },
   countryChipTextSelected: {
     color: Brand.primaryText,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
   },
   consentRow: {
     flexDirection: 'row',
@@ -576,10 +581,12 @@ const styles = StyleSheet.create({
     color: Brand.primaryText,
     fontSize: 15,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
   },
   consentText: {
     flex: 1,
     fontSize: 15,
+    fontFamily: BrandFonts.body,
     color: Brand.textSecondary,
     lineHeight: 22,
   },
@@ -589,6 +596,7 @@ const styles = StyleSheet.create({
   },
   errorText: {
     fontSize: 13,
+    fontFamily: BrandFonts.body,
     color: Brand.danger,
     marginTop: 6,
   },
@@ -596,6 +604,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 14,
     fontWeight: '500',
+    fontFamily: BrandFonts.bodyMedium,
   },
   switchRow: {
     flexDirection: 'row',
@@ -605,11 +614,13 @@ const styles = StyleSheet.create({
   },
   switchText: {
     fontSize: 15,
+    fontFamily: BrandFonts.body,
     color: Brand.textSecondary,
   },
   switchLink: {
     fontSize: 15,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.primary,
   },
   legalFooter: {
@@ -638,11 +649,13 @@ const styles = StyleSheet.create({
   successTitle: {
     fontSize: 28,
     fontWeight: '700',
+    fontFamily: BrandFonts.display,
     color: Brand.textPrimary,
     textAlign: 'center',
   },
   successBody: {
     fontSize: 16,
+    fontFamily: BrandFonts.body,
     color: Brand.textSecondary,
     textAlign: 'center',
     lineHeight: 24,

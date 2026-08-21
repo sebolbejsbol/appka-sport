@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 
 import { FieldRatingStars } from '@/components/field-rating-stars';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import {
   emptyFieldRatingScores,
@@ -142,10 +142,12 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textPrimary,
   },
   hint: {
     fontSize: 13,
+    fontFamily: BrandFonts.body,
     color: Brand.textSecondary,
     marginBottom: 4,
   },
@@ -157,6 +159,7 @@ const styles = StyleSheet.create({
   },
   formLabel: {
     fontSize: 14,
+    fontFamily: BrandFonts.body,
     color: Brand.textSecondary,
     flex: 1,
   },
@@ -167,6 +170,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 14,
+    fontFamily: BrandFonts.body,
     color: Brand.textPrimary,
     backgroundColor: Brand.surface,
     minHeight: 72,
@@ -183,6 +187,7 @@ const styles = StyleSheet.create({
   submitBtnText: {
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.primaryText,
   },
   pressed: {

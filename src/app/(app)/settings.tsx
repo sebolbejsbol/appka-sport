@@ -472,6 +472,7 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   settingsRowChevron: {
+    fontFamily: BrandFonts.body,
     fontSize: 22,
     fontWeight: '300',
     color: Brand.textMuted,
@@ -497,6 +498,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   langFlag: {
+    fontFamily: BrandFonts.body,
     fontSize: 18,
   },
   langLabel: {

@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 
 import { ConversationAvatar } from '@/components/conversation-avatar';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { formatChatPreview } from '@/lib/conversation-preview';
 import { formatRelativeShortTime } from '@/lib/datetime';
@@ -91,15 +91,18 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   name: {
+    fontFamily: BrandFonts.bodySemibold,
     flexShrink: 1,
     fontSize: 16,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   nameUnread: {
+    fontFamily: BrandFonts.bodyBold,
     fontWeight: '700',
   },
   previewLine: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     lineHeight: 18,
   },
@@ -107,6 +110,7 @@ const styles = StyleSheet.create({
     color: Brand.textMuted,
   },
   previewUnread: {
+    fontFamily: BrandFonts.bodyMedium,
     color: Brand.textSecondary,
     fontWeight: '500',
   },
@@ -127,6 +131,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   badgeText: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     color: '#fff',
     fontSize: 12,
     fontWeight: '700',

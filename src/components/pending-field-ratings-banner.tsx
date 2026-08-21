@@ -2,7 +2,7 @@ import { router } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { formatEventDateTime } from '@/lib/datetime';
 import { formatCourtName } from '@/lib/field-display';
@@ -85,11 +85,13 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   subtitle: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
     marginBottom: 4,
@@ -101,15 +103,18 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   court: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   meta: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
   },
   link: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.primary,

@@ -2,7 +2,7 @@ import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-nati
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EventFieldRatingForm } from '@/components/event-field-rating-form';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { formatCourtName } from '@/lib/field-display';
 import type { EventFieldRating } from '@/lib/field-ratings';
@@ -89,22 +89,26 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   title: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 20,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   subtitle: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     marginTop: 6,
     marginBottom: 10,
   },
   court: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 16,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   eventTitle: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     marginTop: 2,
@@ -124,6 +128,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   skipText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.textMuted,

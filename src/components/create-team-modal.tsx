@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { TextField } from '@/components/text-field';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { createTeam } from '@/lib/teams';
 
@@ -94,8 +94,8 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.border,
     marginBottom: 4,
   },
-  title: { fontSize: 18, fontWeight: '700', color: Brand.textPrimary },
-  errorText: { fontSize: 13, color: Brand.danger },
+  title: { fontFamily: BrandFonts.bodyBold, fontSize: 18, fontWeight: '700', color: Brand.textPrimary },
+  errorText: { fontFamily: BrandFonts.body, fontSize: 13, color: Brand.danger },
   actions: { flexDirection: 'row', gap: 10, marginTop: 4 },
   actionBtn: { flex: 1 },
 });

@@ -8,7 +8,7 @@ import { Button } from '@/components/button';
 import { FriendInviteList } from '@/components/friend-invite-list';
 import { ScreenHeader } from '@/components/screen-header';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
 import { confirmAction } from '@/lib/confirm';
 import { goBack } from '@/lib/navigation';
@@ -346,7 +346,7 @@ export default function TournamentTeamRosterScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Brand.screenBackground },
   loader: { marginTop: 32 },
-  muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
+  muted: { fontFamily: BrandFonts.body, fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
   retryBtn: { marginHorizontal: 20, marginTop: 16 },
   content: { paddingHorizontal: 20, paddingTop: 12, gap: 4 },
   progressCard: {
@@ -360,15 +360,15 @@ const styles = StyleSheet.create({
   },
   progressRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   progressRowSecond: { marginTop: 10, paddingTop: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Brand.border },
-  progressCount: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary },
+  progressCount: { fontFamily: BrandFonts.bodyBold, fontSize: 16, fontWeight: '700', color: Brand.textPrimary },
   statusPill: { paddingHorizontal: 10, paddingVertical: 4, borderRadius: 999 },
   statusPillFull: { backgroundColor: Brand.primaryLight },
   statusPillIncomplete: { backgroundColor: Brand.surfaceMuted },
-  statusPillText: { fontSize: 12, fontWeight: '700' },
+  statusPillText: { fontFamily: BrandFonts.bodyBold, fontSize: 12, fontWeight: '700' },
   statusPillTextFull: { color: Brand.primary },
   statusPillTextIncomplete: { color: Brand.textMuted },
-  registrationStatus: { fontSize: 14, color: Brand.primary, fontWeight: '600', marginBottom: 16 },
-  sectionHeading: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 10, marginTop: 8 },
+  registrationStatus: { fontFamily: BrandFonts.bodySemibold, fontSize: 14, color: Brand.primary, fontWeight: '600', marginBottom: 16 },
+  sectionHeading: { fontFamily: BrandFonts.bodyBold, fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 10, marginTop: 8 },
   card: {
     borderRadius: Radius.lg,
     backgroundColor: Brand.surface,
@@ -378,7 +378,7 @@ const styles = StyleSheet.create({
   },
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingHorizontal: 14, paddingVertical: 10 },
   rowDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: Brand.border },
-  memberName: { flex: 1, fontSize: 15, color: Brand.textPrimary, fontWeight: '600' },
+  memberName: { fontFamily: BrandFonts.bodySemibold, flex: 1, fontSize: 15, color: Brand.textPrimary, fontWeight: '600' },
   ownerBadge: {
     width: 24,
     height: 24,
@@ -388,8 +388,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   ownerBadgeText: { color: Brand.primary, fontSize: 12, fontWeight: '800' },
-  inviteStatus: { fontSize: 12, fontWeight: '700', color: Brand.textMuted },
+  inviteStatus: { fontFamily: BrandFonts.bodyBold, fontSize: 12, fontWeight: '700', color: Brand.textMuted },
   inviteStatusRejected: { color: Brand.danger },
   actionBtn: { marginTop: 16 },
-  errorText: { fontSize: 13, color: Brand.danger, marginTop: 12 },
+  errorText: { fontFamily: BrandFonts.body, fontSize: 13, color: Brand.danger, marginTop: 12 },
 });

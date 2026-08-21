@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
@@ -118,18 +118,21 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primary,
   },
   badgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
     fontWeight: '900',
     color: Brand.primaryText,
     letterSpacing: 0.5,
   },
   title: {
+    fontFamily: BrandFonts.display,
     fontSize: 24,
     fontWeight: '900',
     color: Brand.textPrimary,
     marginTop: 14,
   },
   intro: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     lineHeight: 21,
     color: Brand.textSecondary,
@@ -157,11 +160,13 @@ const styles = StyleSheet.create({
     gap: 3,
   },
   pointTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '800',
     color: Brand.textPrimary,
   },
   pointBody: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     lineHeight: 19,
     color: Brand.textSecondary,
@@ -172,6 +177,7 @@ const styles = StyleSheet.create({
     marginTop: 6,
   },
   termsText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
     fontWeight: '700',
     color: Brand.primary,
@@ -185,6 +191,7 @@ const styles = StyleSheet.create({
     ...shadow('sm'),
   },
   acceptText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontSize: 16,
     fontWeight: '800',

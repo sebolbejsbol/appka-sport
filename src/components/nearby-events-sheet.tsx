@@ -2,7 +2,7 @@ import { ActivityIndicator, FlatList, Modal, Platform, Pressable, StyleSheet, Te
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { EventCard } from '@/components/event-card';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import type { LocationStatus } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
@@ -157,11 +157,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   title: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 20,
     fontWeight: '800',
     color: Brand.textPrimary,
   },
   subtitle: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
     lineHeight: 18,
@@ -170,6 +172,7 @@ const styles = StyleSheet.create({
     padding: 4,
   },
   close: {
+    fontFamily: BrandFonts.body,
     fontSize: 18,
     color: Brand.textMuted,
   },
@@ -180,9 +183,11 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   stateEmoji: {
+    fontFamily: BrandFonts.body,
     fontSize: 32,
   },
   stateText: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     textAlign: 'center',
@@ -197,11 +202,13 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   retryBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.primary,
   },
   diagText: {
+    fontFamily: BrandFonts.body,
     marginTop: 12,
     fontSize: 10,
     color: Brand.textMuted,

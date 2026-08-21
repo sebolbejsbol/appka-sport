@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 
 type Option<T extends string> = {
   value: T;
@@ -95,6 +95,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   label: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.textSecondary,
@@ -111,6 +112,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   triggerText: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     color: Brand.textPrimary,
     flex: 1,
@@ -145,10 +147,12 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primaryLight,
   },
   optionText: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
     color: Brand.textPrimary,
   },
   optionTextActive: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primary,
     fontWeight: '700',
   },

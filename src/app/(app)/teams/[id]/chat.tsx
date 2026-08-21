@@ -14,7 +14,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { TeamAvatar } from '@/components/team-avatar';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { formatEventDateTime } from '@/lib/datetime';
 import { goBack } from '@/lib/navigation';
@@ -242,9 +242,9 @@ const styles = StyleSheet.create({
     borderBottomColor: Brand.border,
     backgroundColor: Brand.surface,
   },
-  backText: { fontSize: 16, color: Brand.primary, fontWeight: '600' },
+  backText: { fontFamily: BrandFonts.bodySemibold, fontSize: 16, color: Brand.primary, fontWeight: '600' },
   headerMain: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 10 },
-  headerName: { flex: 1, fontSize: 16, fontWeight: '700', color: Brand.textPrimary },
+  headerName: { fontFamily: BrandFonts.bodyBold, flex: 1, fontSize: 16, fontWeight: '700', color: Brand.textPrimary },
   gearBtn: {
     width: 38,
     height: 38,
@@ -255,13 +255,13 @@ const styles = StyleSheet.create({
   },
   gearIcon: { fontSize: 18, color: Brand.primary },
   loader: { marginTop: 40 },
-  error: { color: Brand.danger, textAlign: 'center', marginTop: 24 },
+  error: { fontFamily: BrandFonts.body, color: Brand.danger, textAlign: 'center', marginTop: 24 },
   listContent: { padding: 16, flexGrow: 1 },
-  emptyChat: { textAlign: 'center', color: Brand.textMuted, marginTop: 40 },
+  emptyChat: { fontFamily: BrandFonts.body, textAlign: 'center', color: Brand.textMuted, marginTop: 40 },
   bubbleWrap: { marginBottom: 10, maxWidth: '86%' },
   bubbleWrapMine: { alignSelf: 'flex-end' },
   bubbleWrapTheirs: { alignSelf: 'flex-start' },
-  senderNick: { fontSize: 12, color: Brand.textMuted, marginBottom: 4, marginLeft: 4 },
+  senderNick: { fontFamily: BrandFonts.bodySemibold, fontSize: 12, color: Brand.textMuted, marginBottom: 4, marginLeft: 4 },
   bubble: { borderRadius: 18, paddingHorizontal: 14, paddingVertical: 10 },
   bubbleMine: { backgroundColor: Brand.primary, borderBottomRightRadius: 4 },
   bubbleTheirs: {
@@ -270,9 +270,9 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
     borderBottomLeftRadius: 4,
   },
-  bubbleText: { fontSize: 16, color: Brand.textPrimary, lineHeight: 22 },
+  bubbleText: { fontFamily: BrandFonts.body, fontSize: 16, color: Brand.textPrimary, lineHeight: 22 },
   bubbleTextMine: { color: Brand.primaryText },
-  bubbleTime: { fontSize: 11, color: Brand.textMuted, marginTop: 4, alignSelf: 'flex-end' },
+  bubbleTime: { fontFamily: BrandFonts.body, fontSize: 11, color: Brand.textMuted, marginTop: 4, alignSelf: 'flex-end' },
   eventCard: {
     borderRadius: 12,
     padding: 12,
@@ -281,9 +281,9 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   eventCardMine: { backgroundColor: Brand.primary, borderColor: Brand.primary },
-  eventTitle: { fontSize: 15, fontWeight: '700', color: Brand.textPrimary },
+  eventTitle: { fontFamily: BrandFonts.bodyBold, fontSize: 15, fontWeight: '700', color: Brand.textPrimary },
   eventTitleMine: { color: Brand.primaryText },
-  eventTime: { fontSize: 13, color: Brand.textMuted, marginTop: 4 },
+  eventTime: { fontFamily: BrandFonts.body, fontSize: 13, color: Brand.textMuted, marginTop: 4 },
   eventTimeMine: { color: 'rgba(255,255,255,0.8)' },
   composer: {
     flexDirection: 'row',
@@ -296,6 +296,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   input: {
+    fontFamily: BrandFonts.body,
     flex: 1,
     minHeight: 44,
     maxHeight: 120,
@@ -315,7 +316,7 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   sendBtnDisabled: { opacity: 0.45 },
-  sendText: { color: Brand.primaryText, fontWeight: '700', fontSize: 15 },
+  sendText: { fontFamily: BrandFonts.bodyBold, color: Brand.primaryText, fontWeight: '700', fontSize: 15 },
   pressed: { opacity: 0.85 },
-  muted: { color: Brand.textMuted },
+  muted: { fontFamily: BrandFonts.body, color: Brand.textMuted },
 });

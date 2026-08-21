@@ -11,7 +11,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { DestinationPin } from '@/components/destination-pin';
 import { TravelModePicker } from '@/components/travel-mode-picker';
@@ -211,6 +211,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   backText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
     fontWeight: '600',
     color: Brand.textPrimary,
@@ -228,6 +229,7 @@ const styles = StyleSheet.create({
     ...shadow('up'),
   },
   title: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.textMuted,
@@ -235,6 +237,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.4,
   },
   subtitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 18,
     fontWeight: '700',
     color: Brand.textPrimary,
@@ -254,11 +257,13 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   statLabel: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
     marginBottom: 4,
   },
   statValue: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 20,
     fontWeight: '700',
     color: Brand.textPrimary,
@@ -270,6 +275,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   muted: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     paddingVertical: 8,
@@ -284,6 +290,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   retryBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.primary,
@@ -295,6 +302,7 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   fallbackText: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     color: Brand.danger,
     textAlign: 'center',

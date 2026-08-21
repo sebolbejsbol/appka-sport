@@ -1,6 +1,6 @@
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 
@@ -85,6 +85,7 @@ const styles = StyleSheet.create({
     gap: 1,
   },
   eyebrow: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.3,
@@ -92,11 +93,13 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   placeholder: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   chevron: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 22,
     fontWeight: '600',
     color: Brand.textMuted,
@@ -112,6 +115,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   badgeText: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     color: Brand.primaryText,
     fontSize: 12,
     fontWeight: '800',

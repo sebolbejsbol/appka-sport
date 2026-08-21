@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ConversationAvatar } from '@/components/conversation-avatar';
 import { ScreenHeader } from '@/components/screen-header';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
 import { showActionSheet, type ActionSheetOption } from '@/lib/action-sheet-navigation';
@@ -308,18 +308,20 @@ const styles = StyleSheet.create({
     color: Brand.textPrimary,
     fontSize: 18,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
   },
   saveBtn: { backgroundColor: Brand.primary, borderRadius: 10, paddingHorizontal: 14, paddingVertical: 10 },
-  saveText: { color: Brand.primaryText, fontWeight: '700' },
-  groupTitle: { fontSize: 22, fontWeight: '800', color: Brand.textPrimary },
-  editHint: { fontSize: 13, color: Brand.primary },
-  memberCount: { fontSize: 14, color: Brand.textMuted },
+  saveText: { color: Brand.primaryText, fontWeight: '700', fontFamily: BrandFonts.bodyBold },
+  groupTitle: { fontSize: 22, fontWeight: '800', fontFamily: BrandFonts.bodyBold, color: Brand.textPrimary },
+  editHint: { fontSize: 13, fontFamily: BrandFonts.body, color: Brand.primary },
+  memberCount: { fontSize: 14, fontFamily: BrandFonts.body, color: Brand.textMuted },
   sectionLabel: {
     alignSelf: 'stretch',
     paddingHorizontal: 16,
     marginTop: 12,
     fontSize: 13,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textMuted,
     textTransform: 'uppercase',
   },
@@ -331,7 +333,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   pressed: { backgroundColor: Brand.surfaceMuted },
-  memberName: { flex: 1, fontSize: 16, fontWeight: '600', color: Brand.textPrimary },
+  memberName: { flex: 1, fontSize: 16, fontWeight: '600', fontFamily: BrandFonts.bodySemibold, color: Brand.textPrimary },
   roleBadge: {
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -339,7 +341,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surfaceMuted,
   },
   roleBadgeOwner: { backgroundColor: Brand.primaryLight },
-  roleText: { fontSize: 12, fontWeight: '600', color: Brand.textSecondary },
+  roleText: { fontSize: 12, fontWeight: '600', fontFamily: BrandFonts.bodySemibold, color: Brand.textSecondary },
   roleTextOwner: { color: Brand.primary },
   footer: { padding: 16, gap: 12, marginTop: 12 },
   dangerBtn: {
@@ -348,7 +350,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Brand.surfaceMuted,
   },
-  dangerText: { fontSize: 15, fontWeight: '700', color: Brand.danger },
+  dangerText: { fontSize: 15, fontWeight: '700', fontFamily: BrandFonts.bodyBold, color: Brand.danger },
   deleteBtn: { backgroundColor: Brand.danger },
   deleteText: { color: '#fff' },
   empty: { color: Brand.textMuted, textAlign: 'center', marginTop: 24 },
@@ -375,7 +377,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 8,
   },
-  addTitle: { fontSize: 17, fontWeight: '700', color: Brand.textPrimary },
+  addTitle: { fontSize: 17, fontWeight: '700', fontFamily: BrandFonts.bodyBold, color: Brand.textPrimary },
   addClose: { fontSize: 18, color: Brand.textMuted },
-  addPlus: { fontSize: 22, color: Brand.primary, fontWeight: '700' },
+  addPlus: { fontSize: 22, color: Brand.primary, fontWeight: '700', fontFamily: BrandFonts.bodyBold },
 });

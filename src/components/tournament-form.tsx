@@ -5,7 +5,7 @@ import { DatePickerField } from '@/components/date-picker-field';
 import { FieldReportLocationPicker, type LocationPickerCopy } from '@/components/field-report-map-picker';
 import { TextField } from '@/components/text-field';
 import { TimePickerField } from '@/components/time-picker-field';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
 import { parseLocalDateTime, toDateInput, toTimeInput } from '@/lib/datetime';
 import { pickImageFromLibrary } from '@/lib/pick-image';
@@ -533,12 +533,14 @@ function ToggleRow({
 const styles = StyleSheet.create({
   container: { gap: 12 },
   sectionTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
     fontWeight: '700',
     color: Brand.textPrimary,
     marginTop: 16,
   },
   label: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     letterSpacing: 0.15,
@@ -558,7 +560,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   chipActive: { backgroundColor: Brand.primary, borderColor: Brand.primary },
-  chipText: { fontSize: 14, fontWeight: '600', color: Brand.textPrimary },
+  chipText: { fontFamily: BrandFonts.bodySemibold, fontSize: 14, fontWeight: '600', color: Brand.textPrimary },
   chipTextActive: { color: Brand.primaryText },
   logoRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   logo: { width: 56, height: 56, borderRadius: Radius.md, backgroundColor: Brand.surface },
@@ -571,5 +573,5 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
     alignSelf: 'flex-start',
   },
-  secondaryBtnText: { fontSize: 14, fontWeight: '600', color: Brand.textPrimary },
+  secondaryBtnText: { fontFamily: BrandFonts.bodySemibold, fontSize: 14, fontWeight: '600', color: Brand.textPrimary },
 });

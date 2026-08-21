@@ -15,7 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { ScreenHeader } from '@/components/screen-header';
 import { TeamAvatar } from '@/components/team-avatar';
-import { Brand, Layout, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Layout, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { formatTeamSport } from '@/lib/sports';
@@ -355,20 +355,24 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   searchIcon: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
   },
   searchInput: {
+    fontFamily: BrandFonts.body,
     flex: 1,
     fontSize: 15,
     color: Brand.textPrimary,
     paddingVertical: 0,
   },
   searchClear: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     paddingHorizontal: 4,
   },
   searchEmpty: {
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     fontSize: 14,
     paddingTop: 24,
@@ -381,6 +385,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   sectionTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
     fontWeight: '800',
     color: Brand.textMuted,
@@ -412,6 +417,7 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   inviteMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
   },
@@ -426,6 +432,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   acceptText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontSize: 12,
     fontWeight: '700',
@@ -435,6 +442,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   rejectText: {
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     fontSize: 12,
   },
@@ -455,11 +463,13 @@ const styles = StyleSheet.create({
     minWidth: 0,
   },
   teamName: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   rowMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
   },
@@ -473,6 +483,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 6,
   },
   badgeText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontSize: 12,
     fontWeight: '700',
@@ -484,6 +495,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
   joinText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontSize: 13,
     fontWeight: '700',
@@ -497,6 +509,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   pendingText: {
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textMuted,
     fontSize: 13,
     fontWeight: '600',
@@ -508,6 +521,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primaryLight,
   },
   rolePillText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primary,
     fontSize: 11,
     fontWeight: '800',
@@ -521,6 +535,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primaryLight,
   },
   memberPillText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primary,
     fontSize: 12,
     fontWeight: '700',
@@ -534,6 +549,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primaryLight,
   },
   gearIcon: {
+    fontFamily: BrandFonts.body,
     fontSize: 18,
     color: Brand.primary,
   },
@@ -553,15 +569,18 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   emptyIconText: {
+    fontFamily: BrandFonts.body,
     fontSize: 32,
   },
   empty: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textPrimary,
     fontSize: 17,
     fontWeight: '700',
     textAlign: 'center',
   },
   emptyHint: {
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     fontSize: 14,
     textAlign: 'center',

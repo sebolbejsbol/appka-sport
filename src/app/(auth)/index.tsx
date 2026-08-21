@@ -8,7 +8,7 @@ import { AppBrandMark } from '@/components/app-brand-mark';
 import { Button } from '@/components/button';
 import { LegalFooterLinks } from '@/components/legal-footer-links';
 import { OAuthButtons } from '@/components/oauth-buttons';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { Typography } from '@/constants/ui';
 import { t } from '@/i18n';
 
@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Brand.danger,
     fontWeight: '500',
+    fontFamily: BrandFonts.bodyMedium,
     textAlign: 'center',
   },
   hero: {
@@ -81,6 +82,7 @@ const styles = StyleSheet.create({
   footer: {
     textAlign: 'center',
     fontSize: 12,
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     marginTop: 20,
     lineHeight: 18,

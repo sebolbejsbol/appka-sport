@@ -10,7 +10,7 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useUserLocation, type LngLat } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
 import { fieldsToGeoJSON, getFieldsInBbox, type Bbox } from '@/lib/fields';
@@ -362,20 +362,25 @@ const styles = StyleSheet.create({
   previewTitle: {
     fontSize: 16,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textPrimary,
   },
   previewHint: {
     fontSize: 13,
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
   },
   previewCoords: {
     fontSize: 14,
     color: Brand.textSecondary,
     fontWeight: '600',
+    fontFamily: BrandFonts.monoMedium,
+    fontVariant: ['tabular-nums'],
   },
   previewAction: {
     fontSize: 13,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.primary,
     marginTop: 2,
   },
@@ -405,11 +410,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Brand.textSecondary,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
   },
   modalTitle: {
     flex: 1,
     fontSize: 18,
     fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textPrimary,
   },
   modalMapWrap: {
@@ -461,6 +468,7 @@ const styles = StyleSheet.create({
   },
   modalMapHintText: {
     fontSize: 13,
+    fontFamily: BrandFonts.body,
     color: Brand.textSecondary,
     textAlign: 'center',
   },
@@ -475,6 +483,8 @@ const styles = StyleSheet.create({
   modalCoords: {
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: BrandFonts.monoMedium,
+    fontVariant: ['tabular-nums'],
     color: Brand.textPrimary,
     textAlign: 'center',
   },
@@ -487,6 +497,7 @@ const styles = StyleSheet.create({
   },
   fallbackText: {
     fontSize: 15,
+    fontFamily: BrandFonts.body,
     color: Brand.danger,
     textAlign: 'center',
     marginBottom: 16,

@@ -13,7 +13,7 @@ import Animated, { FadeIn, LinearTransition } from 'react-native-reanimated';
 
 import { ScreenHeader } from '@/components/screen-header';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
@@ -285,6 +285,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   tabText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.textPrimary,
@@ -296,6 +297,7 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   error: {
+    fontFamily: BrandFonts.body,
     color: Brand.danger,
     marginTop: 24,
     textAlign: 'center',
@@ -324,6 +326,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
   },
   empty: {
+    fontFamily: BrandFonts.body,
     color: Brand.textSecondary,
     textAlign: 'center',
     fontSize: 15,
@@ -349,11 +352,13 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   rowName: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 16,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   rowMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
   },
@@ -368,6 +373,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   acceptText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontSize: 12,
     fontWeight: '700',
@@ -377,6 +383,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   rejectText: {
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     fontSize: 12,
   },
@@ -389,6 +396,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
   },
   pendingText: {
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textMuted,
     fontSize: 11,
     fontWeight: '600',

@@ -2,7 +2,7 @@ import { Image } from 'expo-image';
 import { useState } from 'react';
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { pickPostMedia, type PickedMedia } from '@/lib/pick-image';
@@ -141,6 +141,7 @@ const styles = StyleSheet.create({
     ...shadow('sm'),
   },
   input: {
+    fontFamily: BrandFonts.body,
     minHeight: 72,
     maxHeight: 140,
     fontSize: 15,
@@ -191,6 +192,7 @@ const styles = StyleSheet.create({
     lineHeight: 17,
   },
   mentionHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
     marginTop: 8,
@@ -224,11 +226,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   mediaBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.textSecondary,
   },
   charCount: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
   },
@@ -243,6 +247,7 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   postBtnText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontSize: 14,
     fontWeight: '700',
@@ -251,6 +256,7 @@ const styles = StyleSheet.create({
     color: Brand.primaryText,
   },
   postError: {
+    fontFamily: BrandFonts.body,
     color: Brand.danger,
     fontSize: 13,
     marginTop: 6,

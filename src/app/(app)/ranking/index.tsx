@@ -191,8 +191,10 @@ function openUser(targetId: string, myId: string | null) {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Brand.screenBackground },
   loader: { marginTop: 48 },
-  error: { color: Brand.danger, textAlign: 'center', marginTop: 32, fontSize: 15 },
-  empty: { color: Brand.textMuted, textAlign: 'center', marginTop: 32, fontSize: 15 },
+  error: {
+    fontFamily: BrandFonts.body, color: Brand.danger, textAlign: 'center', marginTop: 32, fontSize: 15 },
+  empty: {
+    fontFamily: BrandFonts.body, color: Brand.textMuted, textAlign: 'center', marginTop: 32, fontSize: 15 },
   content: { paddingHorizontal: 20, paddingTop: 12 },
   sectionTitle: {
     fontFamily: BrandFonts.bodySemibold,
@@ -266,6 +268,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   howLine: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
   },
@@ -316,8 +319,10 @@ const styles = StyleSheet.create({
     paddingVertical: 3,
     borderRadius: Radius.pill,
   },
-  divEmoji: { fontSize: 12 },
-  divName: { fontSize: 11, fontWeight: '800' },
+  divEmoji: {
+    fontFamily: BrandFonts.body, fontSize: 12 },
+  divName: {
+    fontFamily: BrandFonts.bodyBold, fontSize: 11, fontWeight: '800' },
   rowXpWrap: {
     alignItems: 'flex-end',
   },

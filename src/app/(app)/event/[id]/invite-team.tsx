@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { ScreenHeader } from '@/components/screen-header';
 import { TeamAvatar } from '@/components/team-avatar';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
 import { inviteTeamToEvent, listMyTeams, type TeamListItem } from '@/lib/teams';
@@ -88,7 +88,7 @@ export default function InviteTeamToEventScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Brand.screenBackground },
   loader: { marginTop: 32 },
-  empty: { textAlign: 'center', color: Brand.textMuted, marginTop: 32, paddingHorizontal: 24 },
+  empty: { fontFamily: BrandFonts.body, textAlign: 'center', color: Brand.textMuted, marginTop: 32, paddingHorizontal: 24 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: StyleSheet.hairlineWidth,
     borderBottomColor: Brand.border,
   },
-  name: { flex: 1, fontSize: 16, fontWeight: '600', color: Brand.textPrimary },
+  name: { fontFamily: BrandFonts.bodySemibold, flex: 1, fontSize: 16, fontWeight: '600', color: Brand.textPrimary },
   btn: {
     backgroundColor: Brand.primary,
     paddingHorizontal: 10,
@@ -106,5 +106,5 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
   btnDisabled: { opacity: 0.5 },
-  btnText: { color: Brand.primaryText, fontSize: 12, fontWeight: '700' },
+  btnText: { fontFamily: BrandFonts.bodyBold, color: Brand.primaryText, fontSize: 12, fontWeight: '700' },
 });

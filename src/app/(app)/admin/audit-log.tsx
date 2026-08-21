@@ -5,7 +5,7 @@ import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/screen-header';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { getAuditLog, type AuditLogEntityType, type AuditLogEntry } from '@/lib/audit-log';
@@ -129,7 +129,7 @@ export default function AuditLogScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Brand.screenBackground },
   loader: { marginTop: 32 },
-  muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
+  muted: { fontSize: 15, fontFamily: BrandFonts.body, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
   filtersRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -147,12 +147,12 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   filterChipActive: { backgroundColor: Brand.primary, borderColor: Brand.primary },
-  filterChipText: { fontSize: 13, fontWeight: '600', color: Brand.textPrimary },
+  filterChipText: { fontSize: 13, fontWeight: '600', fontFamily: BrandFonts.bodySemibold, color: Brand.textPrimary },
   filterChipTextActive: { color: Brand.primaryText },
   row: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Brand.border, gap: 4 },
   rowHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-  action: { fontSize: 14, fontWeight: '700', color: Brand.textPrimary },
-  time: { fontSize: 12, color: Brand.textMuted },
-  meta: { fontSize: 12, color: Brand.textSecondary },
-  metadata: { fontSize: 11, color: Brand.textMuted, marginTop: 2 },
+  action: { fontSize: 14, fontWeight: '700', fontFamily: BrandFonts.bodyBold, color: Brand.textPrimary },
+  time: { fontSize: 12, fontFamily: BrandFonts.monoMedium, fontVariant: ['tabular-nums'], color: Brand.textMuted },
+  meta: { fontSize: 12, fontFamily: BrandFonts.body, color: Brand.textSecondary },
+  metadata: { fontSize: 11, fontFamily: BrandFonts.mono, color: Brand.textMuted, marginTop: 2 },
 });

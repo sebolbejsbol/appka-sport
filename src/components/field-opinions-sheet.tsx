@@ -11,7 +11,8 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FieldRatingStars } from '@/components/field-rating-stars';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
+import { Typography } from '@/constants/ui';
 import { t } from '@/i18n';
 import { formatEventDateTime } from '@/lib/datetime';
 import {
@@ -178,6 +179,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   title: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 18,
     fontWeight: '700',
     color: Brand.textPrimary,
@@ -187,6 +189,7 @@ const styles = StyleSheet.create({
     marginVertical: 24,
   },
   muted: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     paddingVertical: 8,
@@ -206,11 +209,11 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   avgValue: {
-    fontSize: 28,
+    ...Typography.numericLarge,
     fontWeight: '700',
-    color: Brand.textPrimary,
   },
   countText: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
     textAlign: 'right',
@@ -227,16 +230,20 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   breakdownLabel: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
     flex: 1,
   },
   breakdownValue: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 13,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   reviewsTitle: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
     fontWeight: '600',
     color: Brand.textPrimary,
@@ -256,21 +263,26 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   reviewAuthor: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.textPrimary,
     flex: 1,
   },
   reviewMeta: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 13,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   reviewEvent: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
   },
   reviewComment: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     marginTop: 4,
@@ -285,6 +297,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   closeBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
     fontWeight: '600',
     color: Brand.textPrimary,

@@ -14,7 +14,7 @@ import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring } 
 
 import { useAppMenu } from '@/components/app-side-menu';
 import { EventMetaBadges } from '@/components/event-meta-badges';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useEventFilters } from '@/context/event-filters';
 import { useSession } from '@/context/session';
@@ -453,6 +453,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   statusBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
   },
@@ -469,11 +470,13 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   categoryChipText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
     fontWeight: '600',
     color: Brand.textSecondary,
   },
   title: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 20,
     fontWeight: '700',
     color: Brand.textPrimary,
@@ -498,9 +501,11 @@ const styles = StyleSheet.create({
     opacity: 0.7,
   },
   favoriteIcon: {
+    fontFamily: BrandFonts.body,
     fontSize: 18,
   },
   subtitle: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     marginTop: 2,
@@ -512,6 +517,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   metaText: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
   },
@@ -526,11 +532,13 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   detailsBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.primary,
   },
   sectionTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.textMuted,
@@ -543,6 +551,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
   },
   muted: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     paddingVertical: 8,
@@ -563,16 +572,19 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eventTime: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   eventTitle: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textPrimary,
     marginTop: 2,
   },
   eventMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
     marginTop: 2,
@@ -584,6 +596,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primary,
   },
   joinBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.primaryText,
@@ -592,6 +605,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.screenBackground,
   },
   fullBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.textMuted,
@@ -602,6 +616,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   waitlistBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
     fontWeight: '600',
     color: Brand.primary,
@@ -615,6 +630,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   leaveBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.textPrimary,
@@ -627,6 +643,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primary,
   },
   createButtonText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 17,
     fontWeight: '600',
     color: Brand.primaryText,

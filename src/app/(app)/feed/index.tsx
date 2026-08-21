@@ -17,7 +17,7 @@ import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { PostCard } from '@/components/post-card';
 import { PostComposer } from '@/components/post-composer';
 import { ScreenHeader } from '@/components/screen-header';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { confirmAction } from '@/lib/confirm';
@@ -236,12 +236,14 @@ const styles = StyleSheet.create({
     fontSize: 32,
   },
   empty: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.textPrimary,
     textAlign: 'center',
     fontSize: 17,
     fontWeight: '700',
   },
   emptyHint: {
+    fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     textAlign: 'center',
     fontSize: 14,
@@ -256,6 +258,7 @@ const styles = StyleSheet.create({
     ...shadow('sm'),
   },
   discoverBtnText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontWeight: '700',
     fontSize: 14,

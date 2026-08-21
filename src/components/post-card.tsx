@@ -3,7 +3,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { PostBodyText } from '@/components/post-body-text';
 import { PostMedia } from '@/components/post-media';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { formatRelativeShortTime } from '@/lib/datetime';
@@ -193,6 +193,7 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   name: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '700',
     color: Brand.textPrimary,
@@ -207,11 +208,13 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
   },
   friendBadgeText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
     fontWeight: '600',
     color: Brand.textMuted,
   },
   time: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
   },
@@ -244,6 +247,7 @@ const styles = StyleSheet.create({
     color: '#ef4444',
   },
   actionLabel: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '700',
     color: Brand.textSecondary,

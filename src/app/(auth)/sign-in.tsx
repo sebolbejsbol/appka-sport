@@ -16,7 +16,7 @@ import { LegalFooterLinks } from '@/components/legal-footer-links';
 import { OAuthButtons } from '@/components/oauth-buttons';
 import { ScreenHeader } from '@/components/screen-header';
 import { TextField } from '@/components/text-field';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { Typography } from '@/constants/ui';
 import { t } from '@/i18n';
 import { mapAuthError } from '@/lib/auth-errors';
@@ -161,6 +161,7 @@ const styles = StyleSheet.create({
   forgotPasswordText: {
     fontSize: 14,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.textSecondary,
     textDecorationLine: 'underline',
   },
@@ -168,6 +169,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Brand.danger,
     fontWeight: '500',
+    fontFamily: BrandFonts.bodyMedium,
   },
   submit: {
     marginTop: 8,
@@ -184,6 +186,7 @@ const styles = StyleSheet.create({
   },
   switchText: {
     fontSize: 15,
+    fontFamily: BrandFonts.body,
     color: Brand.textSecondary,
   },
   switchLink: {

@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { ScreenHeader } from '@/components/screen-header';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { confirmAction } from '@/lib/confirm';
@@ -214,11 +214,11 @@ export default function ManageTournamentMatchesScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: Brand.screenBackground },
   loader: { marginTop: 32 },
-  muted: { fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
+  muted: { fontSize: 15, fontFamily: BrandFonts.body, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
   groupSection: { marginTop: 20 },
-  groupHeading: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 8 },
+  groupHeading: { fontSize: 16, fontWeight: '700', fontFamily: BrandFonts.bodyBold, color: Brand.textPrimary, marginBottom: 8 },
   row: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Brand.border, gap: 8 },
-  rowTitle: { fontSize: 14, fontWeight: '600', color: Brand.textPrimary },
+  rowTitle: { fontSize: 14, fontWeight: '600', fontFamily: BrandFonts.bodySemibold, color: Brand.textPrimary },
   scoreRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   scoreInput: {
     width: 64,
@@ -228,12 +228,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 8,
     fontSize: 14,
+    fontFamily: BrandFonts.monoMedium,
     color: Brand.textPrimary,
     textAlign: 'center',
   },
   saveBtn: { flex: 1 },
   completedRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  finalScoreText: { fontSize: 16, fontWeight: '700', color: Brand.textPrimary, minWidth: 64 },
+  finalScoreText: { fontSize: 16, fontWeight: '700', fontFamily: BrandFonts.monoSemibold, fontVariant: ['tabular-nums'], color: Brand.textPrimary, minWidth: 64 },
   resetBtn: { flex: 1 },
-  actionErrorText: { fontSize: 12, color: Brand.danger },
+  actionErrorText: { fontSize: 12, fontFamily: BrandFonts.body, color: Brand.danger },
 });

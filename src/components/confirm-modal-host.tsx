@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Modal, StyleSheet, Text, View } from 'react-native';
 
 import { Button } from '@/components/button';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { registerConfirmHost, type ConfirmRequest } from '@/lib/confirm-navigation';
 
 /**
@@ -66,8 +66,8 @@ const styles = StyleSheet.create({
     padding: 20,
     gap: 12,
   },
-  title: { fontSize: 17, fontWeight: '700', color: Brand.textPrimary },
-  message: { fontSize: 14, color: Brand.textSecondary, lineHeight: 20 },
+  title: { fontSize: 17, fontWeight: '700', fontFamily: BrandFonts.bodyBold, color: Brand.textPrimary },
+  message: { fontSize: 14, fontFamily: BrandFonts.body, color: Brand.textSecondary, lineHeight: 20 },
   actions: { flexDirection: 'row', gap: 10, marginTop: 8 },
   btn: { flex: 1 },
 });

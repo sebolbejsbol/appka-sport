@@ -5,7 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { ScreenHeader } from '@/components/screen-header';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
 import { joinTeamViaCode, type JoinTeamViaCodeResult } from '@/lib/teams';
@@ -68,6 +68,6 @@ export default function JoinTeamScreen() {
 const styles = StyleSheet.create({
   flex: { flex: 1, backgroundColor: Brand.screenBackground },
   content: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 32, gap: 20 },
-  message: { fontSize: 16, color: Brand.textPrimary, textAlign: 'center', fontWeight: '600' },
+  message: { fontFamily: BrandFonts.bodySemibold, fontSize: 16, color: Brand.textPrimary, textAlign: 'center', fontWeight: '600' },
   btn: { minWidth: 220 },
 });

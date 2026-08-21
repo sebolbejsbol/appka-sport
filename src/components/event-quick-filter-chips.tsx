@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useEventFilters } from '@/context/event-filters';
 import { t, type TKey } from '@/i18n';
@@ -126,6 +126,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   chipText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.textPrimary,

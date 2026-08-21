@@ -16,7 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
 import { TextField } from '@/components/text-field';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
 import {
@@ -582,16 +582,19 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   backText: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
     color: Brand.textSecondary,
   },
   title: {
+    fontFamily: BrandFonts.display,
     fontSize: 32,
     fontWeight: '700',
     color: Brand.textPrimary,
     marginBottom: 8,
   },
   hint: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     marginBottom: 16,
@@ -615,6 +618,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   filterChipText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.textPrimary,
@@ -626,11 +630,13 @@ const styles = StyleSheet.create({
     marginTop: 32,
   },
   muted: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     color: Brand.textMuted,
     marginTop: 24,
   },
   errorText: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.danger,
     marginBottom: 8,
@@ -664,37 +670,44 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   photoBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
     fontWeight: '600',
     color: Brand.primary,
   },
   rowCourt: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   rowRawName: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
     marginTop: 2,
   },
   rowMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
     marginTop: 4,
   },
   rowNote: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textPrimary,
     marginTop: 4,
     fontStyle: 'italic',
   },
   rowAdminNote: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.danger,
     marginTop: 4,
   },
   mapLink: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
     fontWeight: '600',
     color: Brand.primary,
@@ -707,6 +720,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primary,
   },
   approveBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
     fontWeight: '600',
     color: Brand.primaryText,
@@ -720,6 +734,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
   },
   rejectBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
     fontWeight: '600',
     color: Brand.danger,
@@ -743,15 +758,18 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   modalTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 22,
     fontWeight: '700',
     color: Brand.textPrimary,
   },
   modalSubtitle: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
     color: Brand.textSecondary,
   },
   modalHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
   },
@@ -764,6 +782,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.danger,
   },
   modalMapLink: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.primary,
@@ -775,6 +794,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   nearbyTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     fontWeight: '700',
     color: Brand.textPrimary,
@@ -783,6 +803,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   nearbyEmpty: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
   },
@@ -798,11 +819,13 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   nearbyName: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
     fontWeight: '600',
     color: Brand.textPrimary,
   },
   nearbyDistance: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
     marginTop: 2,
@@ -815,6 +838,7 @@ const styles = StyleSheet.create({
     borderColor: Brand.danger,
   },
   duplicateBtnText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
     fontWeight: '600',
     color: Brand.danger,

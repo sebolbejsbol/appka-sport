@@ -13,7 +13,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { ScreenHeader } from '@/components/screen-header';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { t } from '@/i18n';
 import { createGroup } from '@/lib/groups';
 import { goBack } from '@/lib/navigation';
@@ -134,9 +134,10 @@ const styles = StyleSheet.create({
     color: Brand.textPrimary,
     fontSize: 16,
     fontWeight: '600',
+    fontFamily: BrandFonts.bodySemibold,
   },
   loader: { marginTop: 32 },
-  empty: { color: Brand.textMuted, textAlign: 'center', marginTop: 40 },
+  empty: { color: Brand.textMuted, textAlign: 'center', marginTop: 40, fontFamily: BrandFonts.body },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -145,7 +146,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   pressed: { backgroundColor: Brand.surfaceMuted },
-  name: { flex: 1, fontSize: 16, fontWeight: '600', color: Brand.textPrimary },
+  name: { flex: 1, fontSize: 16, fontWeight: '600', fontFamily: BrandFonts.bodySemibold, color: Brand.textPrimary },
   check: {
     width: 26,
     height: 26,
@@ -156,7 +157,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   checkOn: { backgroundColor: Brand.primary, borderColor: Brand.primary },
-  checkMark: { color: Brand.primaryText, fontWeight: '800', fontSize: 14 },
+  checkMark: { color: Brand.primaryText, fontWeight: '800', fontFamily: BrandFonts.bodyBold, fontSize: 14 },
   creatingOverlay: {
     position: 'absolute',
     top: 0,

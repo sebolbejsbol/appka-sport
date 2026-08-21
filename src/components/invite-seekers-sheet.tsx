@@ -11,7 +11,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { categoryLabel, markerEmoji, subcategoryLabel } from '@/lib/event-categories';
@@ -195,9 +195,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   headerRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  title: { fontSize: 20, fontWeight: '800', color: Brand.textPrimary },
+  title: { fontFamily: BrandFonts.bodyBold, fontSize: 20, fontWeight: '800', color: Brand.textPrimary },
   close: { fontSize: 18, color: Brand.textMuted, padding: 4 },
-  subtitle: { fontSize: 14, color: Brand.textMuted, marginTop: 2 },
+  subtitle: { fontFamily: BrandFonts.body, fontSize: 14, color: Brand.textMuted, marginTop: 2 },
   body: { paddingBottom: 24 },
   listHeaderRow: {
     flexDirection: 'row',
@@ -207,6 +207,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   listHeader: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
     fontWeight: '800',
     color: Brand.textMuted,
@@ -215,7 +216,7 @@ const styles = StyleSheet.create({
   },
   refresh: { fontSize: 20, color: Brand.primary },
   loader: { marginTop: 24 },
-  note: { marginTop: 18, fontSize: 13, color: Brand.textMuted, textAlign: 'center' },
+  note: { fontFamily: BrandFonts.body, marginTop: 18, fontSize: 13, color: Brand.textMuted, textAlign: 'center' },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -229,23 +230,23 @@ const styles = StyleSheet.create({
     ...shadow('sm'),
   },
   rowMain: { flex: 1, minWidth: 0, gap: 2 },
-  rowTitle: { fontSize: 15, fontWeight: '700', color: Brand.textPrimary },
-  rowMeta: { fontSize: 13, color: Brand.textSecondary },
-  rowNote: { fontSize: 12, color: Brand.textMuted, fontStyle: 'italic' },
+  rowTitle: { fontFamily: BrandFonts.bodyBold, fontSize: 15, fontWeight: '700', color: Brand.textPrimary },
+  rowMeta: { fontFamily: BrandFonts.body, fontSize: 13, color: Brand.textSecondary },
+  rowNote: { fontFamily: BrandFonts.body, fontSize: 12, color: Brand.textMuted, fontStyle: 'italic' },
   joinBtn: {
     backgroundColor: Brand.primary,
     paddingHorizontal: 16,
     paddingVertical: 9,
     borderRadius: Radius.pill,
   },
-  joinBtnText: { color: Brand.primaryText, fontWeight: '800', fontSize: 13 },
+  joinBtnText: { fontFamily: BrandFonts.bodyBold, color: Brand.primaryText, fontWeight: '800', fontSize: 13 },
   invitedBadge: {
     paddingHorizontal: 12,
     paddingVertical: 7,
     borderRadius: Radius.pill,
     backgroundColor: '#dcfce7',
   },
-  invitedText: { color: '#166534', fontWeight: '700', fontSize: 12 },
+  invitedText: { fontFamily: BrandFonts.bodyBold, color: '#166534', fontWeight: '700', fontSize: 12 },
   disabled: { opacity: 0.6 },
   pressed: { opacity: 0.85 },
 });
