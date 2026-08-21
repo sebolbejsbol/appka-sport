@@ -74,7 +74,7 @@ export default function RootLayout() {
  * Stack.Protected automatycznie przekierowuje, gdy zmieni się stan sesji.
  */
 function RootNavigator() {
-  const { session, isLoading, isPasswordRecovery, needsProfileSetup } = useSession();
+  const { session, isLoading, isPasswordRecovery, needsProfileSetup, needsOnboarding } = useSession();
   // Konsumujemy język tutaj, żeby cała nawigacja przerenderowała się po zmianie
   // języka. Bez tego React pomijał poddrzewo ekranów (children providera mają stałą
   // tożsamość), więc np. mapa/eventy/profil zostawały w starym języku.
@@ -120,7 +120,7 @@ function RootNavigator() {
       if (minVisibleTimer == null) startFade();
     }
 
-    const willShowMap = !!session && !isPasswordRecovery && !needsProfileSetup;
+    const willShowMap = !!session && !isPasswordRecovery && !needsProfileSetup && !needsOnboarding;
     if (willShowMap) {
       // Trzymamy splash, dopóki mapa nie skończy pierwszego ładowania boisk/eventów —
       // inaczej użytkownik przez chwilę widzi pustą mapę i myśli, że coś nie działa.
@@ -142,7 +142,7 @@ function RootNavigator() {
       if (minVisibleTimer) clearTimeout(minVisibleTimer);
       if (unsubscribeMapReady) unsubscribeMapReady();
     };
-  }, [isLoading, session, isPasswordRecovery, needsProfileSetup, splashOpacity]);
+  }, [isLoading, session, isPasswordRecovery, needsProfileSetup, needsOnboarding, splashOpacity]);
 
   return (
     <View style={styles.root}>
@@ -151,8 +151,16 @@ function RootNavigator() {
           KAŻDY ekran (mapa, eventy, profil, ustawienia…) renderuje się od nowa w nowym
           języku — „od początku do końca", bez gubienia sesji. */}
       <Stack key={locale} screenOptions={{ headerShown: false }}>
-        <Stack.Protected guard={!!session && !isPasswordRecovery && !needsProfileSetup}>
+        <Stack.Protected
+          guard={!!session && !isPasswordRecovery && !needsProfileSetup && !needsOnboarding}>
           <Stack.Screen name="(app)" />
+        </Stack.Protected>
+
+        {/* Pokazywany raz na konto, po dokończeniu profilu a przed wejściem w (app) —
+            patrz src/context/session.tsx (needsOnboarding, profiles.has_completed_onboarding). */}
+        <Stack.Protected
+          guard={!!session && !isPasswordRecovery && !needsProfileSetup && needsOnboarding}>
+          <Stack.Screen name="(onboarding)" />
         </Stack.Protected>
 
         <Stack.Protected guard={!session || isPasswordRecovery || needsProfileSetup}>

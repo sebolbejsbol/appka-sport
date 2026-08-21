@@ -111,7 +111,23 @@ function bboxFromMapState(state: MapState | undefined): { bbox: Bbox; zoom: numb
   return null;
 }
 
-export default function CreateEventScreen() {
+type CreateEventScreenProps = {
+  /** Onboarding "próbny event": prowadzi przez ten sam formularz, ale
+   * handleSubmit nigdy nie wywołuje createDiscoverEvent ani nie nawiguje —
+   * zamiast tego woła onDemoSubmit, żeby wywołujący (onboarding wizard) mógł
+   * pokazać własny ekran "to był tylko pokaz". Patrz src/app/(onboarding). */
+  demoMode?: boolean;
+  onDemoSubmit?: () => void;
+  /** Cofnięcie z pierwszego kroku w demoMode wraca do poprzedniego slajdu
+   * onboardingu zamiast router.back() (nie ma dokąd wracać w tym stacku). */
+  onDemoExit?: () => void;
+};
+
+export default function CreateEventScreen({
+  demoMode = false,
+  onDemoSubmit,
+  onDemoExit,
+}: CreateEventScreenProps = {}) {
   const insets = useSafeAreaInsets();
   const { session } = useSession();
   const { coords } = useUserLocation();
@@ -539,6 +555,10 @@ export default function CreateEventScreen() {
   function goBack() {
     setStepError(null);
     if (stepIndex <= 0) {
+      if (demoMode) {
+        onDemoExit?.();
+        return;
+      }
       router.back();
       return;
     }
@@ -580,6 +600,15 @@ export default function CreateEventScreen() {
     if (!startsAt) {
       setStepId('details');
       setStepError(t('createEvent.errDate'));
+      return;
+    }
+
+    if (demoMode) {
+      // Próbny event z onboardingu: pełna walidacja powyżej już przeszła,
+      // ale świadomie nic nie zapisujemy do bazy (patrz komentarz na
+      // CreateEventScreenProps) — użytkownik ma zobaczyć cały flow bez
+      // tworzenia realnego eventu widocznego dla innych.
+      onDemoSubmit?.();
       return;
     }
 
@@ -1151,7 +1180,9 @@ export default function CreateEventScreen() {
             {submitting ? (
               <ActivityIndicator color={Brand.primaryText} />
             ) : (
-              <Text style={styles.footerNextText}>{t('createEvent.publish')}</Text>
+              <Text style={styles.footerNextText}>
+                {demoMode ? t('createEvent.publishDemo') : t('createEvent.publish')}
+              </Text>
             )}
           </Pressable>
         ) : showFooterNext ? (

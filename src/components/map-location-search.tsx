@@ -19,8 +19,8 @@ import { searchMapPlaces, type PlaceSearchResult } from '@/lib/map-geocoding';
 const SEARCH_DEBOUNCE_MS = 280;
 const BLUR_HIDE_MS = 180;
 
-// Apka działa na razie tylko w Trójmieście (patrz TRICITY_CENTER/TRICITY_RADIUS_KM
-// w map-bbox.ts) — podpowiedzi ograniczone do miast, które faktycznie da się wybrać.
+// Apka działa na razie tylko w Trójmieście (realna granica: migracja 0102,
+// public.tricity_boundary) — podpowiedzi ograniczone do miast, które faktycznie da się wybrać.
 const EXAMPLE_QUERIES = ['Gdańsk', 'Gdynia', 'Sopot'] as const;
 
 type Props = {

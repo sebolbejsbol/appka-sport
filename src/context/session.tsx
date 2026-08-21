@@ -36,6 +36,14 @@ type SessionContextValue = {
   needsProfileSetup: boolean;
   /** Wywoływane przez ekran /complete-profile zaraz po udanym zapisaniu nicku. */
   markProfileComplete: () => void;
+  /**
+   * Profil ma nick, ale jeszcze nie przeszedł onboardingu (nowa kolumna
+   * profiles.has_completed_onboarding, migracja 0100) — pokazujemy grupę
+   * (onboarding) zamiast (app), analogicznie do needsProfileSetup.
+   */
+  needsOnboarding: boolean;
+  /** Wywoływane przez ekran onboardingu po ukończeniu/pominięciu (po zapisaniu flagi w bazie). */
+  markOnboardingComplete: () => void;
   signOut: () => Promise<void>;
 };
 
@@ -57,15 +65,20 @@ async function handleRecoveryUrl(url: string): Promise<void> {
   }
 }
 
+type ProfileGateState = { needsProfileSetup: boolean; needsOnboarding: boolean };
+
 /** Profil bez nicku = konto nowe przez OAuth, które jeszcze nie dokończyło rejestracji. */
-async function fetchNeedsProfileSetup(userId: string): Promise<boolean> {
+async function fetchProfileGateState(userId: string): Promise<ProfileGateState> {
   const { data, error } = await supabase
     .from('profiles')
-    .select('nick')
+    .select('nick, has_completed_onboarding')
     .eq('id', userId)
-    .maybeSingle<{ nick: string | null }>();
-  if (error) return false;
-  return !data?.nick;
+    .maybeSingle<{ nick: string | null; has_completed_onboarding: boolean | null }>();
+  if (error) return { needsProfileSetup: false, needsOnboarding: false };
+  return {
+    needsProfileSetup: !data?.nick,
+    needsOnboarding: data?.has_completed_onboarding === false,
+  };
 }
 
 export function SessionProvider({ children }: PropsWithChildren) {
@@ -73,6 +86,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
   const [isLoading, setIsLoading] = useState(true);
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [needsProfileSetup, setNeedsProfileSetup] = useState(false);
+  const [needsOnboarding, setNeedsOnboarding] = useState(false);
   const checkedUserIdRef = useRef<string | null>(null);
 
   const clearPasswordRecovery = useCallback(() => {
@@ -81,6 +95,10 @@ export function SessionProvider({ children }: PropsWithChildren) {
 
   const markProfileComplete = useCallback(() => {
     setNeedsProfileSetup(false);
+  }, []);
+
+  const markOnboardingComplete = useCallback(() => {
+    setNeedsOnboarding(false);
   }, []);
 
   useEffect(() => {
@@ -98,6 +116,7 @@ export function SessionProvider({ children }: PropsWithChildren) {
       if (event === 'SIGNED_OUT') {
         checkedUserIdRef.current = null;
         setNeedsProfileSetup(false);
+        setNeedsOnboarding(false);
       }
     });
 
@@ -129,10 +148,13 @@ export function SessionProvider({ children }: PropsWithChildren) {
     if (checkedUserIdRef.current === userId) return;
     checkedUserIdRef.current = userId;
 
-    void fetchNeedsProfileSetup(userId).then((needsSetup) => {
+    void fetchProfileGateState(userId).then(({ needsProfileSetup: needsSetup, needsOnboarding: needsOnb }) => {
       setNeedsProfileSetup(needsSetup);
+      setNeedsOnboarding(needsOnb);
       if (needsSetup) {
         router.replace('/complete-profile' as Href);
+      } else if (needsOnb) {
+        router.replace('/onboarding' as Href);
       }
     });
   }, [session?.user?.id]);
@@ -145,14 +167,26 @@ export function SessionProvider({ children }: PropsWithChildren) {
       clearPasswordRecovery,
       needsProfileSetup,
       markProfileComplete,
+      needsOnboarding,
+      markOnboardingComplete,
       signOut: async () => {
         setIsPasswordRecovery(false);
         setNeedsProfileSetup(false);
+        setNeedsOnboarding(false);
         checkedUserIdRef.current = null;
         await supabase.auth.signOut();
       },
     }),
-    [session, isLoading, isPasswordRecovery, clearPasswordRecovery, needsProfileSetup, markProfileComplete],
+    [
+      session,
+      isLoading,
+      isPasswordRecovery,
+      clearPasswordRecovery,
+      needsProfileSetup,
+      markProfileComplete,
+      needsOnboarding,
+      markOnboardingComplete,
+    ],
   );
 
   return <SessionContext.Provider value={value}>{children}</SessionContext.Provider>;

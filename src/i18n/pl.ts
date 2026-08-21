@@ -140,6 +140,7 @@ export const pl = {
     next: 'Dalej',
     done: 'Gotowe',
     publish: 'Opublikuj wydarzenie',
+    publishDemo: 'Zobacz podgląd',
     publishing: 'Publikowanie…',
     required: 'wymagane',
     cancel: 'Anuluj',
@@ -253,6 +254,30 @@ export const pl = {
       'To boisko nie pasuje do wybranej dyscypliny. Wybierz obiekt zgodny z kategorią wydarzenia.',
     fieldSportLockedHint:
       'Dyscyplina wydarzenia jest przypisana do tego boiska i nie można jej zmienić.',
+  },
+  onboarding: {
+    skip: 'Pomiń',
+    next: 'Dalej',
+    tryIt: 'Wypróbuj',
+    slide1Title: 'Wydarzenia na mapie',
+    slide1Body:
+      'Wszystkie mecze i treningi w Trójmieście widzisz od razu na mapie — wybierz sport, znajdź boisko blisko siebie.',
+    slide2Title: 'Dołącz w sekundę',
+    slide2Body:
+      'Kliknij wydarzenie, które Cię interesuje, i dołącz jednym przyciskiem. Zobaczysz, kto już gra.',
+    slide3Title: 'Znajomi i wiadomości',
+    slide3Body:
+      'Dodawaj znajomych, pisz do nich i umawiajcie się razem na konkretne wydarzenia.',
+    slide4Title: 'Zamelduj się na boisku',
+    slide4Body:
+      'Gdy dotrzesz na miejsce, zamelduj się jednym dotknięciem — inni zobaczą, że już tam jesteś.',
+    slide5Title: 'Ranking i XP',
+    slide5Body:
+      'Za każdą aktywność zdobywasz XP i pniesz się w rankingu graczy. Sprawdź, gdzie jesteś.',
+    doneTitle: 'To był tylko pokaz!',
+    doneBody:
+      'Nic nie zostało opublikowane. Prawdziwe wydarzenia tworzysz dokładnie w ten sam sposób, kiedy tylko zechcesz.',
+    doneCta: 'Przejdź do apki',
   },
   home: {
     title: 'Cześć! 👋',

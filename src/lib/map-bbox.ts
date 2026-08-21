@@ -62,17 +62,24 @@ export const POLAND_CENTER: LngLat = [19.48, 52.07];
 export const TRICITY_BBOX: Bbox = POLAND_BBOX;
 
 /**
- * Centroid Gdańsk/Gdynia/Sopot — środek promienia, którym ograniczamy tworzenie
- * wydarzeń do jedynego odblokowanego regionu (patrz też
- * supabase/migrations/0092_lock_event_creation_to_tricity.sql, ten sam
- * środek/promień po stronie bazy — TU zmiana jest tylko wcześniejszym,
- * przyjaznym ostrzeżeniem; prawdziwe wymuszenie jest w triggerze).
+ * Centroid Gdańsk/Gdynia/Sopot — używany tylko jako środek dla
+ * TRICITY_PRECHECK_RADIUS_KM poniżej (szybki, przybliżony client-side
+ * pre-check). Prawdziwa granica to od migracji 0102 realny poligon (unia
+ * granic Gdańska+Sopotu+Gdyni + 10km bufor) zapisany w
+ * public.tricity_boundary — to ONA jest źródłem prawdy po stronie bazy
+ * (supabase/migrations/0102_tricity_real_boundary.sql,
+ * validate_event_before_insert), nie ten okrąg. Frontend nie ma
+ * (jeszcze) tej geometrii pod ręką, więc dla szybkiego ostrzeżenia PRZED
+ * wysłaniem do serwera używamy celowo szerszego okręgu — musi być
+ * NADZBIOREM prawdziwego poligonu (nigdy nie blokować czegoś, na co
+ * serwer i tak by pozwolił), stąd promień wyraźnie większy niż realny
+ * zasięg granicy. Prawdziwe wymuszenie zawsze zostaje w triggerze.
  */
 export const TRICITY_CENTER: LngLat = [18.579, 54.438];
-/** 25 km — z zapasem obejmuje Gdańsk+Gdynię+Sopot i najbliższe okolice (Rumia, Reda, Pruszcz Gdański). */
-export const TRICITY_RADIUS_KM = 25;
+/** Nadzbiór realnej granicy (patrz komentarz wyżej) — tylko do szybkiego ostrzeżenia we froncie. */
+export const TRICITY_PRECHECK_RADIUS_KM = 45;
 
-/** Czy punkt leży w promieniu odblokowanego regionu (Trójmiasto + okolice). */
+/** Szybki, przybliżony pre-check we froncie — prawdziwa granica (realny poligon) jest wymuszana serwerowo. */
 export function isWithinTricity(coords: LngLat): boolean {
-  return distanceMeters(coords, TRICITY_CENTER) <= TRICITY_RADIUS_KM * 1000;
+  return distanceMeters(coords, TRICITY_CENTER) <= TRICITY_PRECHECK_RADIUS_KM * 1000;
 }
