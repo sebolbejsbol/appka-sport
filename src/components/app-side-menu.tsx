@@ -29,8 +29,9 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { CalendarIcon, CompassIcon, PersonIcon } from '@/components/icons';
 import { DESKTOP_NAV_BREAKPOINT } from '@/components/web-app-shell';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useLocale } from '@/context/locale';
 import { useIsAdmin } from '@/hooks/use-is-admin';
@@ -815,7 +816,7 @@ function BottomNavBar() {
           onPress={openMenu}
         />
         <BottomNavTab
-          icon="🗺️"
+          icon="map"
           label={t('nav.map')}
           active={isNavActive(pathname, '/')}
           onPress={() => navigate('/')}
@@ -833,13 +834,13 @@ function BottomNavBar() {
         </View>
 
         <BottomNavTab
-          icon="🎉"
+          icon="events"
           label={t('nav.events')}
           active={isNavActive(pathname, '/events')}
           onPress={() => navigate('/events')}
         />
         <BottomNavTab
-          icon="👤"
+          icon="profile"
           label={t('nav.profile')}
           active={isNavActive(pathname, '/profile')}
           onPress={() => navigate('/profile')}
@@ -849,6 +850,8 @@ function BottomNavBar() {
   );
 }
 
+type BottomNavIconKey = 'menu' | 'map' | 'events' | 'profile';
+
 function BottomNavTab({
   icon,
   label,
@@ -856,12 +859,13 @@ function BottomNavTab({
   badge,
   onPress,
 }: {
-  icon: string;
+  icon: BottomNavIconKey;
   label: string;
   active: boolean;
   badge?: number;
   onPress: () => void;
 }) {
+  const iconColor = active ? Brand.primary : Brand.textMuted;
   return (
     <Pressable
       onPress={onPress}
@@ -876,8 +880,12 @@ function BottomNavTab({
             <View style={[styles.menuLine, active && styles.menuLineActive]} />
             <View style={[styles.menuLine, active && styles.menuLineActive]} />
           </View>
+        ) : icon === 'map' ? (
+          <CompassIcon size={22} color={iconColor} strokeWidth={active ? 2.1 : 1.8} />
+        ) : icon === 'events' ? (
+          <CalendarIcon size={21} color={iconColor} strokeWidth={active ? 2.1 : 1.8} />
         ) : (
-          <Text style={styles.bottomNavIcon}>{icon}</Text>
+          <PersonIcon size={21} color={iconColor} strokeWidth={active ? 2.1 : 1.8} />
         )}
         {badge ? (
           <Animated.View
@@ -921,9 +929,8 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   sidebarBrand: {
-    fontSize: 20,
-    fontWeight: '800',
-    letterSpacing: -0.3,
+    fontFamily: BrandFonts.display,
+    fontSize: 21,
     color: Brand.textPrimary,
   },
   backdrop: {
@@ -961,9 +968,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   panelTitle: {
-    fontSize: 22,
-    fontWeight: '800',
-    letterSpacing: -0.3,
+    fontFamily: BrandFonts.display,
+    fontSize: 23,
     color: Brand.textPrimary,
   },
   panelBody: {
@@ -980,8 +986,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   navSectionTitle: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
-    fontWeight: '800',
     color: Brand.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.6,
@@ -1041,8 +1047,9 @@ const styles = StyleSheet.create({
     borderColor: Brand.surface,
   },
   navBadgeText: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 10,
-    fontWeight: '800',
     color: '#ffffff',
   },
   navItem: {
@@ -1067,8 +1074,8 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   navItemLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 16,
-    fontWeight: '600',
     color: Brand.textPrimary,
   },
   navItemLabelActive: {
@@ -1110,8 +1117,8 @@ const styles = StyleSheet.create({
     color: Brand.textPrimary,
   },
   settingsLabel: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
-    fontWeight: '700',
     color: Brand.textPrimary,
   },
   menuButton: {
@@ -1187,13 +1194,13 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   bottomNavLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
-    fontWeight: '600',
     color: Brand.textMuted,
   },
   bottomNavLabelActive: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primary,
-    fontWeight: '800',
   },
   bottomNavCreateSlot: {
     flex: 1,
@@ -1268,8 +1275,8 @@ const bellStyles = StyleSheet.create({
     borderBottomColor: Brand.border,
   },
   panelTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 17,
-    fontWeight: '800',
     color: Brand.textPrimary,
   },
   headerActions: {

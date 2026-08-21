@@ -42,6 +42,34 @@ export function PinIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: Ico
   );
 }
 
+export function CompassIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="12" r="9" stroke={color} strokeWidth={strokeWidth} />
+      <Path
+        d="M15.3 8.7l-2.1 4.9-4.9 2.1 2.1-4.9 4.9-2.1Z"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
+export function PersonIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="12" cy="8" r="3.6" stroke={color} strokeWidth={strokeWidth} />
+      <Path
+        d="M4.5 20c1.4-3.6 4.4-5.5 7.5-5.5s6.1 1.9 7.5 5.5"
+        stroke={color}
+        strokeWidth={strokeWidth}
+        strokeLinecap="round"
+      />
+    </Svg>
+  );
+}
+
 export function PeopleIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
