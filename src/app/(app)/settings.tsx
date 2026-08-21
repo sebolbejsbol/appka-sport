@@ -17,7 +17,7 @@ import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { Button } from '@/components/button';
 import { LegalFooterLinks } from '@/components/legal-footer-links';
 import { ScreenScaffold } from '@/components/screen-scaffold';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useLocale } from '@/context/locale';
 import { useSession } from '@/context/session';
@@ -44,6 +44,31 @@ import {
   webPushSupport,
 } from '@/lib/web-push';
 import type { Locale } from '@/i18n';
+
+function SettingsRow({
+  label,
+  hint,
+  onPress,
+  disabled,
+}: {
+  label: string;
+  hint: string;
+  onPress: () => void;
+  disabled?: boolean;
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={({ pressed }) => [styles.settingsRow, pressed && !disabled && styles.settingsRowPressed]}>
+      <View style={styles.settingsRowText}>
+        <Text style={styles.rowLabel}>{label}</Text>
+        <Text style={styles.cardHint}>{hint}</Text>
+      </View>
+      <Text style={styles.settingsRowChevron}>›</Text>
+    </Pressable>
+  );
+}
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -325,32 +350,27 @@ export default function SettingsScreen() {
             ) : null}
           </View>
 
+          {/* Trzy proste akcje nawigacyjne zebrane w jedną listę z kreskowanymi
+              rozdzielaczami (ten sam motyw "linii boiska" co karty eventów/
+              turniejów) zamiast trzech osobnych, powtarzalnych kart z
+              identycznym układem tytuł+opis+przycisk — mniej szablonowe,
+              te same handlery/trasy co wcześniej. */}
           <View style={styles.card}>
-            <Text style={styles.cardTitle}>{t('settings.reportFieldTitle')}</Text>
-            <Text style={styles.cardHint}>{t('settings.reportFieldHint')}</Text>
-            <Button
-              label={t('settings.reportFieldAction')}
-              variant="secondary"
+            <SettingsRow
+              label={t('settings.reportFieldTitle')}
+              hint={t('settings.reportFieldHint')}
               onPress={() => router.push('/field/report')}
             />
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{t('settings.blockedUsersTitle')}</Text>
-            <Text style={styles.cardHint}>{t('settings.blockedUsersHint')}</Text>
-            <Button
-              label={t('settings.blockedUsersAction')}
-              variant="secondary"
+            <View style={styles.rowDivider} />
+            <SettingsRow
+              label={t('settings.blockedUsersTitle')}
+              hint={t('settings.blockedUsersHint')}
               onPress={() => router.push('/settings/blocked')}
             />
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{t('settings.accountTitle')}</Text>
-            <Text style={styles.cardHint}>{t('settings.accountHint')}</Text>
-            <Button
+            <View style={styles.rowDivider} />
+            <SettingsRow
               label={t('settings.signOut')}
-              variant="secondary"
+              hint={t('settings.accountHint')}
               onPress={handleSignOut}
               disabled={busy}
             />
@@ -401,15 +421,17 @@ const styles = StyleSheet.create({
     ...shadow('sm'),
   },
   cardTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 18,
-    fontWeight: '700',
     color: Brand.textPrimary,
   },
   cardHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
   },
   status: {
+    fontFamily: BrandFonts.bodyMedium,
     fontSize: 14,
     color: Brand.textSecondary,
   },
@@ -420,14 +442,39 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   rowLabel: {
+    fontFamily: BrandFonts.bodyMedium,
     fontSize: 16,
     color: Brand.textPrimary,
     flex: 1,
     paddingRight: 12,
   },
   errorText: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.danger,
+  },
+  rowDivider: {
+    borderTopWidth: 1.5,
+    borderStyle: 'dashed',
+    borderTopColor: Brand.border,
+  },
+  settingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  settingsRowPressed: {
+    opacity: 0.7,
+  },
+  settingsRowText: {
+    flex: 1,
+    gap: 3,
+    paddingRight: 8,
+  },
+  settingsRowChevron: {
+    fontSize: 22,
+    fontWeight: '300',
+    color: Brand.textMuted,
   },
   langRow: {
     flexDirection: 'row',
@@ -453,8 +500,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   langLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
-    fontWeight: '600',
     color: Brand.textPrimary,
   },
   langLabelActive: {
@@ -465,8 +512,8 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.dangerLight,
   },
   dangerTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 18,
-    fontWeight: '700',
     color: Brand.danger,
   },
   dangerButton: {
@@ -485,8 +532,8 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   dangerButtonText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 16,
-    fontWeight: '600',
     color: Brand.danger,
   },
   legalFooter: {
