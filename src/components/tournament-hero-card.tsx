@@ -1,7 +1,8 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { formatWhen, sportEmoji, statusLabel } from '@/components/tournament-card';
-import { Brand, Radius } from '@/constants/theme';
+import { CalendarIcon, PeopleIcon, PinIcon } from '@/components/icons';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { formatTeamSport } from '@/lib/sports';
@@ -37,7 +38,7 @@ export function TournamentHeroCard({ tournament, onPress }: Props) {
         )}
         <View style={styles.badgeRow}>
           <View style={styles.featuredBadge}>
-            <Text style={styles.featuredBadgeText}>🏆 {t('eventsList.tournamentFeaturedBadge')}</Text>
+            <Text style={styles.featuredBadgeText}>{t('eventsList.tournamentFeaturedBadge')}</Text>
           </View>
           <View style={styles.statusBadge}>
             <Text style={styles.statusBadgeText}>{statusLabel(tournament.status)}</Text>
@@ -51,7 +52,7 @@ export function TournamentHeroCard({ tournament, onPress }: Props) {
         </Text>
 
         <View style={styles.metaRow}>
-          <Text style={styles.metaIcon}>📅</Text>
+          <CalendarIcon size={14} color={Brand.textMuted} />
           <Text style={styles.metaText} numberOfLines={1}>
             {formatWhen(tournament)}
           </Text>
@@ -59,12 +60,14 @@ export function TournamentHeroCard({ tournament, onPress }: Props) {
 
         {place ? (
           <View style={styles.metaRow}>
-            <Text style={styles.metaIcon}>📍</Text>
+            <PinIcon size={14} color={Brand.textMuted} />
             <Text style={styles.metaText} numberOfLines={1}>
               {place}
             </Text>
           </View>
         ) : null}
+
+        <View style={styles.divider} />
 
         <View style={styles.footer}>
           <View style={styles.sportChip}>
@@ -72,9 +75,12 @@ export function TournamentHeroCard({ tournament, onPress }: Props) {
               {emoji} {formatTeamSport(tournament.sport)}
             </Text>
           </View>
-          <Text style={styles.teams}>
-            👥 {tournament.approved_teams_count}/{tournament.max_teams}
-          </Text>
+          <View style={styles.teamsRow}>
+            <PeopleIcon size={14} color={Brand.textSecondary} />
+            <Text style={styles.teams}>
+              {tournament.approved_teams_count}/{tournament.max_teams}
+            </Text>
+          </View>
           <View style={styles.footerSpacer} />
           <View style={styles.ctaBtn}>
             <Text style={styles.ctaText}>{t('eventsList.tournamentFeaturedCta')}</Text>
@@ -88,9 +94,9 @@ export function TournamentHeroCard({ tournament, onPress }: Props) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Brand.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Brand.primary,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: Brand.ink,
     overflow: 'hidden',
     marginHorizontal: 16,
     marginTop: 12,
@@ -132,12 +138,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: Radius.pill,
-    backgroundColor: Brand.primary,
+    backgroundColor: Brand.amber,
   },
   featuredBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
-    fontWeight: '800',
-    color: '#ffffff',
+    color: Brand.ink,
   },
   statusBadge: {
     paddingHorizontal: 10,
@@ -146,8 +152,8 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.ink,
   },
   statusBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
-    fontWeight: '700',
     color: '#ffffff',
   },
   body: {
@@ -155,23 +161,27 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   title: {
-    fontSize: 20,
-    fontWeight: '800',
+    fontFamily: BrandFonts.display,
+    fontSize: 23,
     color: Brand.textPrimary,
-    letterSpacing: -0.3,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-  },
-  metaIcon: {
-    fontSize: 14,
+    gap: 7,
   },
   metaText: {
     flex: 1,
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
+  },
+  divider: {
+    height: 0,
+    borderTopWidth: 1.5,
+    borderStyle: 'dashed',
+    borderTopColor: Brand.divider,
+    marginTop: 6,
   },
   footer: {
     flexDirection: 'row',
@@ -190,13 +200,19 @@ const styles = StyleSheet.create({
     borderColor: Brand.border,
   },
   sportChipText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
-    fontWeight: '700',
     color: Brand.textSecondary,
   },
+  teamsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
+  },
   teams: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 13,
-    fontWeight: '700',
     color: Brand.textSecondary,
   },
   ctaBtn: {
@@ -206,8 +222,8 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primary,
   },
   ctaText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
-    fontWeight: '700',
     color: '#ffffff',
   },
 });

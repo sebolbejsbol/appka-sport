@@ -16,8 +16,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { EventCard } from '@/components/event-card';
 import { EventsMap } from '@/components/events-map';
+import { CloseIcon, PeopleIcon, SearchIcon } from '@/components/icons';
 import { TeamAvatar } from '@/components/team-avatar';
-import { Brand, Layout, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Layout, Radius } from '@/constants/theme';
 import { shadow, Typography } from '@/constants/ui';
 import { useUserLocation } from '@/hooks/use-user-location';
 import {
@@ -163,11 +164,13 @@ export default function EventsScreen() {
         <View style={styles.titleRow}>
           <View style={styles.titleBlock}>
             <Text style={styles.title}>{t('eventsList.title')}</Text>
-            <Text style={styles.subtitle}>
-              {visibleEvents.length}{' '}
-              {visibleEvents.length === 1 ? t('eventsList.countOne') : t('eventsList.countMany')}
-              {activeCount > 0 ? ` · ${activeCount} ${t('eventsList.filtersShort')}` : ''}
-            </Text>
+            <View style={styles.subtitleRow}>
+              <Text style={styles.subtitleCount}>{visibleEvents.length}</Text>
+              <Text style={styles.subtitle}>
+                {visibleEvents.length === 1 ? t('eventsList.countOne') : t('eventsList.countMany')}
+                {activeCount > 0 ? ` · ${activeCount} ${t('eventsList.filtersShort')}` : ''}
+              </Text>
+            </View>
           </View>
           <Pressable
             style={({ pressed }) => [styles.createBtn, pressed && styles.pressed]}
@@ -177,7 +180,7 @@ export default function EventsScreen() {
         </View>
 
         <View style={styles.searchRow}>
-          <Text style={styles.searchIcon}>🔎</Text>
+          <SearchIcon size={17} color={Brand.textSecondary} />
           <TextInput
             style={styles.searchInput}
             placeholder={t('eventsList.searchPlaceholder')}
@@ -191,7 +194,7 @@ export default function EventsScreen() {
               onPress={() => setFilters((prev) => ({ ...prev, search: '' }))}
               hitSlop={8}
               style={({ pressed }) => pressed && styles.pressed}>
-              <Text style={styles.clearSearch}>✕</Text>
+              <CloseIcon size={14} color={Brand.textMuted} />
             </Pressable>
           ) : null}
         </View>
@@ -436,11 +439,15 @@ function PopularCard({ event, onPress }: { event: DiscoverEvent; onPress: () => 
       <Text style={styles.popTitle} numberOfLines={2}>
         {event.title?.trim() || categoryLabel(event.category)}
       </Text>
+      <View style={styles.popDivider} />
       <View style={styles.popMetaRow}>
         <View style={[styles.popBadge, { backgroundColor: meta.color }]}>
           <Text style={styles.popBadgeText}>{categoryLabel(event.category)}</Text>
         </View>
-        <Text style={styles.popCount}>👥 {event.participant_count}</Text>
+        <View style={styles.popCountRow}>
+          <PeopleIcon size={12} color={Brand.textSecondary} />
+          <Text style={styles.popCount}>{event.participant_count}</Text>
+        </View>
       </View>
     </Pressable>
   );
@@ -480,21 +487,35 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.screenTitle,
+    fontSize: 32,
+    textTransform: 'uppercase',
+    letterSpacing: 0.2,
+  },
+  subtitleRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    gap: 5,
+    marginTop: 2,
+  },
+  subtitleCount: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
+    fontSize: 13,
+    color: Brand.primary,
   },
   subtitle: {
     ...Typography.caption,
-    marginTop: 2,
   },
   createBtn: {
     backgroundColor: Brand.primary,
-    paddingHorizontal: 14,
-    paddingVertical: 9,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderRadius: Radius.pill,
     ...shadow('sm'),
   },
   createBtnText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
-    fontWeight: '800',
     fontSize: 13,
   },
   playRow: {
@@ -543,28 +564,22 @@ const styles = StyleSheet.create({
   searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: 9,
     marginTop: 14,
-    paddingHorizontal: 12,
-    height: 44,
+    paddingHorizontal: 14,
+    height: 46,
     backgroundColor: Brand.surface,
     borderRadius: Radius.pill,
     borderWidth: 1,
     borderColor: Brand.border,
-  },
-  searchIcon: {
-    fontSize: 14,
+    ...shadow('sm'),
   },
   searchInput: {
     flex: 1,
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     color: Brand.textPrimary,
     paddingVertical: 0,
-  },
-  clearSearch: {
-    fontSize: 15,
-    color: Brand.textMuted,
-    paddingHorizontal: 4,
   },
   subChipsRow: {
     gap: 8,
@@ -572,62 +587,66 @@ const styles = StyleSheet.create({
     paddingRight: 8,
   },
   subChip: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
+    paddingHorizontal: 13,
+    paddingVertical: 7,
     borderRadius: Radius.pill,
     borderWidth: 1,
     borderColor: Brand.border,
     backgroundColor: Brand.surfaceMuted,
   },
   subChipActive: {
-    backgroundColor: Brand.primary,
-    borderColor: Brand.primary,
+    backgroundColor: Brand.ink,
+    borderColor: Brand.ink,
   },
   subChipText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
-    fontWeight: '600',
     color: Brand.textSecondary,
   },
   subChipTextActive: {
     color: '#ffffff',
   },
+  // Pasek pod nagłówkiem jak zakładki na wynikach meczu: aktywna opcja to
+  // kreska pod spodem (Bursztyn Amber), nie wypełniona plakietka — inny
+  // język niż chipy filtrów wyżej, celowo (rozróżnia "filtr" od "widok/sort").
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 12,
+    borderBottomWidth: 1.5,
+    borderStyle: 'dashed',
+    borderBottomColor: Brand.border,
   },
   sortRow: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 4,
   },
   sortChip: {
     paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: Radius.pill,
-    backgroundColor: Brand.surfaceMuted,
-    borderWidth: 1,
-    borderColor: Brand.border,
+    paddingVertical: 10,
+    borderBottomWidth: 2,
+    borderBottomColor: 'transparent',
   },
   sortChipActive: {
-    backgroundColor: Brand.primaryLight,
-    borderColor: Brand.primaryMuted,
+    borderBottomColor: Brand.amber,
   },
   sortChipText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
-    fontWeight: '600',
-    color: Brand.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+    color: Brand.textMuted,
   },
   sortChipTextActive: {
-    color: Brand.primaryDark,
+    color: Brand.textPrimary,
   },
   viewToggle: {
     flexDirection: 'row',
     backgroundColor: Brand.surfaceMuted,
     borderRadius: Radius.pill,
-    borderWidth: 1,
-    borderColor: Brand.border,
     padding: 2,
+    marginBottom: 8,
   },
   viewBtn: {
     paddingHorizontal: 14,
@@ -635,16 +654,15 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
   viewBtnActive: {
-    backgroundColor: Brand.surface,
-    ...shadow('sm'),
+    backgroundColor: Brand.ink,
   },
   viewBtnText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
-    fontWeight: '700',
     color: Brand.textMuted,
   },
   viewBtnTextActive: {
-    color: Brand.textPrimary,
+    color: '#ffffff',
   },
   loader: {
     marginTop: 40,
@@ -656,8 +674,8 @@ const styles = StyleSheet.create({
     width: 220,
   },
   shelfTitle: {
-    fontSize: 16,
-    fontWeight: '800',
+    fontFamily: BrandFonts.display,
+    fontSize: 20,
     color: Brand.textPrimary,
     marginBottom: 10,
   },
@@ -671,11 +689,19 @@ const styles = StyleSheet.create({
   popCard: {
     width: 168,
     backgroundColor: Brand.surface,
-    borderRadius: Radius.lg,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: Brand.border,
     padding: 10,
     ...shadow('sm'),
+  },
+  popDivider: {
+    height: 0,
+    borderTopWidth: 1.5,
+    borderStyle: 'dashed',
+    borderTopColor: Brand.divider,
+    marginTop: 8,
+    marginHorizontal: -10,
   },
   popThumb: {
     height: 84,
@@ -699,8 +725,8 @@ const styles = StyleSheet.create({
     borderColor: '#ffffff',
   },
   popTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
-    fontWeight: '700',
     color: Brand.textPrimary,
     minHeight: 36,
   },
@@ -716,13 +742,19 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
   popBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 10,
-    fontWeight: '800',
     color: '#ffffff',
   },
+  popCountRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   popCount: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 12,
-    fontWeight: '700',
     color: Brand.textSecondary,
   },
   teamChip: {
@@ -742,11 +774,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   teamChipName: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
-    fontWeight: '700',
     color: Brand.textPrimary,
   },
   teamChipMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
     marginTop: 1,
