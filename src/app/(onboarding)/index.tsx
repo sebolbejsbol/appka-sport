@@ -22,7 +22,7 @@ import {
   TrophyIcon,
 } from '@/components/icons';
 import { Brand, BrandFonts, Radius } from '@/constants/theme';
-import { Typography } from '@/constants/ui';
+import { shadow, Typography } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { t, type TKey } from '@/i18n';
 import { supabase } from '@/lib/supabase';
@@ -35,7 +35,7 @@ const SLIDES: Slide[] = [
   { Icon: PeopleIcon, color: Brand.pitch, titleKey: 'onboarding.slide2Title', bodyKey: 'onboarding.slide2Body' },
   { Icon: ChatIcon, color: Brand.teal, titleKey: 'onboarding.slide3Title', bodyKey: 'onboarding.slide3Body' },
   { Icon: PinIcon, color: Brand.amberDark, titleKey: 'onboarding.slide4Title', bodyKey: 'onboarding.slide4Body' },
-  { Icon: TrophyIcon, color: Brand.ink, titleKey: 'onboarding.slide5Title', bodyKey: 'onboarding.slide5Body' },
+  { Icon: TrophyIcon, color: '#C026D3', titleKey: 'onboarding.slide5Title', bodyKey: 'onboarding.slide5Body' },
 ];
 
 /**
@@ -114,47 +114,63 @@ export default function OnboardingScreen() {
     );
   }
 
+  const activeSlide = SLIDES[activeIndex];
+  const nextSlide = SLIDES[(activeIndex + 1) % SLIDES.length];
+  const prevSlide = SLIDES[(activeIndex + SLIDES.length - 1) % SLIDES.length];
+
   return (
     <View style={styles.flex1}>
-      <Pressable
-        onPress={() => void finishOnboarding()}
-        disabled={finishing}
-        hitSlop={10}
-        style={[styles.skip, { top: insets.top + 10 }]}>
-        <Text style={styles.skipText}>{t('onboarding.skip')}</Text>
-      </Pressable>
+      <View style={[styles.artCanvas, { paddingTop: insets.top }]}>
+        <View style={[styles.artGlow, { backgroundColor: activeSlide.color }]} />
 
-      <ScrollView
-        ref={scrollRef}
-        horizontal
-        pagingEnabled
-        showsHorizontalScrollIndicator={false}
-        onMomentumScrollEnd={onScrollEnd}
-        style={styles.flex1}>
-        {SLIDES.map((slide) => (
-          <View key={slide.titleKey} style={[styles.slide, { width, paddingTop: insets.top + 80 }]}>
-            <View style={[styles.badge, { backgroundColor: slide.color }]}>
-              <slide.Icon size={44} color="#ffffff" strokeWidth={1.6} />
-            </View>
-            <Text style={styles.slideTitle}>{t(slide.titleKey)}</Text>
-            <Text style={styles.slideBody}>{t(slide.bodyKey)}</Text>
-          </View>
-        ))}
-      </ScrollView>
+        <View style={[styles.pinSmall, styles.pinTopRight, { borderColor: nextSlide.color }]} />
+        <View style={[styles.pinSmall, styles.pinBottomLeft, { borderColor: prevSlide.color }]} />
 
-      <View style={[styles.footer, { paddingBottom: insets.bottom + 20 }]}>
-        <View style={styles.dots}>
+        <View style={[styles.pinMain, { borderColor: activeSlide.color }]}>
+          <activeSlide.Icon size={34} color="#ffffff" strokeWidth={1.7} />
+        </View>
+      </View>
+
+      <View style={[styles.sheet, { paddingBottom: insets.bottom + 20 }]}>
+        <View style={styles.progressRow}>
           {SLIDES.map((slide, i) => (
-            <Pressable key={slide.titleKey} onPress={() => goToSlide(i)} hitSlop={8}>
-              <View style={[styles.dot, i === activeIndex && styles.dotActive]} />
-            </Pressable>
+            <View
+              key={slide.titleKey}
+              style={[styles.progressSeg, i <= activeIndex && styles.progressSegActive]}
+            />
           ))}
         </View>
-        <Button
-          label={isLastSlide ? t('onboarding.tryIt') : t('onboarding.next')}
-          onPress={() => (isLastSlide ? setPhase('trial') : goToSlide(activeIndex + 1))}
-          style={styles.nextButton}
-        />
+
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          showsHorizontalScrollIndicator={false}
+          onMomentumScrollEnd={onScrollEnd}>
+          {SLIDES.map((slide) => (
+            <View key={slide.titleKey} style={{ width }}>
+              <Text style={styles.slideTitle}>{t(slide.titleKey)}</Text>
+              <Text style={styles.slideBody}>{t(slide.bodyKey)}</Text>
+            </View>
+          ))}
+        </ScrollView>
+
+        <View style={styles.footerRow}>
+          <Pressable
+            onPress={() => void finishOnboarding()}
+            disabled={finishing}
+            hitSlop={10}>
+            <Text style={styles.skipText}>{t('onboarding.skip')}</Text>
+          </Pressable>
+          <Pressable
+            onPress={() => (isLastSlide ? setPhase('trial') : goToSlide(activeIndex + 1))}
+            style={({ pressed }) => [styles.nextPill, pressed && styles.pressed]}>
+            <Text style={styles.nextPillText}>
+              {isLastSlide ? t('onboarding.tryIt') : t('onboarding.next')}
+            </Text>
+            <Text style={styles.nextArrow}>→</Text>
+          </Pressable>
+        </View>
       </View>
     </View>
   );
@@ -164,11 +180,6 @@ const styles = StyleSheet.create({
   flex1: {
     flex: 1,
     backgroundColor: Brand.screenBackground,
-  },
-  skip: {
-    position: 'absolute',
-    right: 20,
-    zIndex: 10,
   },
   trialSkip: {
     position: 'absolute',
@@ -180,59 +191,124 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: Brand.textSecondary,
   },
-  slide: {
-    alignItems: 'center',
-    paddingHorizontal: 32,
-  },
-  badge: {
-    width: 108,
-    height: 108,
-    borderRadius: 32,
+  artCanvas: {
+    flex: 1,
+    backgroundColor: Brand.ink,
+    overflow: 'hidden',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 28,
+  },
+  artGlow: {
+    position: 'absolute',
+    top: -80,
+    right: -100,
+    width: 320,
+    height: 320,
+    borderRadius: 160,
+    opacity: 0.3,
+  },
+  pinMain: {
+    width: 108,
+    height: 108,
+    borderRadius: 999,
+    borderWidth: 4,
+    backgroundColor: 'rgba(255,255,255,0.08)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pinSmall: {
+    position: 'absolute',
+    width: 54,
+    height: 54,
+    borderRadius: 999,
+    borderWidth: 3,
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  pinTopRight: {
+    top: '22%',
+    right: '18%',
+  },
+  pinBottomLeft: {
+    bottom: '20%',
+    left: '16%',
+  },
+  sheet: {
+    flexShrink: 0,
+    backgroundColor: Brand.surface,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    paddingTop: 24,
+    paddingHorizontal: 26,
+    gap: 20,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    gap: 6,
+  },
+  progressSeg: {
+    height: 4,
+    flex: 1,
+    borderRadius: 999,
+    backgroundColor: Brand.border,
+  },
+  progressSegActive: {
+    backgroundColor: Brand.primary,
   },
   slideTitle: {
-    ...Typography.screenTitle,
-    fontSize: 26,
-    textAlign: 'center',
-    marginBottom: 12,
+    fontFamily: BrandFonts.display,
+    fontSize: 30,
+    color: Brand.textPrimary,
+    textTransform: 'uppercase',
+    lineHeight: 32,
   },
   slideBody: {
     fontFamily: BrandFonts.body,
-    fontSize: 16,
-    lineHeight: 24,
-    color: Brand.textSecondary,
-    textAlign: 'center',
+    fontSize: 14.5,
+    lineHeight: 21,
+    color: Brand.textMuted,
+    marginTop: 12,
   },
-  footer: {
-    paddingHorizontal: 24,
-    paddingTop: 12,
-    gap: 20,
-  },
-  dots: {
+  footerRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 16,
   },
-  dot: {
-    width: 8,
-    height: 8,
+  nextPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    paddingVertical: 15,
+    paddingHorizontal: 26,
     borderRadius: Radius.pill,
-    backgroundColor: Brand.borderStrong,
+    backgroundColor: Brand.primary,
+    ...shadow('sm'),
   },
-  dotActive: {
-    backgroundColor: Brand.amber,
-    width: 22,
+  nextPillText: {
+    fontFamily: BrandFonts.bodyBold,
+    fontSize: 15,
+    color: '#ffffff',
   },
-  nextButton: {
-    width: '100%',
+  nextArrow: {
+    fontSize: 16,
+    color: '#ffffff',
+  },
+  pressed: {
+    opacity: 0.88,
   },
   doneContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 32,
     gap: 4,
+  },
+  badge: {
+    width: 96,
+    height: 96,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
   },
   doneTitle: {
     ...Typography.screenTitle,
