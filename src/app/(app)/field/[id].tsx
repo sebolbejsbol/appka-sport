@@ -12,7 +12,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FieldRatingStars } from '@/components/field-rating-stars';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { Typography } from '@/constants/ui';
 import { t } from '@/i18n';
 import { formatEventDateTime } from '@/lib/datetime';
@@ -247,6 +247,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   backText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 16,
     color: Brand.textSecondary,
   },
@@ -271,11 +272,12 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   placeName: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontFamily: BrandFonts.display,
+    fontSize: 25,
     color: Brand.textPrimary,
   },
   subtitle: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     marginTop: 2,
@@ -287,6 +289,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   metaText: {
+    fontFamily: BrandFonts.bodyMedium,
     fontSize: 14,
     color: Brand.textSecondary,
   },
@@ -304,12 +307,12 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   statusBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
-    fontWeight: '700',
   },
   sectionTitle: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
-    fontWeight: '700',
     color: Brand.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
@@ -321,7 +324,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     backgroundColor: Brand.surface,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 14,
     borderWidth: 1,
     borderColor: Brand.border,
@@ -331,11 +334,13 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   avgValue: {
-    fontSize: 28,
-    fontWeight: '700',
+    fontFamily: BrandFonts.display,
+    fontVariant: ['tabular-nums'],
+    fontSize: 30,
     color: Brand.textPrimary,
   },
   countText: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
     textAlign: 'right',
@@ -350,28 +355,32 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 12,
+    paddingVertical: 4,
   },
   breakdownLabel: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
     flex: 1,
   },
   breakdownValue: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 13,
-    fontWeight: '600',
     color: Brand.textPrimary,
   },
   reviewsTitle: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
-    fontWeight: '600',
     color: Brand.textPrimary,
     marginTop: 8,
     marginBottom: 8,
   },
   reviewRow: {
     paddingVertical: 12,
-    borderTopWidth: 1,
-    borderTopColor: Brand.border,
+    borderTopWidth: 1.5,
+    borderStyle: 'dashed',
+    borderTopColor: Brand.divider,
     gap: 4,
   },
   reviewHeader: {
@@ -381,21 +390,24 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   reviewAuthor: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
-    fontWeight: '600',
     color: Brand.textPrimary,
     flex: 1,
   },
   reviewMeta: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 13,
-    fontWeight: '600',
     color: Brand.textPrimary,
   },
   reviewEvent: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
   },
   reviewComment: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     marginTop: 4,
