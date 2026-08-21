@@ -770,6 +770,7 @@ export const pl = {
     },
   },
   event: {
+    manageEvent: 'Zarządzaj wydarzeniem',
     newTitle: 'Nowy event',
     atCourt: 'Boisko',
     locationLabel: 'Lokalizacja',

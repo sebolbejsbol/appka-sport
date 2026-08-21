@@ -758,6 +758,7 @@ export const en: DeepPartialWide<Translations> = {
     },
   },
   event: {
+    manageEvent: 'Manage event',
     newTitle: 'New event',
     atCourt: 'Court',
     locationLabel: 'Location',

@@ -17,12 +17,13 @@ import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanim
 
 import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { CheckInRipple } from '@/components/check-in-ripple';
+import { ShareIcon, SlidersIcon } from '@/components/icons';
 import { EventBlockedCoPlayerBanner } from '@/components/event-blocked-co-player-banner';
 import { FieldRatingPromptModal } from '@/components/field-rating-prompt-modal';
 import { EventMetaBadges } from '@/components/event-meta-badges';
 import { NavigateToFieldButton } from '@/components/navigate-to-field-button';
 import { Button } from '@/components/button';
-import { Brand, BrandFonts } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { Typography } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { useWatchingLocation } from '@/hooks/use-watching-location';
@@ -907,87 +908,93 @@ export default function EventDetailScreen() {
             </View>
           ) : null}
 
+          {/* Jeden wyraźny główny przycisk (dołącz/wypisz) + mały ikonowy
+              "udostępnij" obok niego, zamiast rzędu równych, pełnej
+              szerokości przycisków jeden pod drugim — te wyglądały jak
+              przypadkowa lista opcji, nie jak hierarchia "to jest
+              najważniejsze, reszta to dodatki". Akcje zarządzania
+              (zaproś/zakończ/edytuj/usuń) chowają się pod jeden przycisk
+              "Zarządzaj", który otwiera action sheet — te same handlery,
+              tylko nie zaśmiecają głównego widoku pięcioma przyciskami. */}
           <View style={styles.actions}>
-            {event.status === 'planned' ? (
-              event.is_joined ? (
-                <Button
-                  label={t('event.leave')}
-                  variant="secondary"
-                  onPress={handleLeave}
-                  disabled={busy}
-                />
-              ) : event.is_waitlisted ? (
-                <Button
-                  label={t('event.leaveWaitlist')}
-                  variant="secondary"
-                  onPress={handleLeaveWaitlist}
-                  disabled={busy}
-                />
-              ) : canJoinWaitlist ? (
-                <Button
-                  label={t('event.joinWaitlist')}
-                  onPress={handleJoin}
-                  disabled={busy}
-                />
-              ) : isFull ? (
-                <Button label={t('event.full')} disabled />
-              ) : (
-                <Button label={t('event.join')} onPress={handleJoin} disabled={busy} />
-              )
-            ) : null}
+            <View style={styles.primaryActionsRow}>
+              {event.status === 'planned' ? (
+                <View style={styles.flex1}>
+                  {event.is_joined ? (
+                    <Button
+                      label={t('event.leave')}
+                      variant="secondary"
+                      onPress={handleLeave}
+                      disabled={busy}
+                    />
+                  ) : event.is_waitlisted ? (
+                    <Button
+                      label={t('event.leaveWaitlist')}
+                      variant="secondary"
+                      onPress={handleLeaveWaitlist}
+                      disabled={busy}
+                    />
+                  ) : canJoinWaitlist ? (
+                    <Button
+                      label={t('event.joinWaitlist')}
+                      onPress={handleJoin}
+                      disabled={busy}
+                    />
+                  ) : isFull ? (
+                    <Button label={t('event.full')} disabled />
+                  ) : (
+                    <Button label={t('event.join')} onPress={handleJoin} disabled={busy} />
+                  )}
+                </View>
+              ) : null}
 
-            {event.status === 'planned' && (event.is_joined || event.can_manage) ? (
-              <Button
-                label={t('teams.shareEvent')}
-                variant="secondary"
-                onPress={() =>
-                  router.push({
-                    pathname: '/event/[id]/share-team',
-                    params: { id: event.id },
-                  })
-                }
-                disabled={busy}
-              />
-            ) : null}
-
-            {showManageActions ? (
-              <>
-                <Button
-                  label={t('playNow.inviteSeekersAction')}
-                  variant="secondary"
-                  onPress={() => setInviteSeekersOpen(true)}
-                  disabled={busy}
-                />
-                <Button
-                  label={t('teams.eventInviteAction')}
-                  variant="secondary"
+              {event.status === 'planned' && (event.is_joined || event.can_manage) ? (
+                <Pressable
                   onPress={() =>
                     router.push({
-                      pathname: '/event/[id]/invite-team',
+                      pathname: '/event/[id]/share-team',
                       params: { id: event.id },
                     })
                   }
                   disabled={busy}
-                />
-                <Button
-                  label={t('event.finishEvent')}
-                  onPress={handleFinish}
-                  disabled={busy}
-                />
-                <Button
-                  label={t('event.edit')}
-                  variant="secondary"
-                  onPress={handleEdit}
-                  disabled={busy}
-                />
-                <Button
-                  label={t('event.delete')}
-                  variant="secondary"
-                  onPress={handleDelete}
-                  disabled={busy}
-                  style={styles.deleteBtn}
-                />
-              </>
+                  accessibilityRole="button"
+                  accessibilityLabel={t('teams.shareEvent')}
+                  style={({ pressed }) => [styles.shareIconBtn, pressed && styles.pressed]}>
+                  <ShareIcon size={19} color={Brand.textPrimary} />
+                </Pressable>
+              ) : null}
+            </View>
+
+            {showManageActions ? (
+              <Pressable
+                onPress={() =>
+                  showActionSheet({
+                    title: t('event.manageEvent'),
+                    cancelLabel: t('common.cancel'),
+                    options: [
+                      {
+                        label: t('playNow.inviteSeekersAction'),
+                        onPress: () => setInviteSeekersOpen(true),
+                      },
+                      {
+                        label: t('teams.eventInviteAction'),
+                        onPress: () =>
+                          router.push({
+                            pathname: '/event/[id]/invite-team',
+                            params: { id: event.id },
+                          }),
+                      },
+                      { label: t('event.finishEvent'), onPress: handleFinish },
+                      { label: t('event.edit'), onPress: handleEdit },
+                      { label: t('event.delete'), onPress: handleDelete, destructive: true },
+                    ],
+                  })
+                }
+                disabled={busy}
+                style={({ pressed }) => [styles.manageBtn, pressed && styles.pressed]}>
+                <SlidersIcon size={16} color="#ffffff" />
+                <Text style={styles.manageBtnText}>{t('event.manageEvent')}</Text>
+              </Pressable>
             ) : null}
           </View>
         </View>
@@ -1299,9 +1306,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Brand.textMuted,
   },
-  deleteBtn: {
-    borderColor: Brand.danger,
-  },
   descriptionText: {
     fontFamily: BrandFonts.body,
     fontSize: 16,
@@ -1459,8 +1463,38 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   actions: {
-    gap: 12,
+    gap: 10,
     marginTop: 8,
+  },
+  flex1: {
+    flex: 1,
+  },
+  primaryActionsRow: {
+    flexDirection: 'row',
+    alignItems: 'stretch',
+    gap: 10,
+  },
+  shareIconBtn: {
+    width: 52,
+    borderRadius: Radius.md,
+    borderWidth: 1,
+    borderColor: Brand.borderStrong,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  manageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: Brand.ink,
+    borderRadius: Radius.md,
+    paddingVertical: 14,
+  },
+  manageBtnText: {
+    fontFamily: BrandFonts.bodyBold,
+    fontSize: 15,
+    color: '#ffffff',
   },
 });
 // eventy: obsługa wydarzeń rozszerzonych (kategorie, zdjęcie, organizator)

@@ -42,6 +42,28 @@ export function PinIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: Ico
   );
 }
 
+export function ShareIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="18" cy="5.5" r="2.6" stroke={color} strokeWidth={strokeWidth} />
+      <Circle cx="6" cy="12" r="2.6" stroke={color} strokeWidth={strokeWidth} />
+      <Circle cx="18" cy="18.5" r="2.6" stroke={color} strokeWidth={strokeWidth} />
+      <Path d="M8.3 10.6l7.4-3.7M8.3 13.4l7.4 3.7" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function SlidersIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M5 6h9M18 6h1M4 12h1M8 12h12M5 18h13M20 18h0" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+      <Circle cx="16" cy="6" r="2" fill="#fff" stroke={color} strokeWidth={strokeWidth} />
+      <Circle cx="6" cy="12" r="2" fill="#fff" stroke={color} strokeWidth={strokeWidth} />
+      <Circle cx="17" cy="18" r="2" fill="#fff" stroke={color} strokeWidth={strokeWidth} />
+    </Svg>
+  );
+}
+
 export function SearchIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
