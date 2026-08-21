@@ -16,6 +16,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
 
 import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
+import { CheckInRipple } from '@/components/check-in-ripple';
 import { EventBlockedCoPlayerBanner } from '@/components/event-blocked-co-player-banner';
 import { FieldRatingPromptModal } from '@/components/field-rating-prompt-modal';
 import { EventMetaBadges } from '@/components/event-meta-badges';
@@ -94,6 +95,10 @@ export default function EventDetailScreen() {
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(false);
   const [busy, setBusy] = useState(false);
+  // Sygnaturowa animacja zameldowania (patrz components/check-in-ripple.tsx) —
+  // czysto wizualne, jednorazowe pulsowanie po udanym zameldowaniu, samo się
+  // wygasza. Nie wpływa na żadną logikę/dane.
+  const [justCheckedIn, setJustCheckedIn] = useState(false);
   const [opinionsOpen, setOpinionsOpen] = useState(false);
   const [inviteSeekersOpen, setInviteSeekersOpen] = useState(false);
   const [ratingModalOpen, setRatingModalOpen] = useState(false);
@@ -376,6 +381,8 @@ export default function EventDetailScreen() {
         return;
       }
 
+      setJustCheckedIn(true);
+      setTimeout(() => setJustCheckedIn(false), 3200);
       void load(true);
     } catch (err) {
       // TYMCZASOWE (patrz geo-diag.ts): nic w tej ścieżce nie powinno rzucać —
@@ -715,6 +722,9 @@ export default function EventDetailScreen() {
 
             {event.my_check_in ? (
               <View style={styles.checkInStatusRow}>
+                <View style={styles.checkInRippleAnchor}>
+                  <CheckInRipple active={justCheckedIn} size={64} />
+                </View>
                 <Text style={styles.checkInDone}>{t('event.checkInDone')}</Text>
                 {event.my_check_in.is_late ? (
                   <Text style={styles.checkInLateBadge}>{t('event.checkInLate')}</Text>
@@ -1410,6 +1420,13 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+  },
+  checkInRippleAnchor: {
+    width: 0,
+    height: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'visible',
   },
   checkInDone: {
     fontSize: 15,

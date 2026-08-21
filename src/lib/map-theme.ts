@@ -17,10 +17,11 @@ export const MAP_STATUS_COLORS: Record<CourtAvailability, string> = {
 
 /**
  * Środek bąbla klastra/boiska (pod kolorową obwódką dostępności i licznikiem).
- * Był niemal czarny (`rgba(4,6,14,0.94)`) — nie pasował do reszty niebieskiej
- * palety apki, więc to ciemny odcień Brand.primaryDark zamiast czerni.
+ * Redesign 2026-08-21: Floodlight Ink (Brand.ink) zamiast granatu — ten sam
+ * "ciemny środek + kolorowa obwódka dostępności" język co dotąd, tylko w
+ * nowej palecie (patrz src/constants/theme.ts).
  */
-export const BUBBLE_CENTER_COLOR = 'rgba(13, 43, 122, 0.94)';
+export const BUBBLE_CENTER_COLOR = 'rgba(10, 14, 22, 0.94)';
 
 export function getAvailabilityColor(availability: CourtAvailability): string {
   return MAP_STATUS_COLORS[availability] ?? MAP_STATUS_COLORS.empty;

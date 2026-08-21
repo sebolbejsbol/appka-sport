@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Button } from '@/components/button';
 import { CreateTeamModal } from '@/components/create-team-modal';
 import { ScreenHeader } from '@/components/screen-header';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
 import { formatTeamSport } from '@/lib/sports';
@@ -317,12 +317,14 @@ export default function TournamentDetailScreen() {
                       <Text style={[styles.standingsCell, styles.standingsCellTeam]} numberOfLines={1}>
                         {row.rank}. {row.team_name}
                       </Text>
-                      <Text style={styles.standingsCell}>{row.played}</Text>
-                      <Text style={styles.standingsCell}>{row.wins}</Text>
-                      <Text style={styles.standingsCell}>{row.draws}</Text>
-                      <Text style={styles.standingsCell}>{row.losses}</Text>
-                      <Text style={styles.standingsCell}>{row.point_diff}</Text>
-                      <Text style={styles.standingsCell}>{row.points}</Text>
+                      <Text style={[styles.standingsCell, styles.standingsCellNumeric]}>{row.played}</Text>
+                      <Text style={[styles.standingsCell, styles.standingsCellNumeric]}>{row.wins}</Text>
+                      <Text style={[styles.standingsCell, styles.standingsCellNumeric]}>{row.draws}</Text>
+                      <Text style={[styles.standingsCell, styles.standingsCellNumeric]}>{row.losses}</Text>
+                      <Text style={[styles.standingsCell, styles.standingsCellNumeric]}>{row.point_diff}</Text>
+                      <Text style={[styles.standingsCell, styles.standingsCellNumeric, styles.standingsCellPoints]}>
+                        {row.points}
+                      </Text>
                     </View>
                   ))}
 
@@ -421,11 +423,31 @@ const styles = StyleSheet.create({
   teamRowGroup: { fontSize: 12, color: Brand.textMuted },
   groupsBlock: { marginTop: 24 },
   groupSection: { marginBottom: 24 },
-  standingsHeaderRow: { flexDirection: 'row', paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: Brand.border },
-  standingsRow: { flexDirection: 'row', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: Brand.border },
-  standingsCell: { flex: 1, fontSize: 13, color: Brand.textPrimary, textAlign: 'center' },
-  standingsCellTeam: { flex: 3, textAlign: 'left' },
-  standingsHeaderText: { fontWeight: '700', color: Brand.textSecondary, fontSize: 12 },
+  standingsHeaderRow: {
+    flexDirection: 'row',
+    paddingVertical: 6,
+    borderBottomWidth: 1.5,
+    borderStyle: 'dashed',
+    borderBottomColor: Brand.border,
+  },
+  standingsRow: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    borderBottomWidth: 1.5,
+    borderStyle: 'dashed',
+    borderBottomColor: Brand.divider,
+  },
+  standingsCell: { flex: 1, fontFamily: BrandFonts.body, fontSize: 13, color: Brand.textPrimary, textAlign: 'center' },
+  standingsCellTeam: { flex: 3, fontFamily: BrandFonts.bodyMedium, textAlign: 'left' },
+  standingsCellNumeric: { fontFamily: BrandFonts.mono, fontVariant: ['tabular-nums'] },
+  standingsCellPoints: { fontFamily: BrandFonts.monoSemibold, color: Brand.primary },
+  standingsHeaderText: {
+    fontFamily: BrandFonts.bodySemibold,
+    color: Brand.textSecondary,
+    fontSize: 11.5,
+    letterSpacing: 0.3,
+    textTransform: 'uppercase',
+  },
   fixturesHeading: { marginTop: 16 },
   matchRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, gap: 8 },
   matchTeamText: { flex: 1, fontSize: 13, color: Brand.textPrimary },

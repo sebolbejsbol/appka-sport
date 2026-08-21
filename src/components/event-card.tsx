@@ -1,7 +1,8 @@
 import { memo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Brand, Radius } from '@/constants/theme';
+import { CalendarIcon, PeopleIcon, PinIcon } from '@/components/icons';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { categoryLabel, categoryMeta, subcategoryLabel } from '@/lib/event-categories';
@@ -66,7 +67,7 @@ function EventCardComponent({ event, userCoords, onPress }: Props) {
         </Text>
 
         <View style={styles.metaRow}>
-          <Text style={styles.metaIcon}>📅</Text>
+          <CalendarIcon size={14} color={Brand.textMuted} />
           <Text style={styles.metaText} numberOfLines={1}>
             {formatEventDateTime(event.starts_at)}
           </Text>
@@ -74,27 +75,39 @@ function EventCardComponent({ event, userCoords, onPress }: Props) {
 
         {event.location_name ? (
           <View style={styles.metaRow}>
-            <Text style={styles.metaIcon}>📍</Text>
+            <PinIcon size={14} color={Brand.textMuted} />
             <Text style={styles.metaText} numberOfLines={1}>
               {event.location_name}
               {distanceText ? `  ·  ${distanceText}` : ''}
             </Text>
           </View>
         ) : null}
+      </View>
 
-        <View style={styles.footer}>
-          {sub ? (
-            <View style={[styles.subChip, { borderColor: meta.color }]}>
-              <Text style={[styles.subChipText, { color: meta.color }]}>{sub}</Text>
-            </View>
-          ) : null}
-          <View style={styles.footerSpacer} />
-          <Text style={styles.participants}>👥 {participantsText}</Text>
-          <View style={[styles.priceChip, isPaid ? styles.priceChipPaid : styles.priceChipFree]}>
-            <Text style={[styles.priceText, isPaid ? styles.priceTextPaid : styles.priceTextFree]}>
-              {price}
-            </Text>
+      {/* Perforacja "linii boiska" oddziela istotę (co/kiedy/gdzie) od stopki
+          biletu (miejsca/cena) — patrz plan redesignu: karty eventów jako
+          bilet na mecz, notche w tle ekranu po obu stronach. */}
+      <View style={styles.perforationRow}>
+        <View style={styles.notchLeft} />
+        <View style={styles.perforationLine} />
+        <View style={styles.notchRight} />
+      </View>
+
+      <View style={styles.stub}>
+        {sub ? (
+          <View style={[styles.subChip, { borderColor: meta.color }]}>
+            <Text style={[styles.subChipText, { color: meta.color }]}>{sub}</Text>
           </View>
+        ) : null}
+        <View style={styles.footerSpacer} />
+        <View style={styles.participantsRow}>
+          <PeopleIcon size={14} color={Brand.textSecondary} />
+          <Text style={styles.participants}>{participantsText}</Text>
+        </View>
+        <View style={[styles.priceChip, isPaid ? styles.priceChipPaid : styles.priceChipFree]}>
+          <Text style={[styles.priceText, isPaid ? styles.priceTextPaid : styles.priceTextFree]}>
+            {price}
+          </Text>
         </View>
       </View>
     </Pressable>
@@ -146,38 +159,67 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
   categoryBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
-    fontWeight: '700',
     color: '#ffffff',
   },
   body: {
     padding: 14,
+    paddingBottom: 12,
     gap: 6,
   },
   title: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
-    fontWeight: '800',
     color: Brand.textPrimary,
     letterSpacing: -0.2,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
-  },
-  metaIcon: {
-    fontSize: 13,
+    gap: 7,
   },
   metaText: {
     flex: 1,
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
   },
-  footer: {
+  // Perforacja "linii boiska": kreskowana linia + dwa półkola w kolorze tła
+  // ekranu na krawędziach karty, imitujące dziurkowanie biletu.
+  perforationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    height: 1,
+  },
+  perforationLine: {
+    flex: 1,
+    height: 0,
+    borderTopWidth: 1.5,
+    borderTopColor: Brand.border,
+    borderStyle: 'dashed',
+    marginHorizontal: -4,
+  },
+  notchLeft: {
+    width: 14,
+    height: 14,
+    borderRadius: 999,
+    backgroundColor: Brand.screenBackground,
+    marginLeft: -7,
+  },
+  notchRight: {
+    width: 14,
+    height: 14,
+    borderRadius: 999,
+    backgroundColor: Brand.screenBackground,
+    marginRight: -7,
+  },
+  stub: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    marginTop: 6,
+    padding: 14,
+    paddingTop: 12,
   },
   footerSpacer: {
     flex: 1,
@@ -189,12 +231,18 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   subChipText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 11,
-    fontWeight: '700',
+  },
+  participantsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 5,
   },
   participants: {
-    fontSize: 12,
-    fontWeight: '700',
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
+    fontSize: 13,
     color: Brand.textSecondary,
   },
   priceChip: {
@@ -209,8 +257,8 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primaryLight,
   },
   priceText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
-    fontWeight: '800',
   },
   priceTextFree: {
     color: Brand.success,
