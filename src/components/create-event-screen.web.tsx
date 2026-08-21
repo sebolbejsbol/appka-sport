@@ -744,17 +744,20 @@ export default function CreateEventScreen({
           <View style={styles.cardGrid}>
             {subcats.map((sub) => {
               const active = subcategory === sub.id;
-              const color = category ? CATEGORY_META[category].color : Brand.primary;
               return (
                 <Pressable
                   key={sub.id}
-                  style={[
-                    styles.subCard,
-                    active && { borderColor: color, backgroundColor: category ? CATEGORY_META[category].tint : Brand.primaryMuted },
-                  ]}
+                  style={[styles.subCard, active && styles.subCardActive]}
                   onPress={() => selectSubcategory(sub.id)}>
                   <Text style={styles.subEmoji}>{markerEmoji(category ?? 'inne', sub.id)}</Text>
-                  <Text style={styles.subLabel}>{subcategoryLabel(sub.id) ?? sub.id}</Text>
+                  <Text style={[styles.subLabel, active && styles.subLabelActive]}>
+                    {subcategoryLabel(sub.id) ?? sub.id}
+                  </Text>
+                  {active ? (
+                    <View style={styles.subCardCheck}>
+                      <Text style={styles.subCardCheckText}>✓</Text>
+                    </View>
+                  ) : null}
                 </Pressable>
               );
             })}
@@ -1555,7 +1558,12 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.primary,
   },
   screenTitle: {
-    ...Typography.sectionTitle,
+    fontFamily: BrandFonts.display,
+    fontSize: 26,
+    color: Brand.textPrimary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.2,
+    marginTop: 4,
   },
   screenSubtitle: {
     fontFamily: BrandFonts.body,
@@ -1596,6 +1604,7 @@ const styles = StyleSheet.create({
     color: Brand.textPrimary,
   },
   subCard: {
+    position: 'relative',
     width: '47%',
     flexGrow: 1,
     paddingVertical: 18,
@@ -1608,6 +1617,27 @@ const styles = StyleSheet.create({
     gap: 6,
     ...shadow('sm'),
   },
+  subCardActive: {
+    borderColor: Brand.ink,
+    backgroundColor: Brand.ink,
+    ...shadow('md'),
+  },
+  subCardCheck: {
+    position: 'absolute',
+    top: 10,
+    right: 10,
+    width: 20,
+    height: 20,
+    borderRadius: 999,
+    backgroundColor: Brand.pitch,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subCardCheckText: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#ffffff',
+  },
   subEmoji: {
     fontFamily: BrandFonts.body,
     fontSize: 26,
@@ -1618,6 +1648,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: Brand.textPrimary,
     textAlign: 'center',
+  },
+  subLabelActive: {
+    color: '#ffffff',
   },
   field: {
     marginTop: 14,
