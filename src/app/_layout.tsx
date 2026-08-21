@@ -99,7 +99,7 @@ function RootNavigator() {
   // Big Shoulders Display (nagłówki/wyniki) + IBM Plex Sans (treść) + IBM Plex
   // Mono (tabelki/liczby) — patrz Typography w constants/ui.ts. Splash trzyma
   // się, dopóki fonty nie są gotowe, żeby tekst nie „mrugnął" systemową czcionką.
-  const [fontsLoaded] = useFonts({
+  const [fontsLoaded, fontsError] = useFonts({
     BigShouldersDisplay_700Bold,
     BigShouldersDisplay_800ExtraBold,
     IBMPlexSans_400Regular,
@@ -110,6 +110,10 @@ function RootNavigator() {
     IBMPlexMono_500Medium,
     IBMPlexMono_600SemiBold,
   });
+  // Błąd wczytywania fontu (np. zerwana sieć) NIE może trzymać usera na
+  // splashu w nieskończoność — traktujemy go tak samo jak "gotowe", appka
+  // po prostu wtedy pokaże się z systemową czcionką zastępczą (Fonts.sans).
+  const fontsReady = fontsLoaded || !!fontsError;
 
   // Płynne wejście: własny ciemny ekran startowy (z logo) płynnie znika,
   // tak by przejście z natywnego splasha do aplikacji nie „mrugało".
@@ -117,7 +121,7 @@ function RootNavigator() {
   const splashOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    if (isLoading || !fontsLoaded) return;
+    if (isLoading || !fontsReady) return;
 
     let settled = false;
     let fadeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -173,7 +177,7 @@ function RootNavigator() {
       if (minVisibleTimer) clearTimeout(minVisibleTimer);
       if (unsubscribeMapReady) unsubscribeMapReady();
     };
-  }, [isLoading, fontsLoaded, session, isPasswordRecovery, needsProfileSetup, needsOnboarding, splashOpacity]);
+  }, [isLoading, fontsReady, session, isPasswordRecovery, needsProfileSetup, needsOnboarding, splashOpacity]);
 
   return (
     <View style={styles.root}>
