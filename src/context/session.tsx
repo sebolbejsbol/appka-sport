@@ -154,7 +154,10 @@ export function SessionProvider({ children }: PropsWithChildren) {
       if (needsSetup) {
         router.replace('/complete-profile' as Href);
       } else if (needsOnb) {
-        router.replace('/onboarding' as Href);
+        // (onboarding) jest grupą tras Expo Router — nawiasy są ucinane z URL,
+        // więc jej index.tsx rezolwuje się pod "/", nigdy pod dosłownym
+        // "/onboarding" (to dawało "Unmatched Route" po każdym nowym koncie).
+        router.replace('/' as Href);
       }
     });
   }, [session?.user?.id]);
