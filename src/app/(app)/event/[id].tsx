@@ -18,6 +18,7 @@ import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanim
 
 import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { CheckInRipple } from '@/components/check-in-ripple';
+import { CheckInSuccessModal } from '@/components/check-in-success-modal';
 import { ShareIcon, SlidersIcon } from '@/components/icons';
 import { EventBlockedCoPlayerBanner } from '@/components/event-blocked-co-player-banner';
 import { FieldRatingPromptModal } from '@/components/field-rating-prompt-modal';
@@ -81,6 +82,7 @@ import { InviteSeekersSheet } from '@/components/invite-seekers-sheet';
 import { TeamAvatar } from '@/components/team-avatar';
 import { UserAvatar } from '@/components/user-avatar';
 import { categoryLabel, categoryMeta, subcategoryLabel } from '@/lib/event-categories';
+import { getPlayerRank } from '@/lib/ranking';
 
 export default function EventDetailScreen() {
   const insets = useSafeAreaInsets();
@@ -101,6 +103,7 @@ export default function EventDetailScreen() {
   // czysto wizualne, jednorazowe pulsowanie po udanym zameldowaniu, samo się
   // wygasza. Nie wpływa na żadną logikę/dane.
   const [justCheckedIn, setJustCheckedIn] = useState(false);
+  const [checkInXp, setCheckInXp] = useState<{ before: number; after: number } | null>(null);
   const [opinionsOpen, setOpinionsOpen] = useState(false);
   const [inviteSeekersOpen, setInviteSeekersOpen] = useState(false);
   const [ratingModalOpen, setRatingModalOpen] = useState(false);
@@ -394,6 +397,8 @@ export default function EventDetailScreen() {
         return;
       }
 
+      const xpBeforeResult = userId ? await getPlayerRank(userId) : null;
+
       geoDiag('handleCheckIn: calling checkInEvent with', {
         lat: freshCoords[1],
         lng: freshCoords[0],
@@ -410,6 +415,16 @@ export default function EventDetailScreen() {
       setJustCheckedIn(true);
       setTimeout(() => setJustCheckedIn(false), 3200);
       void load(true);
+
+      if (userId) {
+        const xpAfterResult = await getPlayerRank(userId);
+        if (xpAfterResult.data) {
+          setCheckInXp({
+            before: xpBeforeResult?.data?.xp ?? xpAfterResult.data.xp,
+            after: xpAfterResult.data.xp,
+          });
+        }
+      }
     } catch (err) {
       // TYMCZASOWE (patrz geo-diag.ts): nic w tej ścieżce nie powinno rzucać —
       // jeśli to loguje, wcześniej był tu cichy błąd pokazywany jako ogólne
@@ -1045,6 +1060,13 @@ export default function EventDetailScreen() {
         eventId={event?.id ?? null}
         visible={inviteSeekersOpen}
         onClose={() => setInviteSeekersOpen(false)}
+      />
+
+      <CheckInSuccessModal
+        visible={checkInXp != null}
+        xpBefore={checkInXp?.before ?? 0}
+        xpAfter={checkInXp?.after ?? 0}
+        onClose={() => setCheckInXp(null)}
       />
 
       {event ? (
