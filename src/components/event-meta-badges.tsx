@@ -1,6 +1,6 @@
 import { StyleSheet, Text, View } from 'react-native';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { t } from '@/i18n';
 import type { FilterableEvent } from '@/lib/event-filters';
 import type { EventVisibility } from '@/lib/events';
@@ -24,6 +24,15 @@ type Props = {
   event: EventMetaBadgeSource;
 };
 
+/**
+ * Redesign 2026-08-21: te same znaczki wcześniej były bladymi plakietkami
+ * (przezroczyste tło + cienka obwódka, w tym relikt starej pomarańczowej
+ * palety — `#fed7aa`, ten sam już naprawiony gdzie indziej w tej sesji) —
+ * wyglądały słabo i ginęły na tle karty. Teraz to wypełnione, kontrastowe
+ * plakietki w konkretnych kolorach marki (zielony = darmowe/otwarte,
+ * bursztyn = płatne, morski = tylko znajomi), tym samym językiem co
+ * sportChip w event-card.tsx/tournament-card.tsx.
+ */
 export function EventMetaBadges({ event }: Props) {
   return (
     <View style={styles.row}>
@@ -36,105 +45,71 @@ export function EventMetaBadges({ event }: Props) {
       {event.has_blocked_co_player ? (
         <Badge text={t('event.blockedCoPlayerBadge')} variant="blocked" />
       ) : null}
-      <Badge text={skillLevelLabel(event.skill_level)} />
+      <Badge text={skillLevelLabel(event.skill_level)} variant="neutral" />
       <Badge
         text={paymentStatusLabel(event.payment_status)}
         variant={event.payment_status === 'paid' ? 'paid' : 'free'}
       />
-      <Badge text={eventTypeLabel(event.event_type)} muted />
-      <Badge text={freeSpotsLabel(event)} />
+      <Badge text={eventTypeLabel(event.event_type)} variant="neutral" />
+      <Badge text={freeSpotsLabel(event)} variant="neutral" />
     </View>
   );
 }
 
-function Badge({
-  text,
-  variant = 'default',
-  muted = false,
-}: {
-  text: string;
-  variant?: 'default' | 'free' | 'paid' | 'friends' | 'waitlist' | 'blocked';
-  muted?: boolean;
-}) {
+type Variant = 'neutral' | 'free' | 'paid' | 'friends' | 'waitlist' | 'blocked';
+
+function Badge({ text, variant }: { text: string; variant: Variant }) {
   return (
-    <View
-      style={[
-        styles.badge,
-        variant === 'paid' && styles.badgePaid,
-        variant === 'free' && styles.badgeFree,
-        variant === 'friends' && styles.badgeFriends,
-        variant === 'waitlist' && styles.badgeWaitlist,
-        variant === 'blocked' && styles.badgeBlocked,
-        muted && styles.badgeMuted,
-      ]}>
-      <Text
-        style={[
-          styles.badgeText,
-          variant === 'paid' && styles.badgeTextPaid,
-          variant === 'free' && styles.badgeTextFree,
-          variant === 'friends' && styles.badgeTextFriends,
-          muted && styles.badgeTextMuted,
-        ]}>
-        {text}
-      </Text>
+    <View style={[styles.badge, VARIANT_STYLES[variant].badge]}>
+      <Text style={[styles.badgeText, VARIANT_STYLES[variant].text]}>{text}</Text>
     </View>
   );
 }
+
+const VARIANT_STYLES = {
+  neutral: {
+    badge: { backgroundColor: Brand.surfaceMuted, borderColor: Brand.border },
+    text: { color: Brand.textSecondary },
+  },
+  free: {
+    badge: { backgroundColor: Brand.pitch, borderColor: Brand.pitch },
+    text: { color: '#ffffff' },
+  },
+  paid: {
+    badge: { backgroundColor: Brand.amber, borderColor: Brand.amber },
+    text: { color: Brand.ink },
+  },
+  friends: {
+    badge: { backgroundColor: Brand.teal, borderColor: Brand.teal },
+    text: { color: '#ffffff' },
+  },
+  waitlist: {
+    badge: { backgroundColor: Brand.ink, borderColor: Brand.ink },
+    text: { color: '#ffffff' },
+  },
+  blocked: {
+    badge: { backgroundColor: Brand.amberLight, borderColor: Brand.amber },
+    text: { color: Brand.amberDark },
+  },
+} as const satisfies Record<Variant, { badge: object; text: object }>;
 
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 6,
-    marginTop: 8,
+    gap: 7,
+    marginTop: 10,
   },
   badge: {
-    paddingHorizontal: 9,
-    paddingVertical: 4,
+    paddingHorizontal: 11,
+    paddingVertical: 6,
     borderRadius: Radius.pill,
-    backgroundColor: Brand.primaryLight,
     borderWidth: 1,
-    borderColor: '#fed7aa',
-  },
-  badgeFree: {
-    backgroundColor: Brand.successLight,
-    borderColor: '#a7f3d0',
-  },
-  badgePaid: {
-    backgroundColor: Brand.warningLight,
-    borderColor: '#fde68a',
-  },
-  badgeFriends: {
-    backgroundColor: Brand.infoLight,
-    borderColor: '#bfdbfe',
-  },
-  badgeWaitlist: {
-    backgroundColor: Brand.surfaceMuted,
-    borderColor: Brand.border,
-  },
-  badgeBlocked: {
-    backgroundColor: Brand.warningLight,
-    borderColor: '#fde68a',
-  },
-  badgeMuted: {
-    backgroundColor: Brand.surfaceMuted,
-    borderColor: Brand.border,
   },
   badgeText: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: Brand.primaryDark,
-  },
-  badgeTextPaid: {
-    color: Brand.warning,
-  },
-  badgeTextFree: {
-    color: Brand.success,
-  },
-  badgeTextFriends: {
-    color: Brand.info,
-  },
-  badgeTextMuted: {
-    color: Brand.textSecondary,
+    fontFamily: BrandFonts.bodyBold,
+    fontSize: 12,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
 });
