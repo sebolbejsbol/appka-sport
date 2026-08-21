@@ -42,6 +42,23 @@ export function PinIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: Ico
   );
 }
 
+export function SearchIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Circle cx="10.5" cy="10.5" r="6.5" stroke={color} strokeWidth={strokeWidth} />
+      <Path d="M20 20l-4.5-4.5" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
+export function CloseIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
+      <Path d="M6 6l12 12M18 6L6 18" stroke={color} strokeWidth={strokeWidth} strokeLinecap="round" />
+    </Svg>
+  );
+}
+
 export function CompassIcon({ size = 16, color = '#46566c', strokeWidth = 1.8 }: IconProps) {
   return (
     <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">

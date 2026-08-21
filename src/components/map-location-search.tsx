@@ -11,7 +11,8 @@ import {
   View,
 } from 'react-native';
 
-import { Brand, Radius } from '@/constants/theme';
+import { CloseIcon, SearchIcon } from '@/components/icons';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { searchMapPlaces, type PlaceSearchResult } from '@/lib/map-geocoding';
@@ -98,7 +99,7 @@ export function MapLocationSearch({ topOffset, onSelectPlace }: Props) {
   return (
     <View style={[styles.anchor, { top: topOffset }]} pointerEvents="box-none">
       <View style={styles.bar}>
-        <Text style={styles.searchIcon}>⌕</Text>
+        <SearchIcon size={18} color={Brand.textSecondary} />
         <TextInput
           ref={inputRef}
           value={query}
@@ -115,8 +116,8 @@ export function MapLocationSearch({ topOffset, onSelectPlace }: Props) {
           accessibilityLabel={t('map.locationSearchTitle')}
         />
         {Platform.OS !== 'ios' && query.length > 0 ? (
-          <Pressable onPress={() => setQuery('')} hitSlop={8}>
-            <Text style={styles.clearBtn}>✕</Text>
+          <Pressable onPress={() => setQuery('')} hitSlop={8} style={styles.clearBtn}>
+            <CloseIcon size={14} color={Brand.textMuted} />
           </Pressable>
         ) : null}
         {searching ? (
@@ -201,13 +202,9 @@ const styles = StyleSheet.create({
     minHeight: 46,
     ...shadow('float'),
   },
-  searchIcon: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: Brand.textSecondary,
-  },
   input: {
     flex: 1,
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     color: Brand.textPrimary,
     paddingVertical: 8,
@@ -216,8 +213,6 @@ const styles = StyleSheet.create({
     marginRight: 4,
   },
   clearBtn: {
-    fontSize: 16,
-    color: Brand.textMuted,
     padding: 4,
   },
   dropdown: {
@@ -232,6 +227,7 @@ const styles = StyleSheet.create({
     ...shadow('md'),
   },
   dropdownLead: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textSecondary,
     marginBottom: 10,
@@ -241,8 +237,8 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   examplesTitle: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 12,
-    fontWeight: '600',
     letterSpacing: 0.2,
     color: Brand.textMuted,
     textTransform: 'uppercase',
@@ -258,14 +254,15 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
     backgroundColor: Brand.primaryLight,
     borderWidth: 1,
-    borderColor: '#fed7aa',
+    borderColor: Brand.primaryMuted,
   },
   exampleChipText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
-    fontWeight: '600',
     color: Brand.primaryDark,
   },
   hint: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
     lineHeight: 18,
@@ -277,15 +274,17 @@ const styles = StyleSheet.create({
   },
   resultRow: {
     paddingVertical: 10,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: 1.5,
+    borderStyle: 'dashed',
     borderBottomColor: Brand.border,
   },
   resultLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
-    fontWeight: '600',
     color: Brand.textPrimary,
   },
   resultSubtitle: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: Brand.textMuted,
     marginTop: 2,

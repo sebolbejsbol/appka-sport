@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { Brand, Layout, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Layout, Radius } from '@/constants/theme';
 import { shadow, Typography } from '@/constants/ui';
 import { t } from '@/i18n';
 import { subcategoryLabel, subcategoriesFor } from '@/lib/event-categories';
@@ -270,8 +270,8 @@ const styles = StyleSheet.create({
     fontSize: 19,
   },
   reset: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
-    fontWeight: '700',
     color: Brand.primary,
   },
   scroll: {
@@ -302,8 +302,8 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   chipText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
-    fontWeight: '700',
     color: Brand.textSecondary,
   },
   chipTextActive: {
@@ -329,8 +329,8 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surfaceMuted,
   },
   advancedToggleText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
-    fontWeight: '700',
     color: Brand.textSecondary,
   },
   advancedChevron: {
@@ -338,8 +338,8 @@ const styles = StyleSheet.create({
     color: Brand.textMuted,
   },
   switchLabel: {
+    fontFamily: BrandFonts.bodyMedium,
     fontSize: 15,
-    fontWeight: '600',
     color: Brand.textPrimary,
   },
   apply: {
@@ -351,9 +351,9 @@ const styles = StyleSheet.create({
     ...shadow('sm'),
   },
   applyText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontSize: 16,
-    fontWeight: '800',
   },
   pressed: {
     opacity: 0.92,
