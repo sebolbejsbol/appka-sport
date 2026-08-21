@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     fontFamily: BrandFonts.monoSemibold,
     fontVariant: ['tabular-nums'],
     fontSize: 13,
-    color: Brand.amber,
+    color: Brand.primaryMuted,
   },
   subtitle: {
     fontFamily: BrandFonts.body,
@@ -525,7 +525,7 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.68)',
   },
   createBtn: {
-    backgroundColor: Brand.amber,
+    backgroundColor: Brand.primary,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: Radius.pill,
@@ -533,7 +533,7 @@ const styles = StyleSheet.create({
   },
   createBtnText: {
     fontFamily: BrandFonts.bodyBold,
-    color: Brand.ink,
+    color: '#ffffff',
     fontSize: 13,
   },
   playRow: {
@@ -614,8 +614,8 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surfaceMuted,
   },
   subChipActive: {
-    backgroundColor: Brand.ink,
-    borderColor: Brand.ink,
+    backgroundColor: Brand.primary,
+    borderColor: Brand.primary,
   },
   subChipText: {
     fontFamily: BrandFonts.bodySemibold,
@@ -626,8 +626,8 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   // Pasek pod nagłówkiem jak zakładki na wynikach meczu: aktywna opcja to
-  // kreska pod spodem (Bursztyn Amber), nie wypełniona plakietka — inny
-  // język niż chipy filtrów wyżej, celowo (rozróżnia "filtr" od "widok/sort").
+  // kreska pod spodem, nie wypełniona plakietka — inny język niż chipy
+  // filtrów wyżej, celowo (rozróżnia "filtr" od "widok/sort").
   toolbar: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -649,7 +649,7 @@ const styles = StyleSheet.create({
     borderBottomColor: 'transparent',
   },
   sortChipActive: {
-    borderBottomColor: Brand.amber,
+    borderBottomColor: Brand.primary,
   },
   sortChipText: {
     fontFamily: BrandFonts.bodySemibold,
@@ -674,7 +674,7 @@ const styles = StyleSheet.create({
     borderRadius: Radius.pill,
   },
   viewBtnActive: {
-    backgroundColor: Brand.ink,
+    backgroundColor: Brand.primary,
   },
   viewBtnText: {
     fontFamily: BrandFonts.bodyBold,

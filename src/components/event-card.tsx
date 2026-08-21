@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.pitch,
   },
   priceChipPaid: {
-    backgroundColor: Brand.amber,
+    backgroundColor: Brand.primary,
   },
   priceText: {
     fontFamily: BrandFonts.bodyBold,
@@ -274,6 +274,6 @@ const styles = StyleSheet.create({
     color: '#ffffff',
   },
   priceTextPaid: {
-    color: Brand.ink,
+    color: '#ffffff',
   },
 });
