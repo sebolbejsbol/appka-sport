@@ -14,7 +14,7 @@ import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { RankCard } from '@/components/rank-card';
 import { ScreenHeader } from '@/components/screen-header';
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { t } from '@/i18n';
@@ -130,9 +130,6 @@ function Podium({ top3, myId }: { top3: LeaderboardEntry[]; myId: string | null 
             key={entry.user_id}
             onPress={() => openUser(entry.user_id, myId)}
             style={({ pressed }) => [styles.podiumSlot, pressed && styles.pressed]}>
-            <Text style={styles.podiumMedal}>
-              {idx === 0 ? '🥇' : idx === 1 ? '🥈' : '🥉'}
-            </Text>
             <View style={[styles.podiumAvatar, { borderColor: division.color }]}>
               <UserAvatar nick={entry.nick} avatarUrl={entry.avatar_url} size={idx === 0 ? 64 : 52} />
             </View>
@@ -198,8 +195,8 @@ const styles = StyleSheet.create({
   empty: { color: Brand.textMuted, textAlign: 'center', marginTop: 32, fontSize: 15 },
   content: { paddingHorizontal: 20, paddingTop: 12 },
   sectionTitle: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
-    fontWeight: '700',
     color: Brand.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
@@ -218,26 +215,24 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
   },
-  podiumMedal: {
-    fontSize: 22,
-    marginBottom: 4,
-  },
   podiumAvatar: {
     borderRadius: 999,
     borderWidth: 3,
     padding: 3,
+    marginTop: 4,
     backgroundColor: Brand.surface,
   },
   podiumName: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
-    fontWeight: '700',
     color: Brand.textPrimary,
     marginTop: 6,
     maxWidth: '100%',
   },
   podiumXp: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 12,
-    fontWeight: '800',
     marginTop: 2,
     marginBottom: 8,
   },
@@ -250,8 +245,9 @@ const styles = StyleSheet.create({
     paddingTop: 8,
   },
   podiumRank: {
-    fontSize: 22,
-    fontWeight: '900',
+    fontFamily: BrandFonts.display,
+    fontVariant: ['tabular-nums'],
+    fontSize: 24,
     color: '#ffffff',
   },
   howCard: {
@@ -264,8 +260,8 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   howTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
-    fontWeight: '800',
     color: Brand.textPrimary,
     marginBottom: 4,
   },
@@ -297,8 +293,9 @@ const styles = StyleSheet.create({
   rowRank: {
     width: 30,
     textAlign: 'center',
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 16,
-    fontWeight: '900',
     color: Brand.textMuted,
   },
   rowMain: {
@@ -306,8 +303,8 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   rowNick: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
-    fontWeight: '700',
     color: Brand.textPrimary,
   },
   divBadge: {
@@ -325,13 +322,14 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   rowXp: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 17,
-    fontWeight: '900',
     color: Brand.textPrimary,
   },
   rowXpUnit: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 10,
-    fontWeight: '700',
     color: Brand.textMuted,
   },
   meText: {

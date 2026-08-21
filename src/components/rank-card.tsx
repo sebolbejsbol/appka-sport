@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import { divisionName, divisionProgress } from '@/lib/ranking';
@@ -67,7 +67,7 @@ export function RankCard({ xp, rank, total, onPress }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#0f172a',
+    backgroundColor: Brand.ink,
     borderRadius: Radius.xl,
     padding: 18,
     overflow: 'hidden',
@@ -105,24 +105,25 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   divisionLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
-    fontWeight: '700',
     color: '#94a3b8',
     textTransform: 'uppercase',
     letterSpacing: 0.6,
   },
   divisionName: {
-    fontSize: 24,
-    fontWeight: '900',
+    fontFamily: BrandFonts.display,
+    fontSize: 25,
     color: '#ffffff',
-    letterSpacing: -0.3,
+    letterSpacing: 0,
   },
   rankPill: {
     alignItems: 'flex-end',
   },
   rankHash: {
-    fontSize: 22,
-    fontWeight: '900',
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
+    fontSize: 20,
     color: '#ffffff',
   },
   rankOf: {
@@ -138,16 +139,17 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   xpValue: {
-    fontSize: 30,
-    fontWeight: '900',
+    fontFamily: BrandFonts.display,
+    fontVariant: ['tabular-nums'],
+    fontSize: 32,
     color: '#ffffff',
-    lineHeight: 32,
+    lineHeight: 34,
   },
   xpUnit: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
-    fontWeight: '800',
     color: '#cbd5e1',
-    marginBottom: 4,
+    marginBottom: 5,
   },
   progressTrack: {
     height: 8,
@@ -160,14 +162,15 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   progressNote: {
+    fontFamily: BrandFonts.body,
     fontSize: 12,
     color: '#cbd5e1',
     marginTop: 8,
   },
   cta: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 13,
-    fontWeight: '800',
-    color: '#8ab4ff',
+    color: Brand.primaryMuted,
     marginTop: 12,
   },
 });
