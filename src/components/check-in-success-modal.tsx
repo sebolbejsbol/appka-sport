@@ -40,17 +40,25 @@ export function CheckInSuccessModal({ visible, xpBefore, xpAfter, onClose }: Pro
             <Text style={styles.title}>{t('event.checkInSuccessTitle')}</Text>
           </View>
 
-          <View style={styles.xpRow}>
-            <Text style={styles.xpValue}>+{gained}</Text>
-            <Text style={styles.xpLabel}>{t('event.checkInXpLabel')}</Text>
-          </View>
+          {gained > 0 ? (
+            <>
+              <View style={styles.xpRow}>
+                <Text style={styles.xpValue}>+{gained}</Text>
+                <Text style={styles.xpLabel}>{t('event.checkInXpLabel')}</Text>
+              </View>
 
-          <View style={styles.totalsRow}>
-            <Text style={styles.totalsLabel}>{t('event.checkInYourXp')}</Text>
-            <Text style={styles.totalsValue}>
-              {xpBefore} → {xpAfter}
-            </Text>
-          </View>
+              <View style={styles.totalsRow}>
+                <Text style={styles.totalsLabel}>{t('event.checkInYourXp')}</Text>
+                <Text style={styles.totalsValue}>
+                  {xpBefore} → {xpAfter}
+                </Text>
+              </View>
+            </>
+          ) : (
+            <View style={styles.pendingRow}>
+              <Text style={styles.pendingText}>{t('event.checkInXpPending')}</Text>
+            </View>
+          )}
 
           <View style={styles.progressTrack}>
             <View
@@ -155,6 +163,19 @@ const styles = StyleSheet.create({
     fontVariant: ['tabular-nums'],
     fontSize: 14,
     color: Brand.textPrimary,
+  },
+  pendingRow: {
+    paddingVertical: 16,
+    marginTop: 14,
+    borderTopWidth: 2,
+    borderBottomWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: Brand.divider,
+  },
+  pendingText: {
+    fontFamily: BrandFonts.body,
+    fontSize: 14,
+    color: Brand.textSecondary,
   },
   progressTrack: {
     height: 6,
