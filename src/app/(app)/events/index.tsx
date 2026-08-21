@@ -484,13 +484,14 @@ const styles = StyleSheet.create({
   // starą wersją. Zaokrąglenie tylko na dole, żeby nie kolidowało z paskiem
   // statusu/insets nad nim.
   heroBand: {
-    backgroundColor: Brand.ink,
+    backgroundColor: Brand.surface,
     paddingHorizontal: Layout.screenPaddingX,
     paddingTop: 18,
     paddingBottom: 18,
     borderBottomLeftRadius: 28,
     borderBottomRightRadius: 28,
     gap: 14,
+    ...shadow('sm'),
   },
   titleRow: {
     flexDirection: 'row',
@@ -503,7 +504,7 @@ const styles = StyleSheet.create({
   title: {
     fontFamily: BrandFonts.display,
     fontSize: 34,
-    color: '#ffffff',
+    color: Brand.textPrimary,
     textTransform: 'uppercase',
     letterSpacing: 0.2,
   },
@@ -517,12 +518,12 @@ const styles = StyleSheet.create({
     fontFamily: BrandFonts.monoSemibold,
     fontVariant: ['tabular-nums'],
     fontSize: 13,
-    color: Brand.primaryMuted,
+    color: Brand.primary,
   },
   subtitle: {
     fontFamily: BrandFonts.body,
     fontSize: 13,
-    color: 'rgba(255,255,255,0.68)',
+    color: Brand.textMuted,
   },
   createBtn: {
     backgroundColor: Brand.primary,
@@ -585,11 +586,10 @@ const styles = StyleSheet.create({
     gap: 9,
     paddingHorizontal: 14,
     height: 46,
-    backgroundColor: Brand.surface,
+    backgroundColor: Brand.screenBackground,
     borderRadius: Radius.pill,
     borderWidth: 1,
     borderColor: Brand.border,
-    ...shadow('sm'),
   },
   searchInput: {
     flex: 1,
