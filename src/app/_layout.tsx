@@ -1,18 +1,20 @@
-import {
-  BigShouldersDisplay_700Bold,
-  BigShouldersDisplay_800ExtraBold,
-} from '@expo-google-fonts/big-shoulders-display';
-import {
-  IBMPlexMono_400Regular,
-  IBMPlexMono_500Medium,
-  IBMPlexMono_600SemiBold,
-} from '@expo-google-fonts/ibm-plex-mono';
-import {
-  IBMPlexSans_400Regular,
-  IBMPlexSans_500Medium,
-  IBMPlexSans_600SemiBold,
-  IBMPlexSans_700Bold,
-} from '@expo-google-fonts/ibm-plex-sans';
+// UWAGA: importować WYŁĄCZNIE z podścieżki per-waga (np. ibm-plex-sans/400Regular),
+// NIGDY z korzenia pakietu (@expo-google-fonts/ibm-plex-sans) — korzeń re-eksportuje
+// KAŻDĄ wagę i kursywę całej rodziny (u IBM Plex Sans/Mono to 16 plików ~220KB/~140KB
+// każdy), więc import jednego named exportu z korzenia i tak dociąga całe ~6.8MB
+// fontów w buildzie webowym (require() assetu jest efektem ubocznym, nie da się go
+// tree-shake'ować). To realnie zawiesiło ładowanie apki na produkcyjnym buildzie
+// (2026-08-21) — zob. git log tego pliku. big-shoulders-display nie ma (w
+// odróżnieniu od IBM Plex) osobnych folderów per-waga z własnym index.js —
+// stąd dla niego require() bezpośrednio na plik .ttf niżej, z pominięciem
+// index.js tego pakietu.
+import { IBMPlexMono_400Regular } from '@expo-google-fonts/ibm-plex-mono/400Regular';
+import { IBMPlexMono_500Medium } from '@expo-google-fonts/ibm-plex-mono/500Medium';
+import { IBMPlexMono_600SemiBold } from '@expo-google-fonts/ibm-plex-mono/600SemiBold';
+import { IBMPlexSans_400Regular } from '@expo-google-fonts/ibm-plex-sans/400Regular';
+import { IBMPlexSans_500Medium } from '@expo-google-fonts/ibm-plex-sans/500Medium';
+import { IBMPlexSans_600SemiBold } from '@expo-google-fonts/ibm-plex-sans/600SemiBold';
+import { IBMPlexSans_700Bold } from '@expo-google-fonts/ibm-plex-sans/700Bold';
 import { useFonts } from 'expo-font';
 import { SplashScreen, Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
@@ -29,6 +31,11 @@ import { LocaleProvider, useLocale } from '@/context/locale';
 import { SessionProvider, useSession } from '@/context/session';
 import { primeFieldsPrefetch } from '@/lib/fields-prefetch';
 import { onInitialMapDataReady } from '@/lib/map-ready';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires -- patrz komentarz przy importach fontów u góry pliku
+const BigShouldersDisplay_700Bold = require('@expo-google-fonts/big-shoulders-display/BigShouldersDisplay_700Bold.ttf');
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const BigShouldersDisplay_800ExtraBold = require('@expo-google-fonts/big-shoulders-display/BigShouldersDisplay_800ExtraBold.ttf');
 
 /** Maksymalny dodatkowy czas na starcie, żeby splash poczekał na pierwsze
  * boiska/eventy z mapy — zabezpieczenie na wypadek wolnej/zerwanej sieci,
