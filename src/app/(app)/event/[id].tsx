@@ -22,7 +22,7 @@ import { FieldRatingPromptModal } from '@/components/field-rating-prompt-modal';
 import { EventMetaBadges } from '@/components/event-meta-badges';
 import { NavigateToFieldButton } from '@/components/navigate-to-field-button';
 import { Button } from '@/components/button';
-import { Brand } from '@/constants/theme';
+import { Brand, BrandFonts } from '@/constants/theme';
 import { Typography } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { useWatchingLocation } from '@/hooks/use-watching-location';
@@ -1075,8 +1075,8 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   eventTitle: {
-    fontSize: 22,
-    fontWeight: '700',
+    fontFamily: BrandFonts.display,
+    fontSize: 26,
     color: Brand.textPrimary,
     flexShrink: 1,
   },
@@ -1120,8 +1120,8 @@ const styles = StyleSheet.create({
     borderRadius: 999,
   },
   categoryBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
-    fontWeight: '700',
     color: '#ffffff',
   },
   subBadge: {
@@ -1131,35 +1131,36 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   subBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
-    fontWeight: '700',
   },
   organizerName: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
-    fontWeight: '700',
     color: Brand.textPrimary,
   },
   organizerMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     marginTop: 2,
   },
   organizerLink: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 14,
-    fontWeight: '600',
     color: Brand.primary,
     marginTop: 4,
   },
   finishedBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: '#eef0f2',
+    backgroundColor: Brand.surfaceMuted,
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 5,
   },
   finishedBadgeText: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
-    fontWeight: '700',
     color: Brand.textSecondary,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
@@ -1173,11 +1174,12 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   stillGoingTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 16,
-    fontWeight: '700',
     color: Brand.textPrimary,
   },
   stillGoingBody: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     lineHeight: 20,
@@ -1190,21 +1192,28 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
     borderWidth: 1,
     borderColor: Brand.border,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 14,
-    gap: 10,
   },
+  // Karta szczegółów jak stopka biletu (ten sam motyw "linii boiska" co
+  // event-card.tsx/tournament-card.tsx/summary w create-event-screen) —
+  // każdy wiersz oddzielony kreskowaną linią zamiast pustego odstępu.
   detailRow: {
     gap: 2,
+    paddingVertical: 9,
+    borderBottomWidth: 1.5,
+    borderStyle: 'dashed',
+    borderBottomColor: Brand.divider,
   },
   detailLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
-    fontWeight: '600',
     color: Brand.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
   },
   detailValue: {
+    fontFamily: BrandFonts.bodyMedium,
     fontSize: 16,
     color: Brand.textPrimary,
   },
@@ -1218,24 +1227,24 @@ const styles = StyleSheet.create({
     borderColor: Brand.primary,
   },
   opinionsLinkText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
-    fontWeight: '600',
     color: Brand.primary,
   },
   pressed: {
     opacity: 0.85,
   },
   sectionTitle: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
-    fontWeight: '700',
     color: Brand.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
     marginTop: 4,
   },
   sectionLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
-    fontWeight: '700',
     color: Brand.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.4,
@@ -1257,11 +1266,12 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   teamInviteTitle: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
-    fontWeight: '700',
     color: Brand.textPrimary,
   },
   teamInviteMeta: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
   },
@@ -1293,11 +1303,13 @@ const styles = StyleSheet.create({
     borderColor: Brand.danger,
   },
   descriptionText: {
+    fontFamily: BrandFonts.body,
     fontSize: 16,
     lineHeight: 24,
     color: Brand.textPrimary,
   },
   muted: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
   },
@@ -1315,8 +1327,9 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 14,
     paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: Brand.border,
+    borderBottomWidth: 1.5,
+    borderStyle: 'dashed',
+    borderBottomColor: Brand.divider,
   },
   participantMain: {
     flex: 1,
@@ -1396,13 +1409,14 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   checkInHint: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     lineHeight: 20,
   },
   checkInHintWarning: {
+    fontFamily: BrandFonts.bodySemibold,
     color: Brand.warning,
-    fontWeight: '600',
   },
   checkInDistanceRow: {
     flexDirection: 'row',
@@ -1412,8 +1426,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
   },
   checkInDistance: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 14,
-    fontWeight: '600',
     color: Brand.textPrimary,
   },
   checkInStatusRow: {
@@ -1429,8 +1444,8 @@ const styles = StyleSheet.create({
     overflow: 'visible',
   },
   checkInDone: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
-    fontWeight: '700',
     color: Brand.success,
   },
   checkInLateBadge: {
