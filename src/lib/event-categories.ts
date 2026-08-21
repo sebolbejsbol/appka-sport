@@ -4,6 +4,7 @@
  * Etykiety widoczne dla użytkownika pochodzą z i18n (t()) — patrz categoryLabel/subcategoryLabel,
  * dzięki czemu zmiana języka działa również dla kategorii i podkategorii.
  */
+import { Brand } from '@/constants/theme';
 import { t, type TKey } from '@/i18n';
 
 export const EVENT_CATEGORIES = [
@@ -170,6 +171,36 @@ const SUBCATEGORY_EMOJI: Record<string, string> = {
 export function markerEmoji(category: string, subcategory: string | null | undefined): string {
   if (subcategory && SUBCATEGORY_EMOJI[subcategory]) return SUBCATEGORY_EMOJI[subcategory];
   return categoryEmoji(category);
+}
+
+/**
+ * categoryMeta().color jest STAŁY (zawsze ten sam niebieski, bo `category`
+ * to prawie zawsze 'sport' — apka skupia się wyłącznie na sporcie, patrz
+ * DEFAULT_DISCOVER_FILTERS) — każda karta eventu pokazywała identyczny
+ * kolor/emoji niezależnie od realnej dyscypliny. To realny kolor PER SPORT
+ * (subcategory), do kart/nagłówków, gdzie kolor ma nieść informację, nie
+ * tylko "to jest sport". Cykluje przez paletę marki zamiast wymyślać nowe
+ * kolory per dyscyplina.
+ */
+const SUBCATEGORY_ACCENT: Record<string, string> = {
+  basketball: Brand.primary,
+  football: Brand.pitch,
+  volleyball: Brand.teal,
+  tennis: Brand.amberDark,
+  padel: Brand.amberDark,
+  badminton: Brand.teal,
+  running: Brand.pitch,
+  swimming: Brand.teal,
+  climbing: Brand.ink,
+  skatepark: Brand.ink,
+  fitness: Brand.primary,
+  outdoor_gym: Brand.pitch,
+  handball: Brand.primary,
+};
+
+export function subcategoryAccentColor(subcategory: string | null | undefined): string {
+  if (subcategory && SUBCATEGORY_ACCENT[subcategory]) return SUBCATEGORY_ACCENT[subcategory];
+  return Brand.primary;
 }
 
 /**

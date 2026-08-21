@@ -161,42 +161,44 @@ export default function EventsScreen() {
   return (
     <View style={[styles.root, { paddingTop: insets.top + Layout.menuClearance }]}>
       <View style={styles.header}>
-        <View style={styles.titleRow}>
-          <View style={styles.titleBlock}>
-            <Text style={styles.title}>{t('eventsList.title')}</Text>
-            <View style={styles.subtitleRow}>
-              <Text style={styles.subtitleCount}>{visibleEvents.length}</Text>
-              <Text style={styles.subtitle}>
-                {visibleEvents.length === 1 ? t('eventsList.countOne') : t('eventsList.countMany')}
-                {activeCount > 0 ? ` · ${activeCount} ${t('eventsList.filtersShort')}` : ''}
-              </Text>
+        <View style={styles.heroBand}>
+          <View style={styles.titleRow}>
+            <View style={styles.titleBlock}>
+              <Text style={styles.title}>{t('eventsList.title')}</Text>
+              <View style={styles.subtitleRow}>
+                <Text style={styles.subtitleCount}>{visibleEvents.length}</Text>
+                <Text style={styles.subtitle}>
+                  {visibleEvents.length === 1 ? t('eventsList.countOne') : t('eventsList.countMany')}
+                  {activeCount > 0 ? ` · ${activeCount} ${t('eventsList.filtersShort')}` : ''}
+                </Text>
+              </View>
             </View>
-          </View>
-          <Pressable
-            style={({ pressed }) => [styles.createBtn, pressed && styles.pressed]}
-            onPress={() => router.push('/event/create')}>
-            <Text style={styles.createBtnText}>＋ {t('eventsList.create')}</Text>
-          </Pressable>
-        </View>
-
-        <View style={styles.searchRow}>
-          <SearchIcon size={17} color={Brand.textSecondary} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder={t('eventsList.searchPlaceholder')}
-            placeholderTextColor={Brand.textMuted}
-            value={filters.search}
-            onChangeText={(search) => setFilters((prev) => ({ ...prev, search }))}
-            returnKeyType="search"
-          />
-          {filters.search.length > 0 ? (
             <Pressable
-              onPress={() => setFilters((prev) => ({ ...prev, search: '' }))}
-              hitSlop={8}
-              style={({ pressed }) => pressed && styles.pressed}>
-              <CloseIcon size={14} color={Brand.textMuted} />
+              style={({ pressed }) => [styles.createBtn, pressed && styles.pressed]}
+              onPress={() => router.push('/event/create')}>
+              <Text style={styles.createBtnText}>＋ {t('eventsList.create')}</Text>
             </Pressable>
-          ) : null}
+          </View>
+
+          <View style={styles.searchRow}>
+            <SearchIcon size={17} color={Brand.textSecondary} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder={t('eventsList.searchPlaceholder')}
+              placeholderTextColor={Brand.textMuted}
+              value={filters.search}
+              onChangeText={(search) => setFilters((prev) => ({ ...prev, search }))}
+              returnKeyType="search"
+            />
+            {filters.search.length > 0 ? (
+              <Pressable
+                onPress={() => setFilters((prev) => ({ ...prev, search: '' }))}
+                hitSlop={8}
+                style={({ pressed }) => pressed && styles.pressed}>
+                <CloseIcon size={14} color={Brand.textMuted} />
+              </Pressable>
+            ) : null}
+          </View>
         </View>
 
         {subcats.length > 0 ? (
@@ -475,7 +477,20 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.screenBackground,
   },
   header: {
+    marginBottom: 4,
+  },
+  // Ciemny blok na całą szerokość zamiast białego tła pod tytułem — to jest
+  // ta zmiana, którą ma być widać z pierwszego rzutu oka, nie porównując ze
+  // starą wersją. Zaokrąglenie tylko na dole, żeby nie kolidowało z paskiem
+  // statusu/insets nad nim.
+  heroBand: {
+    backgroundColor: Brand.ink,
     paddingHorizontal: Layout.screenPaddingX,
+    paddingTop: 18,
+    paddingBottom: 18,
+    borderBottomLeftRadius: 28,
+    borderBottomRightRadius: 28,
+    gap: 14,
   },
   titleRow: {
     flexDirection: 'row',
@@ -486,8 +501,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   title: {
-    ...Typography.screenTitle,
-    fontSize: 32,
+    fontFamily: BrandFonts.display,
+    fontSize: 34,
+    color: '#ffffff',
     textTransform: 'uppercase',
     letterSpacing: 0.2,
   },
@@ -501,13 +517,15 @@ const styles = StyleSheet.create({
     fontFamily: BrandFonts.monoSemibold,
     fontVariant: ['tabular-nums'],
     fontSize: 13,
-    color: Brand.primary,
+    color: Brand.amber,
   },
   subtitle: {
-    ...Typography.caption,
+    fontFamily: BrandFonts.body,
+    fontSize: 13,
+    color: 'rgba(255,255,255,0.68)',
   },
   createBtn: {
-    backgroundColor: Brand.primary,
+    backgroundColor: Brand.amber,
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: Radius.pill,
@@ -515,7 +533,7 @@ const styles = StyleSheet.create({
   },
   createBtnText: {
     fontFamily: BrandFonts.bodyBold,
-    color: Brand.primaryText,
+    color: Brand.ink,
     fontSize: 13,
   },
   playRow: {
@@ -565,7 +583,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 9,
-    marginTop: 14,
     paddingHorizontal: 14,
     height: 46,
     backgroundColor: Brand.surface,
@@ -583,7 +600,9 @@ const styles = StyleSheet.create({
   },
   subChipsRow: {
     gap: 8,
+    paddingTop: 14,
     paddingBottom: 12,
+    paddingLeft: Layout.screenPaddingX,
     paddingRight: 8,
   },
   subChip: {
@@ -614,6 +633,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 12,
+    paddingHorizontal: Layout.screenPaddingX,
     borderBottomWidth: 1.5,
     borderStyle: 'dashed',
     borderBottomColor: Brand.border,

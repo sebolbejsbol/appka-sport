@@ -1,3 +1,4 @@
+import { LinearGradient } from 'expo-linear-gradient';
 import { memo } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -5,7 +6,7 @@ import { CalendarIcon, PeopleIcon, PinIcon } from '@/components/icons';
 import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
-import { categoryLabel, categoryMeta, subcategoryLabel } from '@/lib/event-categories';
+import { markerEmoji, subcategoryAccentColor, subcategoryLabel } from '@/lib/event-categories';
 import type { DiscoverEvent } from '@/lib/discover-events';
 import { formatEventDateTime } from '@/lib/datetime';
 import { distanceMeters, formatDistance, type LngLat } from '@/lib/geo';
@@ -23,11 +24,22 @@ export function formatEventPrice(event: DiscoverEvent): string {
   return `${zl % 1 === 0 ? zl.toFixed(0) : zl.toFixed(2)} zł`;
 }
 
+/**
+ * Redesign 2026-08-21, druga tura ("wygląda prawie tak samo jak przed
+ * redesignem" — feedback usera). Nie kosmetyka na starym układzie: karta
+ * ma teraz solidny, kolorowy blok nagłówka (prawdziwy kolor SPORTU —
+ * subcategoryAccentColor, nie stały niebieski `categoryMeta` używany
+ * wcześniej, bo `category` to zawsze 'sport') z dużą ikoną i tytułem prosto
+ * na kolorze — zdjęcie (gdy jest) dostaje ciemny gradient pod spodem, żeby
+ * tytuł dało się czytać bezpośrednio na fotografii zamiast w małej plakietce
+ * w rogu. To jest największa, najbardziej widoczna zmiana karty w całej apce
+ * — ma się rzucać w oczy bez porównywania ze starą wersją.
+ */
 function EventCardComponent({ event, userCoords, onPress }: Props) {
-  const meta = categoryMeta(event.category);
-  const catLabel = categoryLabel(event.category);
+  const accent = subcategoryAccentColor(event.subcategory);
+  const emoji = markerEmoji(event.category, event.subcategory);
   const sub = subcategoryLabel(event.subcategory);
-  const title = event.title?.trim() || `${catLabel}${sub ? ` · ${sub}` : ''}`;
+  const title = event.title?.trim() || sub || t('eventCategories.sport');
 
   const distanceText =
     userCoords && event.lng != null && event.lat != null
@@ -41,31 +53,39 @@ function EventCardComponent({ event, userCoords, onPress }: Props) {
 
   const price = formatEventPrice(event);
   const isPaid = event.payment_status === 'paid';
+  const hasPhoto = Boolean(event.image_url);
 
   return (
     <Pressable
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
       onPress={() => onPress(event)}>
-      <View style={styles.media}>
-        {event.image_url ? (
-          <Image source={{ uri: event.image_url }} style={styles.image} resizeMode="cover" />
+      <View style={[styles.header, !hasPhoto && { backgroundColor: accent }]}>
+        {hasPhoto ? (
+          <>
+            <Image source={{ uri: event.image_url! }} style={styles.headerImage} resizeMode="cover" />
+            <LinearGradient
+              colors={['rgba(10,14,22,0)', 'rgba(10,14,22,0.82)']}
+              style={StyleSheet.absoluteFill}
+            />
+          </>
         ) : (
-          <View style={[styles.imageFallback, { backgroundColor: meta.tint }]}>
-            <Text style={styles.fallbackEmoji}>{meta.emoji}</Text>
-          </View>
+          <Text style={styles.headerEmoji}>{emoji}</Text>
         )}
-        <View style={[styles.categoryBadge, { backgroundColor: meta.color }]}>
-          <Text style={styles.categoryBadgeText}>
-            {meta.emoji} {catLabel}
-          </Text>
-        </View>
+
+        {sub ? (
+          <View style={[styles.subPill, hasPhoto && styles.subPillOnPhoto]}>
+            <Text style={[styles.subPillText, hasPhoto ? styles.subPillTextOnPhoto : { color: accent }]}>
+              {sub}
+            </Text>
+          </View>
+        ) : null}
+
+        <Text style={styles.headerTitle} numberOfLines={2}>
+          {title}
+        </Text>
       </View>
 
       <View style={styles.body}>
-        <Text style={styles.title} numberOfLines={2}>
-          {title}
-        </Text>
-
         <View style={styles.metaRow}>
           <CalendarIcon size={14} color={Brand.textMuted} />
           <Text style={styles.metaText} numberOfLines={1}>
@@ -82,32 +102,27 @@ function EventCardComponent({ event, userCoords, onPress }: Props) {
             </Text>
           </View>
         ) : null}
-      </View>
 
-      {/* Perforacja "linii boiska" oddziela istotę (co/kiedy/gdzie) od stopki
-          biletu (miejsca/cena) — patrz plan redesignu: karty eventów jako
-          bilet na mecz, notche w tle ekranu po obu stronach. */}
-      <View style={styles.perforationRow}>
-        <View style={styles.notchLeft} />
-        <View style={styles.perforationLine} />
-        <View style={styles.notchRight} />
-      </View>
-
-      <View style={styles.stub}>
-        {sub ? (
-          <View style={[styles.subChip, { borderColor: meta.color }]}>
-            <Text style={[styles.subChipText, { color: meta.color }]}>{sub}</Text>
-          </View>
-        ) : null}
-        <View style={styles.footerSpacer} />
-        <View style={styles.participantsRow}>
-          <PeopleIcon size={14} color={Brand.textSecondary} />
-          <Text style={styles.participants}>{participantsText}</Text>
+        {/* Perforacja "linii boiska": kreskowana linia + dwa półkola w kolorze
+            tła ekranu, imitujące dziurkowanie biletu — motyw powtórzony na
+            wszystkich kartach/tabelkach w apce. */}
+        <View style={styles.perforationRow}>
+          <View style={styles.notchLeft} />
+          <View style={styles.perforationLine} />
+          <View style={styles.notchRight} />
         </View>
-        <View style={[styles.priceChip, isPaid ? styles.priceChipPaid : styles.priceChipFree]}>
-          <Text style={[styles.priceText, isPaid ? styles.priceTextPaid : styles.priceTextFree]}>
-            {price}
-          </Text>
+
+        <View style={styles.stub}>
+          <View style={styles.participantsRow}>
+            <PeopleIcon size={15} color={Brand.textPrimary} />
+            <Text style={styles.participants}>{participantsText}</Text>
+          </View>
+          <View style={styles.footerSpacer} />
+          <View style={[styles.priceChip, isPaid ? styles.priceChipPaid : styles.priceChipFree]}>
+            <Text style={[styles.priceText, isPaid ? styles.priceTextPaid : styles.priceTextFree]}>
+              {price}
+            </Text>
+          </View>
         </View>
       </View>
     </Pressable>
@@ -121,58 +136,65 @@ export const EventCard = memo(EventCardComponent);
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Brand.surface,
-    borderRadius: Radius.lg,
-    borderWidth: 1,
-    borderColor: Brand.border,
+    borderRadius: 22,
     overflow: 'hidden',
-    ...shadow('sm'),
+    ...shadow('md'),
   },
   pressed: {
     opacity: 0.96,
     transform: [{ scale: 0.985 }],
   },
-  media: {
+  header: {
     position: 'relative',
     width: '100%',
-    aspectRatio: 16 / 9,
-    backgroundColor: Brand.surfaceMuted,
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  imageFallback: {
-    width: '100%',
-    height: '100%',
+    aspectRatio: 4 / 3,
     alignItems: 'center',
     justifyContent: 'center',
+    padding: 16,
   },
-  fallbackEmoji: {
-    fontSize: 52,
+  headerImage: {
+    ...StyleSheet.absoluteFill,
   },
-  categoryBadge: {
+  headerEmoji: {
+    fontSize: 64,
+  },
+  headerTitle: {
     position: 'absolute',
-    top: 10,
-    left: 10,
-    paddingHorizontal: 10,
+    left: 16,
+    right: 16,
+    bottom: 14,
+    fontFamily: BrandFonts.display,
+    fontSize: 22,
+    color: '#ffffff',
+    textShadowColor: 'rgba(10,14,22,0.35)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
+  },
+  subPill: {
+    position: 'absolute',
+    top: 14,
+    left: 14,
+    paddingHorizontal: 11,
     paddingVertical: 5,
     borderRadius: Radius.pill,
+    backgroundColor: 'rgba(255,255,255,0.92)',
   },
-  categoryBadgeText: {
+  subPillOnPhoto: {
+    backgroundColor: '#ffffff',
+  },
+  subPillText: {
     fontFamily: BrandFonts.bodyBold,
-    fontSize: 12,
-    color: '#ffffff',
+    fontSize: 11.5,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
+  },
+  subPillTextOnPhoto: {
+    color: Brand.ink,
   },
   body: {
-    padding: 14,
-    paddingBottom: 12,
-    gap: 6,
-  },
-  title: {
-    fontFamily: BrandFonts.bodyBold,
-    fontSize: 16,
-    color: Brand.textPrimary,
-    letterSpacing: -0.2,
+    padding: 16,
+    paddingTop: 14,
+    gap: 7,
   },
   metaRow: {
     flexDirection: 'row',
@@ -181,16 +203,15 @@ const styles = StyleSheet.create({
   },
   metaText: {
     flex: 1,
-    fontFamily: BrandFonts.body,
-    fontSize: 13,
+    fontFamily: BrandFonts.bodyMedium,
+    fontSize: 13.5,
     color: Brand.textSecondary,
   },
-  // Perforacja "linii boiska": kreskowana linia + dwa półkola w kolorze tła
-  // ekranu na krawędziach karty, imitujące dziurkowanie biletu.
   perforationRow: {
     flexDirection: 'row',
     alignItems: 'center',
     height: 1,
+    marginTop: 8,
   },
   perforationLine: {
     flex: 1,
@@ -201,69 +222,58 @@ const styles = StyleSheet.create({
     marginHorizontal: -4,
   },
   notchLeft: {
-    width: 14,
-    height: 14,
+    width: 16,
+    height: 16,
     borderRadius: 999,
     backgroundColor: Brand.screenBackground,
-    marginLeft: -7,
+    marginLeft: -8,
   },
   notchRight: {
-    width: 14,
-    height: 14,
+    width: 16,
+    height: 16,
     borderRadius: 999,
     backgroundColor: Brand.screenBackground,
-    marginRight: -7,
+    marginRight: -8,
   },
   stub: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    padding: 14,
     paddingTop: 12,
   },
   footerSpacer: {
     flex: 1,
   },
-  subChip: {
-    paddingHorizontal: 9,
-    paddingVertical: 3,
-    borderRadius: Radius.pill,
-    borderWidth: 1,
-  },
-  subChipText: {
-    fontFamily: BrandFonts.bodyBold,
-    fontSize: 11,
-  },
   participantsRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 5,
+    gap: 6,
   },
   participants: {
     fontFamily: BrandFonts.monoSemibold,
     fontVariant: ['tabular-nums'],
-    fontSize: 13,
-    color: Brand.textSecondary,
+    fontSize: 16,
+    color: Brand.textPrimary,
   },
   priceChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     borderRadius: Radius.pill,
   },
   priceChipFree: {
-    backgroundColor: Brand.successLight,
+    backgroundColor: Brand.pitch,
   },
   priceChipPaid: {
-    backgroundColor: Brand.primaryLight,
+    backgroundColor: Brand.amber,
   },
   priceText: {
     fontFamily: BrandFonts.bodyBold,
-    fontSize: 12,
+    fontSize: 13,
   },
   priceTextFree: {
-    color: Brand.success,
+    color: '#ffffff',
   },
   priceTextPaid: {
-    color: Brand.primaryDark,
+    color: Brand.ink,
   },
 });
