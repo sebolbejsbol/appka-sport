@@ -1,3 +1,4 @@
+import Constants from 'expo-constants';
 import { router, useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
 import {
@@ -15,8 +16,23 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { Button } from '@/components/button';
-import { LegalFooterLinks } from '@/components/legal-footer-links';
+import {
+  BellIcon,
+  DocumentIcon,
+  FlagIcon,
+  GlobeIcon,
+  LogOutIcon,
+  PinIcon,
+  ShieldIcon,
+} from '@/components/icons';
 import { ScreenScaffold } from '@/components/screen-scaffold';
+import {
+  SettingsChevron,
+  SettingsDivider,
+  SettingsGroup,
+  SettingsGroupLabel,
+  SettingsIconRow,
+} from '@/components/settings-group';
 import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { useLocale } from '@/context/locale';
@@ -28,6 +44,7 @@ import { confirmAction } from '@/lib/confirm';
 import { getNotificationsEnabled, setNotificationsEnabled } from '@/lib/notification-preferences';
 import { getUpcomingEvents } from '@/lib/events';
 import { canOpenLocationSettings, openLocationSettings } from '@/lib/location-permission';
+import { openLegalDocument } from '@/lib/legal-navigation';
 import {
   disablePushNotifications,
   enablePushNotifications,
@@ -44,31 +61,6 @@ import {
   webPushSupport,
 } from '@/lib/web-push';
 import type { Locale } from '@/i18n';
-
-function SettingsRow({
-  label,
-  hint,
-  onPress,
-  disabled,
-}: {
-  label: string;
-  hint: string;
-  onPress: () => void;
-  disabled?: boolean;
-}) {
-  return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled}
-      style={({ pressed }) => [styles.settingsRow, pressed && !disabled && styles.settingsRowPressed]}>
-      <View style={styles.settingsRowText}>
-        <Text style={styles.rowLabel}>{label}</Text>
-        <Text style={styles.cardHint}>{hint}</Text>
-      </View>
-      <Text style={styles.settingsRowChevron}>›</Text>
-    </Pressable>
-  );
-}
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
@@ -270,110 +262,162 @@ export default function SettingsScreen() {
         <ActivityIndicator color={Brand.primary} style={styles.loader} />
       ) : (
         <View style={styles.sections}>
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{t('settings.languageTitle')}</Text>
-            <Text style={styles.cardHint}>{t('settings.languageHint')}</Text>
-            <View style={styles.langRow}>
-              {SUPPORTED_LOCALES.map((option) => {
-                const active = locale === option.code;
-                return (
-                  <Pressable
-                    key={option.code}
-                    onPress={() => void handleLanguageChange(option.code)}
-                    disabled={busy}
-                    style={[styles.langChip, active && styles.langChipActive]}>
-                    <Text style={styles.langFlag}>{option.flag}</Text>
-                    <Text style={[styles.langLabel, active && styles.langLabelActive]}>
-                      {option.label}
-                    </Text>
-                  </Pressable>
-                );
-              })}
-            </View>
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{t('settings.notificationsTitle')}</Text>
-            <Text style={styles.cardHint}>{t('settings.notificationsHint')}</Text>
-
-            {Platform.OS === 'web' && webPushSupport() !== 'supported' ? (
-              <Text style={styles.status}>{t('settings.notificationsWebUnavailable')}</Text>
-            ) : (
-              <>
-                <Text style={styles.status}>{statusText()}</Text>
-
-                <View style={styles.rowBetween}>
-                  <Text style={styles.rowLabel}>{t('settings.notificationsToggle')}</Text>
-                  <Switch
-                    value={enabled}
-                    onValueChange={handleToggle}
-                    disabled={busy}
-                    trackColor={{ true: Brand.primary }}
-                  />
-                </View>
-
-                {hint ? <Text style={styles.errorText}>{hint}</Text> : null}
-
-                {permission === 'denied' && Platform.OS !== 'web' ? (
-                  <Button
-                    label={t('settings.notificationsOpenSettings')}
-                    variant="secondary"
-                    onPress={() => void Linking.openSettings()}
-                    disabled={busy}
-                  />
-                ) : null}
-              </>
-            )}
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>{t('settings.locationTitle')}</Text>
-            <Text style={styles.cardHint}>{t('settings.locationHint')}</Text>
-            <Text style={styles.status}>{locationStatusText()}</Text>
-
-            {locationStatus !== 'granted' ? (
-              <Button
-                label={locationBusy ? t('settings.locationChecking') : t('settings.locationEnable')}
-                variant="secondary"
-                onPress={() => void handleEnableLocation()}
-                disabled={locationBusy}
+          <View>
+            <SettingsGroupLabel>{t('settings.groupAccount')}</SettingsGroupLabel>
+            <SettingsGroup>
+              <SettingsIconRow
+                icon={<GlobeIcon size={16} color={Brand.teal} />}
+                iconBg={Brand.tealLight}
+                label={t('settings.languageTitle')}
+                hint={t('settings.languageHint')}
               />
-            ) : null}
+              <SettingsDivider />
+              <View style={styles.langRow}>
+                {SUPPORTED_LOCALES.map((option) => {
+                  const active = locale === option.code;
+                  return (
+                    <Pressable
+                      key={option.code}
+                      onPress={() => void handleLanguageChange(option.code)}
+                      disabled={busy}
+                      style={[styles.langChip, active && styles.langChipActive]}>
+                      <Text style={styles.langFlag}>{option.flag}</Text>
+                      <Text style={[styles.langLabel, active && styles.langLabelActive]}>
+                        {option.label}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+            </SettingsGroup>
+          </View>
 
-            {locationStatus === 'denied' && canOpenLocationSettings ? (
-              <Button
-                label={t('fieldNavigation.openSettings')}
-                variant="secondary"
-                onPress={() => void openLocationSettings()}
+          <View>
+            <SettingsGroupLabel>{t('settings.groupNotifications')}</SettingsGroupLabel>
+            <SettingsGroup>
+              {Platform.OS === 'web' && webPushSupport() !== 'supported' ? (
+                <SettingsIconRow
+                  icon={<BellIcon size={16} color={Brand.amber} />}
+                  iconBg={Brand.amberLight}
+                  label={t('settings.notificationsToggle')}
+                  hint={t('settings.notificationsWebUnavailable')}
+                />
+              ) : (
+                <>
+                  <SettingsIconRow
+                    icon={<BellIcon size={16} color={Brand.amber} />}
+                    iconBg={Brand.amberLight}
+                    label={t('settings.notificationsToggle')}
+                    hint={statusText()}
+                    trailing={
+                      <Switch
+                        value={enabled}
+                        onValueChange={handleToggle}
+                        disabled={busy}
+                        trackColor={{ true: Brand.primary }}
+                      />
+                    }
+                  />
+                  {hint ? (
+                    <>
+                      <SettingsDivider />
+                      <Text style={styles.errorText}>{hint}</Text>
+                    </>
+                  ) : null}
+                  {permission === 'denied' && Platform.OS !== 'web' ? (
+                    <>
+                      <SettingsDivider />
+                      <View style={styles.inlineButton}>
+                        <Button
+                          label={t('settings.notificationsOpenSettings')}
+                          variant="secondary"
+                          onPress={() => void Linking.openSettings()}
+                          disabled={busy}
+                        />
+                      </View>
+                    </>
+                  ) : null}
+                </>
+              )}
+
+              <SettingsDivider />
+              <SettingsIconRow
+                icon={<PinIcon size={16} color={Brand.primary} />}
+                iconBg={Brand.primaryLight}
+                label={t('settings.locationTitle')}
+                hint={locationStatusText()}
+                onPress={locationStatus !== 'granted' ? () => void handleEnableLocation() : undefined}
+                disabled={locationBusy}
+                trailing={
+                  locationStatus !== 'granted' ? (
+                    locationBusy ? (
+                      <ActivityIndicator size="small" color={Brand.primary} />
+                    ) : (
+                      <SettingsChevron />
+                    )
+                  ) : null
+                }
+              />
+              {locationStatus === 'denied' && canOpenLocationSettings ? (
+                <>
+                  <SettingsDivider />
+                  <View style={styles.inlineButton}>
+                    <Button
+                      label={t('fieldNavigation.openSettings')}
+                      variant="secondary"
+                      onPress={() => void openLocationSettings()}
+                      disabled={busy}
+                    />
+                  </View>
+                </>
+              ) : null}
+            </SettingsGroup>
+          </View>
+
+          <View>
+            <SettingsGroupLabel>{t('settings.groupHelp')}</SettingsGroupLabel>
+            <SettingsGroup>
+              <SettingsIconRow
+                icon={<FlagIcon size={16} color={Brand.pitch} />}
+                iconBg={Brand.pitchLight}
+                label={t('settings.reportFieldTitle')}
+                onPress={() => router.push('/field/report')}
+                trailing={<SettingsChevron />}
+              />
+              <SettingsDivider />
+              <SettingsIconRow
+                icon={<ShieldIcon size={16} color={Brand.textSecondary} />}
+                iconBg={Brand.surfaceMuted}
+                label={t('settings.blockedUsersTitle')}
+                onPress={() => router.push('/settings/blocked')}
+                trailing={<SettingsChevron />}
+              />
+              <SettingsDivider />
+              <SettingsIconRow
+                icon={<DocumentIcon size={16} color={Brand.textSecondary} />}
+                iconBg={Brand.surfaceMuted}
+                label={t('settings.termsRowLabel')}
+                onPress={() => openLegalDocument('terms')}
+                trailing={<SettingsChevron />}
+              />
+              <SettingsDivider />
+              <SettingsIconRow
+                icon={<DocumentIcon size={16} color={Brand.textSecondary} />}
+                iconBg={Brand.surfaceMuted}
+                label={t('settings.privacyRowLabel')}
+                onPress={() => openLegalDocument('privacy')}
+                trailing={<SettingsChevron />}
+              />
+              <SettingsDivider />
+              <SettingsIconRow
+                icon={<LogOutIcon size={16} color={Brand.danger} />}
+                iconBg={Brand.dangerLight}
+                label={t('settings.signOut')}
+                labelColor={Brand.danger}
+                onPress={handleSignOut}
                 disabled={busy}
               />
-            ) : null}
-          </View>
-
-          {/* Trzy proste akcje nawigacyjne zebrane w jedną listę z kreskowanymi
-              rozdzielaczami (ten sam motyw "linii boiska" co karty eventów/
-              turniejów) zamiast trzech osobnych, powtarzalnych kart z
-              identycznym układem tytuł+opis+przycisk — mniej szablonowe,
-              te same handlery/trasy co wcześniej. */}
-          <View style={styles.card}>
-            <SettingsRow
-              label={t('settings.reportFieldTitle')}
-              hint={t('settings.reportFieldHint')}
-              onPress={() => router.push('/field/report')}
-            />
-            <View style={styles.rowDivider} />
-            <SettingsRow
-              label={t('settings.blockedUsersTitle')}
-              hint={t('settings.blockedUsersHint')}
-              onPress={() => router.push('/settings/blocked')}
-            />
-            <View style={styles.rowDivider} />
-            <SettingsRow
-              label={t('settings.signOut')}
-              hint={t('settings.accountHint')}
-              onPress={handleSignOut}
-              disabled={busy}
-            />
+            </SettingsGroup>
           </View>
 
           <View style={[styles.card, styles.dangerCard]}>
@@ -390,10 +434,12 @@ export default function SettingsScreen() {
               <Text style={styles.dangerButtonText}>{t('settings.deleteAccountAction')}</Text>
             </Pressable>
           </View>
+
+          <Text style={styles.versionText}>
+            {t('settings.versionLabel')} {Constants.expoConfig?.version ?? ''}
+          </Text>
         </View>
       )}
-
-      <LegalFooterLinks style={styles.legalFooter} />
       </ScrollView>
     </ScreenScaffold>
   );
@@ -420,67 +466,26 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.surface,
     ...shadow('sm'),
   },
-  cardTitle: {
-    fontFamily: BrandFonts.bodyBold,
-    fontSize: 18,
-    color: Brand.textPrimary,
-  },
   cardHint: {
     fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
   },
-  status: {
-    fontFamily: BrandFonts.bodyMedium,
-    fontSize: 14,
-    color: Brand.textSecondary,
-  },
-  rowBetween: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 4,
-  },
-  rowLabel: {
-    fontFamily: BrandFonts.bodyMedium,
-    fontSize: 16,
-    color: Brand.textPrimary,
-    flex: 1,
-    paddingRight: 12,
-  },
   errorText: {
     fontFamily: BrandFonts.body,
-    fontSize: 14,
+    fontSize: 13.5,
     color: Brand.danger,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
   },
-  rowDivider: {
-    borderTopWidth: 1.5,
-    borderStyle: 'dashed',
-    borderTopColor: Brand.border,
-  },
-  settingsRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  settingsRowPressed: {
-    opacity: 0.7,
-  },
-  settingsRowText: {
-    flex: 1,
-    gap: 3,
-    paddingRight: 8,
-  },
-  settingsRowChevron: {
-    fontFamily: BrandFonts.body,
-    fontSize: 22,
-    fontWeight: '300',
-    color: Brand.textMuted,
+  inlineButton: {
+    padding: 12,
   },
   langRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 8,
+    padding: 16,
   },
   langChip: {
     flexDirection: 'row',
@@ -538,8 +543,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Brand.danger,
   },
-  legalFooter: {
-    marginTop: 32,
-    paddingBottom: 8,
+  versionText: {
+    fontFamily: BrandFonts.body,
+    fontSize: 12,
+    color: Brand.textMuted,
+    textAlign: 'center',
+    marginTop: 8,
+    marginBottom: 8,
   },
 });

@@ -1,17 +1,27 @@
 import { router } from 'expo-router';
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { DocumentIcon, FlagIcon, PeopleIcon, PinIcon, TrophyIcon } from '@/components/icons';
 import { ScreenHeader } from '@/components/screen-header';
+import {
+  SettingsChevron,
+  SettingsDivider,
+  SettingsGroup,
+  SettingsIconRow,
+} from '@/components/settings-group';
 import { Brand, BrandFonts } from '@/constants/theme';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
+import type { ReactNode } from 'react';
 
 type AdminTool = {
   key: string;
   title: string;
   hint: string;
+  icon: ReactNode;
+  iconBg: string;
   path: '/admin/fields' | '/admin/reports' | '/admin/users' | '/admin/tournaments' | '/admin/audit-log';
 };
 
@@ -23,18 +33,24 @@ function buildAdminTools(isSuperAdmin: boolean): AdminTool[] {
       key: 'fields',
       title: t('admin.fieldsTitle'),
       hint: t('admin.fieldsHint'),
+      icon: <PinIcon size={16} color={Brand.primary} />,
+      iconBg: Brand.primaryLight,
       path: '/admin/fields',
     },
     {
       key: 'reports',
       title: t('admin.reportsTitle'),
       hint: t('admin.reportsHint'),
+      icon: <FlagIcon size={16} color={Brand.danger} />,
+      iconBg: Brand.dangerLight,
       path: '/admin/reports',
     },
     {
       key: 'tournaments',
       title: t('admin.tournamentsTitle'),
       hint: t('admin.tournamentsHint'),
+      icon: <TrophyIcon size={16} color={Brand.amber} />,
+      iconBg: Brand.amberLight,
       path: '/admin/tournaments',
     },
   ];
@@ -44,12 +60,16 @@ function buildAdminTools(isSuperAdmin: boolean): AdminTool[] {
       key: 'users',
       title: t('admin.usersTitle'),
       hint: t('admin.usersHint'),
+      icon: <PeopleIcon size={16} color={Brand.teal} />,
+      iconBg: Brand.tealLight,
       path: '/admin/users',
     });
     tools.push({
       key: 'audit-log',
       title: t('admin.auditLogTitle'),
       hint: t('admin.auditLogHint'),
+      icon: <DocumentIcon size={16} color={Brand.textSecondary} />,
+      iconBg: Brand.surfaceMuted,
       path: '/admin/audit-log',
     });
   }
@@ -85,20 +105,21 @@ export default function AdminHubScreen() {
 
       <Text style={styles.subtitle}>{t('admin.subtitle')}</Text>
 
-      <View style={styles.list}>
-        {ADMIN_TOOLS.map((tool) => (
-          <Pressable
-            key={tool.key}
-            onPress={() => router.push(tool.path)}
-            style={({ pressed }) => [styles.item, pressed && styles.pressed]}>
-            <View style={styles.itemMain}>
-              <Text style={styles.itemTitle}>{tool.title}</Text>
-              <Text style={styles.itemHint}>{tool.hint}</Text>
-            </View>
-            <Text style={styles.chevron}>›</Text>
-          </Pressable>
+      <SettingsGroup>
+        {ADMIN_TOOLS.map((tool, index) => (
+          <View key={tool.key}>
+            {index > 0 ? <SettingsDivider /> : null}
+            <SettingsIconRow
+              icon={tool.icon}
+              iconBg={tool.iconBg}
+              label={tool.title}
+              hint={tool.hint}
+              onPress={() => router.push(tool.path)}
+              trailing={<SettingsChevron />}
+            />
+          </View>
         ))}
-      </View>
+      </SettingsGroup>
     </View>
   );
 }
@@ -127,43 +148,5 @@ const styles = StyleSheet.create({
     fontFamily: BrandFonts.body,
     paddingHorizontal: 24,
     lineHeight: 22,
-  },
-  list: {
-    gap: 10,
-  },
-  item: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: Brand.border,
-    backgroundColor: Brand.surface,
-  },
-  pressed: {
-    opacity: 0.85,
-  },
-  itemMain: {
-    flex: 1,
-    paddingRight: 8,
-  },
-  itemTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    fontFamily: BrandFonts.bodyBold,
-    color: Brand.textPrimary,
-  },
-  itemHint: {
-    fontSize: 13,
-    fontFamily: BrandFonts.body,
-    color: Brand.textMuted,
-    marginTop: 4,
-  },
-  chevron: {
-    fontSize: 22,
-    color: Brand.textMuted,
-    fontWeight: '300',
-    fontFamily: BrandFonts.body,
   },
 });

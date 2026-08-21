@@ -1337,6 +1337,12 @@ export const pl = {
     deleteAccountFailed: 'Nie udało się usunąć konta. Spróbuj ponownie.',
     languageTitle: 'Język',
     languageHint: 'Wybierz język aplikacji — zmiana działa od razu w całej aplikacji.',
+    groupAccount: 'Konto',
+    groupNotifications: 'Powiadomienia i lokalizacja',
+    groupHelp: 'Pomoc i konto',
+    termsRowLabel: 'Regulamin',
+    privacyRowLabel: 'Polityka prywatności',
+    versionLabel: 'Wersja',
   },
   moderation: {
     moreActions: 'Bezpieczeństwo',

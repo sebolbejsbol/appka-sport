@@ -1317,6 +1317,12 @@ export const en: DeepPartialWide<Translations> = {
     deleteAccountFailed: 'Could not delete the account. Try again.',
     languageTitle: 'Language',
     languageHint: 'Choose the app language — the change applies instantly across the whole app.',
+    groupAccount: 'Account',
+    groupNotifications: 'Notifications and location',
+    groupHelp: 'Help and account',
+    termsRowLabel: 'Terms of service',
+    privacyRowLabel: 'Privacy policy',
+    versionLabel: 'Version',
   },
   moderation: {
     moreActions: 'Safety',
