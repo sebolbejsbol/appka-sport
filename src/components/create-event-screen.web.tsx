@@ -31,7 +31,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DatePickerField } from '@/components/date-picker-field';
 import { TimePickerField } from '@/components/time-picker-field';
-import { Brand, Layout, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Layout, Radius } from '@/constants/theme';
 import { notifyError, notifyInfo } from '@/lib/toast';
 import { shadow, Typography } from '@/constants/ui';
 import { useSession } from '@/context/session';
@@ -1529,14 +1529,15 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   back: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 16,
-    fontWeight: '600',
     color: Brand.primary,
     width: 64,
   },
   stepCounter: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 13,
-    fontWeight: '700',
     color: Brand.textMuted,
   },
   progressTrack: {
@@ -1557,6 +1558,7 @@ const styles = StyleSheet.create({
     ...Typography.sectionTitle,
   },
   screenSubtitle: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     marginTop: 2,
@@ -1588,8 +1590,8 @@ const styles = StyleSheet.create({
     fontSize: 34,
   },
   catLabel: {
+    fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
-    fontWeight: '700',
     color: Brand.textPrimary,
   },
   subCard: {
@@ -2103,9 +2105,9 @@ const styles = StyleSheet.create({
     ...shadow('md'),
   },
   footerNextText: {
+    fontFamily: BrandFonts.bodyBold,
     color: Brand.primaryText,
     fontSize: 16,
-    fontWeight: '800',
   },
   submitDisabled: {
     opacity: 0.7,
@@ -2222,21 +2224,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
     paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: 1.5,
+    borderStyle: 'dashed',
     borderBottomColor: Brand.border,
   },
   summaryRowLabel: {
     width: 96,
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
-    fontWeight: '700',
     color: Brand.textMuted,
   },
   summaryValue: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
-    fontWeight: '600',
     color: Brand.textPrimary,
   },
   summaryNotes: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     lineHeight: 21,
