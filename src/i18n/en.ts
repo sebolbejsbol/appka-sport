@@ -555,6 +555,7 @@ export const en: DeepPartialWide<Translations> = {
       availabilityEmpty: 'No events yet',
     },
     nearbySearchButton: 'Search nearby',
+    filtersButton: 'Filters',
     nearbyEventsTitle: 'Events nearby',
     nearbyEventsSubtitle: 'Active events within 10 km, matching your filters.',
     nearbyEventsLocating: 'Finding your location…',

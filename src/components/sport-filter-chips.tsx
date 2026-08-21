@@ -8,12 +8,12 @@ import { FIELD_SPORTS, sportFilterLabel, type SportFilter } from '@/lib/sports';
 
 const OPTIONS: SportFilter[] = ['all', ...FIELD_SPORTS];
 
-export function SportFilterChips() {
+export function SportFilterChips({ hideLabel }: { hideLabel?: boolean } = {}) {
   const { filters, setFilters } = useEventFilters();
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.label}>{t('eventFilters.sportLabel')}</Text>
+      {hideLabel ? null : <Text style={styles.label}>{t('eventFilters.sportLabel')}</Text>}
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
