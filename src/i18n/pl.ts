@@ -829,6 +829,8 @@ export const pl = {
     durationShort: 'min',
     details: 'Szczegóły',
     detailTitle: 'Szczegóły eventu',
+    statusOpenBadge: 'OTWARTE',
+    xpRewardLabel: 'XP',
     editTitle: 'Edytuj event',
     descriptionTitle: 'Opis od organizatora',
     descriptionEmpty: 'Organizator nie dodał opisu.',

@@ -15,21 +15,22 @@ import {
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Animated, { FadeIn, FadeOut, LinearTransition } from 'react-native-reanimated';
+import { LinearGradient } from 'expo-linear-gradient';
 
 import { BOTTOM_NAV_HEIGHT } from '@/components/app-side-menu';
 import { CheckInRipple } from '@/components/check-in-ripple';
 import { CheckInSuccessModal } from '@/components/check-in-success-modal';
-import { ShareIcon, SlidersIcon } from '@/components/icons';
+import { PinIcon, ShareIcon, SlidersIcon } from '@/components/icons';
 import { EventBlockedCoPlayerBanner } from '@/components/event-blocked-co-player-banner';
 import { FieldRatingPromptModal } from '@/components/field-rating-prompt-modal';
 import { EventMetaBadges } from '@/components/event-meta-badges';
 import { NavigateToFieldButton } from '@/components/navigate-to-field-button';
 import { Button } from '@/components/button';
 import { Brand, BrandFonts, Radius } from '@/constants/theme';
-import { Typography } from '@/constants/ui';
+import { shadow, Typography } from '@/constants/ui';
 import { useSession } from '@/context/session';
 import { useWatchingLocation } from '@/hooks/use-watching-location';
-import { t } from '@/i18n';
+import { getLocale, t } from '@/i18n';
 import { showActionSheet } from '@/lib/action-sheet-navigation';
 import { confirmAction } from '@/lib/confirm';
 import { notifyError } from '@/lib/toast';
@@ -42,7 +43,7 @@ import {
   manualCheckInEvent,
   type CheckInResult,
 } from '@/lib/check-in';
-import { formatEventDateTime } from '@/lib/datetime';
+import { formatEventDateTime, formatTime } from '@/lib/datetime';
 import {
   deleteEvent,
   extendEvent,
@@ -81,7 +82,12 @@ import { FieldOpinionsSheet } from '@/components/field-opinions-sheet';
 import { InviteSeekersSheet } from '@/components/invite-seekers-sheet';
 import { TeamAvatar } from '@/components/team-avatar';
 import { UserAvatar } from '@/components/user-avatar';
-import { categoryLabel, categoryMeta, subcategoryLabel } from '@/lib/event-categories';
+import {
+  categoryLabel,
+  categoryMeta,
+  subcategoryAccentColor,
+  subcategoryLabel,
+} from '@/lib/event-categories';
 import { getPlayerRank } from '@/lib/ranking';
 
 export default function EventDetailScreen() {
@@ -563,7 +569,7 @@ export default function EventDetailScreen() {
         ? [event.image_url]
         : []
     : [];
-  const galleryWidth = Math.max(0, windowWidth - 48);
+  const galleryWidth = windowWidth;
   const meta = event ? categoryMeta(event.category) : null;
   const catLabel = event ? categoryLabel(event.category) : null;
   const subLabel = event ? subcategoryLabel(event.subcategory) : null;
@@ -575,19 +581,111 @@ export default function EventDetailScreen() {
         : t('eventFilters.paymentPaid')
     : '';
 
+  const accentColor = event ? subcategoryAccentColor(event.subcategory) : Brand.primary;
+  const heroStatusText = event
+    ? event.status === 'finished'
+      ? t('event.statusFinished')
+      : isFull
+        ? t('event.full')
+        : t('event.statusOpenBadge')
+    : '';
+  const shortDate = event
+    ? new Date(event.starts_at).toLocaleDateString(getLocale() === 'en' ? 'en-GB' : 'pl-PL', {
+        day: '2-digit',
+        month: '2-digit',
+      })
+    : '';
+
   return (
     <ScrollView
       contentContainerStyle={[
-        styles.content,
-        { paddingTop: insets.top + 60, paddingBottom: insets.bottom + BOTTOM_NAV_HEIGHT + 24 },
-      ]}>
-      <Text style={styles.title}>{t('event.detailTitle')}</Text>
-
+        styles.scrollContent,
+        { paddingBottom: insets.bottom + BOTTOM_NAV_HEIGHT + 24 },
+      ]}
+      showsVerticalScrollIndicator={false}>
       {loading ? (
-        <ActivityIndicator color={Brand.primary} style={styles.loader} />
+        <ActivityIndicator color={Brand.primary} style={[styles.loader, { marginTop: insets.top + 40 }]} />
       ) : loadError || !event ? (
-        <Text style={styles.errorText}>{t('event.loadError')}</Text>
+        <Text style={[styles.errorText, { marginTop: insets.top + 40, marginHorizontal: 24 }]}>
+          {t('event.loadError')}
+        </Text>
       ) : (
+        <>
+          <View style={styles.hero}>
+            {gallery.length === 1 ? (
+              <Image source={{ uri: gallery[0] }} style={styles.heroMedia} resizeMode="cover" />
+            ) : gallery.length > 1 ? (
+              <>
+                <ScrollView
+                  horizontal
+                  pagingEnabled
+                  showsHorizontalScrollIndicator={false}
+                  style={styles.heroMedia}>
+                  {gallery.map((uri, i) => (
+                    <Image
+                      key={`${uri}-${i}`}
+                      source={{ uri }}
+                      style={[styles.galleryImage, { width: galleryWidth }]}
+                      resizeMode="cover"
+                    />
+                  ))}
+                </ScrollView>
+                <View style={styles.galleryCount}>
+                  <Text style={styles.galleryCountText}>📷 {gallery.length}</Text>
+                </View>
+              </>
+            ) : (
+              <View style={[styles.heroMedia, { backgroundColor: accentColor }]} />
+            )}
+
+            <LinearGradient
+              colors={['rgba(10,14,22,0.05)', 'rgba(10,14,22,0.6)']}
+              style={StyleSheet.absoluteFill}
+              pointerEvents="none"
+            />
+
+            <Pressable
+              onPress={() => goBack('/')}
+              hitSlop={10}
+              accessibilityRole="button"
+              accessibilityLabel={t('common.back')}
+              style={({ pressed }) => [
+                styles.heroIconBtn,
+                styles.heroBackBtn,
+                { top: insets.top + 12 },
+                pressed && styles.pressed,
+              ]}>
+              <Text style={styles.heroIconText}>←</Text>
+            </Pressable>
+
+            {event.status === 'planned' && (event.is_joined || event.can_manage) ? (
+              <Pressable
+                onPress={handleShareLink}
+                disabled={busy}
+                accessibilityRole="button"
+                accessibilityLabel={t('event.shareLink')}
+                style={({ pressed }) => [
+                  styles.heroIconBtn,
+                  styles.heroShareBtn,
+                  { top: insets.top + 12 },
+                  pressed && styles.pressed,
+                ]}>
+                <ShareIcon size={16} color="#ffffff" />
+              </Pressable>
+            ) : null}
+
+            {meta ? (
+              <View style={styles.heroPillRow}>
+                <View style={styles.heroPill}>
+                  <Text style={styles.heroPillText} numberOfLines={1}>
+                    {meta.emoji} {catLabel}
+                    {subLabel ? ` · ${subLabel}` : ''} · {heroStatusText}
+                  </Text>
+                </View>
+              </View>
+            ) : null}
+          </View>
+
         <View style={styles.body}>
           {event.is_admin_view ? (
             <View style={styles.adminBadge}>
@@ -596,47 +694,54 @@ export default function EventDetailScreen() {
             </View>
           ) : null}
 
-          {gallery.length === 1 ? (
-            <Image source={{ uri: gallery[0] }} style={styles.headerImage} resizeMode="cover" />
-          ) : gallery.length > 1 ? (
-            <View style={styles.galleryWrap}>
-              <ScrollView
-                horizontal
-                pagingEnabled
-                showsHorizontalScrollIndicator={false}>
-                {gallery.map((uri, i) => (
-                  <Image
-                    key={`${uri}-${i}`}
-                    source={{ uri }}
-                    style={[styles.galleryImage, { width: galleryWidth }]}
-                    resizeMode="cover"
-                  />
-                ))}
-              </ScrollView>
-              <View style={styles.galleryCount}>
-                <Text style={styles.galleryCountText}>📷 {gallery.length}</Text>
-              </View>
+          <Text style={styles.eventTitle}>
+            {event.title?.trim() || formatEventDateTime(event.starts_at)}
+          </Text>
+
+          {(isExtended ? event.location_name : event.field_name) ? (
+            <View style={styles.locationRow}>
+              <PinIcon size={14} color={Brand.textMuted} />
+              <Text style={styles.locationText} numberOfLines={1}>
+                {isExtended ? event.location_name : formatCourtName(event.field_name)}
+              </Text>
             </View>
           ) : null}
 
-          {meta ? (
-            <View style={styles.categoryRow}>
-              <View style={[styles.categoryBadge, { backgroundColor: meta.color }]}>
-                <Text style={styles.categoryBadgeText}>
-                  {meta.emoji} {catLabel}
-                </Text>
-              </View>
-              {subLabel ? (
-                <View style={[styles.subBadge, { borderColor: meta.color }]}>
-                  <Text style={[styles.subBadgeText, { color: meta.color }]}>{subLabel}</Text>
+          <View style={styles.metaStrip}>
+            <View style={styles.metaCol}>
+              <Text style={styles.metaColValue}>{formatTime(event.starts_at)}</Text>
+              <Text style={styles.metaColLabel}>{shortDate}</Text>
+            </View>
+            <View style={styles.metaDivider} />
+            <View style={styles.metaCol}>
+              <Text style={styles.metaColValue}>{playersText}</Text>
+              <Text style={styles.metaColLabel}>{t('event.players')}</Text>
+            </View>
+            <View style={styles.metaDivider} />
+            <View style={styles.metaCol}>
+              <Text style={[styles.metaColValue, styles.metaColValueAmber]}>+50</Text>
+              <Text style={styles.metaColLabel}>{t('event.xpRewardLabel')}</Text>
+            </View>
+          </View>
+
+          {event.participants.length > 0 ? (
+            <View style={styles.avatarStack}>
+              {event.participants.slice(0, 5).map((p, i) => (
+                <View key={p.user_id} style={[styles.avatarStackItem, i > 0 && styles.avatarStackOverlap]}>
+                  <UserAvatar
+                    nick={p.is_blocked_by_me && p.user_id !== userId ? null : p.nick}
+                    avatarUrl={p.avatar_url}
+                    size={30}
+                  />
+                </View>
+              ))}
+              {event.participants.length > 5 ? (
+                <View style={[styles.avatarStackItem, styles.avatarStackOverlap, styles.avatarStackMore]}>
+                  <Text style={styles.avatarStackMoreText}>+{event.participants.length - 5}</Text>
                 </View>
               ) : null}
             </View>
           ) : null}
-
-          <Text style={styles.eventTitle}>
-            {event.title?.trim() || formatEventDateTime(event.starts_at)}
-          </Text>
 
           {!isExtended ? <EventMetaBadges event={event} /> : null}
 
@@ -1048,6 +1153,7 @@ export default function EventDetailScreen() {
             ) : null}
           </View>
         </View>
+        </>
       )}
 
       <FieldOpinionsSheet
@@ -1099,15 +1205,9 @@ function DetailRow({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  content: {
+  scrollContent: {
     flexGrow: 1,
-    paddingHorizontal: 24,
     backgroundColor: Brand.screenBackground,
-  },
-  title: {
-    ...Typography.screenTitle,
-    marginTop: 8,
-    marginBottom: 16,
   },
   loader: {
     marginTop: 40,
@@ -1119,6 +1219,8 @@ const styles = StyleSheet.create({
   },
   body: {
     gap: 16,
+    paddingHorizontal: 24,
+    paddingTop: 18,
   },
   adminBadge: {
     backgroundColor: Brand.primaryLight,
@@ -1146,19 +1248,18 @@ const styles = StyleSheet.create({
     color: Brand.textPrimary,
     flexShrink: 1,
   },
-  headerImage: {
+  hero: {
+    position: 'relative',
     width: '100%',
-    aspectRatio: 16 / 9,
-    borderRadius: 14,
+    height: 220,
     backgroundColor: Brand.surfaceMuted,
-  },
-  galleryWrap: {
-    borderRadius: 14,
     overflow: 'hidden',
-    backgroundColor: Brand.surfaceMuted,
+  },
+  heroMedia: {
+    ...StyleSheet.absoluteFill,
   },
   galleryImage: {
-    aspectRatio: 16 / 9,
+    height: 220,
   },
   galleryCount: {
     position: 'absolute',
@@ -1174,31 +1275,112 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 12,
   },
-  categoryRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flexWrap: 'wrap',
-  },
-  categoryBadge: {
-    paddingHorizontal: 11,
-    paddingVertical: 5,
+  heroIconBtn: {
+    position: 'absolute',
+    width: 38,
+    height: 38,
     borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  categoryBadgeText: {
+  heroBackBtn: {
+    left: 16,
+  },
+  heroShareBtn: {
+    right: 16,
+  },
+  heroIconText: {
+    fontSize: 20,
+    color: '#ffffff',
+    marginTop: -1,
+  },
+  heroPillRow: {
+    position: 'absolute',
+    left: 18,
+    right: 18,
+    bottom: 16,
+  },
+  heroPill: {
+    alignSelf: 'flex-start',
+    maxWidth: '100%',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+  },
+  heroPillText: {
     fontFamily: BrandFonts.bodyBold,
     fontSize: 12,
     color: '#ffffff',
+    letterSpacing: 0.2,
   },
-  subBadge: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  locationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 7,
+    marginTop: -8,
+  },
+  locationText: {
+    flex: 1,
+    fontFamily: BrandFonts.body,
+    fontSize: 13.5,
+    color: Brand.textMuted,
+  },
+  metaStrip: {
+    flexDirection: 'row',
+    backgroundColor: Brand.surface,
+    borderRadius: 16,
+    ...shadow('sm'),
+  },
+  metaCol: {
+    flex: 1,
+    alignItems: 'center',
+    paddingVertical: 12,
+    gap: 3,
+  },
+  metaColValue: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
+    fontSize: 16,
+    color: Brand.textPrimary,
+  },
+  metaColValueAmber: {
+    color: Brand.amberDark,
+  },
+  metaColLabel: {
+    fontFamily: BrandFonts.body,
+    fontSize: 11,
+    color: Brand.textMuted,
+  },
+  metaDivider: {
+    width: 1,
+    marginVertical: 10,
+    backgroundColor: Brand.border,
+  },
+  avatarStack: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  avatarStackItem: {
     borderRadius: 999,
-    borderWidth: 1,
+    borderWidth: 2,
+    borderColor: Brand.screenBackground,
   },
-  subBadgeText: {
+  avatarStackOverlap: {
+    marginLeft: -10,
+  },
+  avatarStackMore: {
+    width: 30,
+    height: 30,
+    backgroundColor: Brand.surfaceMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarStackMoreText: {
     fontFamily: BrandFonts.bodyBold,
-    fontSize: 12,
+    fontSize: 11,
+    color: Brand.textSecondary,
   },
   organizerName: {
     fontFamily: BrandFonts.bodyBold,

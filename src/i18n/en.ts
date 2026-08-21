@@ -816,6 +816,8 @@ export const en: DeepPartialWide<Translations> = {
     durationShort: 'min',
     details: 'Details',
     detailTitle: 'Event details',
+    statusOpenBadge: 'OPEN',
+    xpRewardLabel: 'XP',
     editTitle: 'Edit event',
     descriptionTitle: 'Note from the organizer',
     descriptionEmpty: 'The organizer added no description.',
