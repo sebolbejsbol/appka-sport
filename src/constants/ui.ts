@@ -1,6 +1,6 @@
 import { Platform, StyleSheet, type TextStyle, type ViewStyle } from 'react-native';
 
-import { Brand, Layout, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Layout, Radius } from '@/constants/theme';
 
 type ShadowLevel = 'sm' | 'md' | 'lg' | 'float' | 'up';
 
@@ -71,55 +71,76 @@ export function shadow(level: ShadowLevel): ViewStyle {
 }
 
 export const Typography = StyleSheet.create({
+  /** Big Shoulders Display — WYŁĄCZNIE duże nagłówki ekranów, wyniki, wielkie
+   * liczby statystyk. Nie używać do sectionTitle/cardTitle — kroju używamy
+   * z umiarem, patrz plan redesignu. */
   display: {
+    fontFamily: BrandFonts.display,
     fontSize: 34,
-    fontWeight: '800',
-    letterSpacing: -0.6,
-    color: Brand.textPrimary,
-  },
-  screenTitle: {
-    fontSize: 30,
-    fontWeight: '800',
-    letterSpacing: -0.4,
-    color: Brand.textPrimary,
-  },
-  sectionTitle: {
-    fontSize: 17,
-    fontWeight: '700',
     letterSpacing: -0.2,
     color: Brand.textPrimary,
   },
+  screenTitle: {
+    fontFamily: BrandFonts.display,
+    fontSize: 30,
+    letterSpacing: -0.1,
+    color: Brand.textPrimary,
+  },
+  sectionTitle: {
+    fontFamily: BrandFonts.bodyBold,
+    fontSize: 17,
+    letterSpacing: -0.1,
+    color: Brand.textPrimary,
+  },
   cardTitle: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 16,
-    fontWeight: '700',
     color: Brand.textPrimary,
   },
   body: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     lineHeight: 22,
     color: Brand.textPrimary,
   },
   bodySecondary: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     lineHeight: 20,
     color: Brand.textSecondary,
   },
   caption: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     lineHeight: 18,
     color: Brand.textMuted,
   },
   label: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
-    fontWeight: '600',
     letterSpacing: 0.2,
     color: Brand.textSecondary,
     textTransform: 'uppercase',
   },
   link: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 15,
-    fontWeight: '600',
     color: Brand.primary,
+  },
+  /** IBM Plex Mono — liczby, które mają się czytać jak tablica wyników:
+   * wyniki meczów, XP, liczniki graczy, zegary. `tabularNums` trzyma
+   * kolumny cyfr wyrównane. */
+  numeric: {
+    fontFamily: BrandFonts.monoMedium,
+    fontVariant: ['tabular-nums'],
+    fontSize: 15,
+    color: Brand.textPrimary,
+  },
+  numericLarge: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
+    fontSize: 28,
+    color: Brand.textPrimary,
   },
 });
 

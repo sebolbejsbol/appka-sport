@@ -6,7 +6,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 
 type Props = {
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     opacity: 0.45,
   },
   label: {
-    fontWeight: '700',
+    fontFamily: BrandFonts.bodyBold,
     letterSpacing: -0.1,
   },
   labelMd: {

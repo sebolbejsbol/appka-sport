@@ -1,3 +1,19 @@
+import {
+  BigShouldersDisplay_700Bold,
+  BigShouldersDisplay_800ExtraBold,
+} from '@expo-google-fonts/big-shoulders-display';
+import {
+  IBMPlexMono_400Regular,
+  IBMPlexMono_500Medium,
+  IBMPlexMono_600SemiBold,
+} from '@expo-google-fonts/ibm-plex-mono';
+import {
+  IBMPlexSans_400Regular,
+  IBMPlexSans_500Medium,
+  IBMPlexSans_600SemiBold,
+  IBMPlexSans_700Bold,
+} from '@expo-google-fonts/ibm-plex-sans';
+import { useFonts } from 'expo-font';
 import { SplashScreen, Stack } from 'expo-router';
 import { useEffect, useRef, useState } from 'react';
 import { StatusBar } from 'expo-status-bar';
@@ -80,13 +96,28 @@ function RootNavigator() {
   // tożsamość), więc np. mapa/eventy/profil zostawały w starym języku.
   const { locale } = useLocale();
 
+  // Big Shoulders Display (nagłówki/wyniki) + IBM Plex Sans (treść) + IBM Plex
+  // Mono (tabelki/liczby) — patrz Typography w constants/ui.ts. Splash trzyma
+  // się, dopóki fonty nie są gotowe, żeby tekst nie „mrugnął" systemową czcionką.
+  const [fontsLoaded] = useFonts({
+    BigShouldersDisplay_700Bold,
+    BigShouldersDisplay_800ExtraBold,
+    IBMPlexSans_400Regular,
+    IBMPlexSans_500Medium,
+    IBMPlexSans_600SemiBold,
+    IBMPlexSans_700Bold,
+    IBMPlexMono_400Regular,
+    IBMPlexMono_500Medium,
+    IBMPlexMono_600SemiBold,
+  });
+
   // Płynne wejście: własny ciemny ekran startowy (z logo) płynnie znika,
   // tak by przejście z natywnego splasha do aplikacji nie „mrugało".
   const [splashGone, setSplashGone] = useState(false);
   const splashOpacity = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isLoading || !fontsLoaded) return;
 
     let settled = false;
     let fadeTimer: ReturnType<typeof setTimeout> | null = null;
@@ -142,7 +173,7 @@ function RootNavigator() {
       if (minVisibleTimer) clearTimeout(minVisibleTimer);
       if (unsubscribeMapReady) unsubscribeMapReady();
     };
-  }, [isLoading, session, isPasswordRecovery, needsProfileSetup, needsOnboarding, splashOpacity]);
+  }, [isLoading, fontsLoaded, session, isPasswordRecovery, needsProfileSetup, needsOnboarding, splashOpacity]);
 
   return (
     <View style={styles.root}>
