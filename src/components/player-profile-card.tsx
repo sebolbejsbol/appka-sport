@@ -1,7 +1,7 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { UserAvatar } from '@/components/user-avatar';
-import { Brand, Radius } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
 import { t } from '@/i18n';
 import {
@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
     height: 120,
     marginHorizontal: -20,
     marginBottom: -52,
-    backgroundColor: '#0f172a',
+    backgroundColor: Brand.ink,
     overflow: 'hidden',
   },
   bannerGlow: {
@@ -260,23 +260,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   name: {
-    fontSize: 24,
-    fontWeight: '800',
+    fontFamily: BrandFonts.display,
+    fontSize: 26,
     color: Brand.textPrimary,
     textAlign: 'center',
   },
   status: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
     textAlign: 'center',
   },
   location: {
+    fontFamily: BrandFonts.body,
     fontSize: 15,
     color: Brand.textSecondary,
     textAlign: 'center',
     marginTop: 2,
   },
   bio: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textSecondary,
     textAlign: 'center',
@@ -300,11 +303,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   socialValue: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 18,
-    fontWeight: '800',
     color: Brand.textPrimary,
   },
   socialLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
     color: Brand.textMuted,
     marginTop: 2,
@@ -315,14 +320,15 @@ const styles = StyleSheet.create({
     backgroundColor: Brand.border,
   },
   sectionTitle: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 13,
-    fontWeight: '700',
     color: Brand.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
     marginBottom: 10,
   },
   sectionSubtitle: {
+    fontFamily: BrandFonts.body,
     fontSize: 13,
     color: Brand.textMuted,
     marginTop: -6,
@@ -352,7 +358,7 @@ const styles = StyleSheet.create({
   progressFill: {
     height: '100%',
     borderRadius: 4,
-    backgroundColor: Brand.primary,
+    backgroundColor: Brand.amber,
   },
   metricsGrid: {
     flexDirection: 'row',
@@ -372,18 +378,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   metricCardAccent: {
-    borderColor: Brand.primary,
-    backgroundColor: '#fff8f5',
+    borderColor: Brand.amber,
+    backgroundColor: Brand.amberLight,
   },
   metricValue: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 22,
-    fontWeight: '800',
     color: Brand.textPrimary,
   },
   metricValueAccent: {
-    color: Brand.primary,
+    color: Brand.amberDark,
   },
   metricLabel: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
     color: Brand.textMuted,
     marginTop: 4,
@@ -395,8 +403,9 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   achievementsCount: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
     fontSize: 13,
-    fontWeight: '800',
     color: Brand.primary,
     marginBottom: 10,
   },
@@ -408,10 +417,10 @@ const styles = StyleSheet.create({
   achievementBadge: {
     width: 108,
     minHeight: 96,
-    backgroundColor: '#fff8f5',
+    backgroundColor: Brand.amberLight,
     borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#fed7aa',
+    borderColor: Brand.amber,
     padding: 10,
     alignItems: 'center',
     justifyContent: 'center',
@@ -429,8 +438,8 @@ const styles = StyleSheet.create({
     fontSize: 24,
   },
   achievementText: {
+    fontFamily: BrandFonts.bodySemibold,
     fontSize: 11,
-    fontWeight: '600',
     color: Brand.textSecondary,
     textAlign: 'center',
     lineHeight: 15,
@@ -439,6 +448,7 @@ const styles = StyleSheet.create({
     color: Brand.textMuted,
   },
   emptyAchievements: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     marginBottom: 16,
