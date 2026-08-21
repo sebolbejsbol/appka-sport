@@ -771,6 +771,7 @@ export const pl = {
   },
   event: {
     manageEvent: 'Zarządzaj wydarzeniem',
+    shareLink: 'Udostępnij link',
     newTitle: 'Nowy event',
     atCourt: 'Boisko',
     locationLabel: 'Lokalizacja',

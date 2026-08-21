@@ -759,6 +759,7 @@ export const en: DeepPartialWide<Translations> = {
   },
   event: {
     manageEvent: 'Manage event',
+    shareLink: 'Share link',
     newTitle: 'New event',
     atCourt: 'Court',
     locationLabel: 'Location',

@@ -7,6 +7,7 @@ import {
   Platform,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   useWindowDimensions,
@@ -305,6 +306,30 @@ export default function EventDetailScreen() {
     if (!event) return;
     router.push({
       pathname: '/event/edit',
+      params: { id: event.id },
+    });
+  }
+
+  // Ikonka "udostępnij" przy głównym przycisku ma dawać prawdziwy link do
+  // eventu przez natywne okno udostępniania (Share API — to samo, czego
+  // już używa sharePost w post-share.ts), NIE nawigować do ekranu
+  // "udostępnij drużynie" (to zostaje osobno, patrz handleShareToTeam niżej,
+  // dostępne z action sheetu "Zarządzaj" — dwie różne rzeczy, wcześniej
+  // przycisk "Udostępnij" mylił jedno z drugim).
+  function handleShareLink() {
+    if (!event) return;
+    const url =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? window.location.href
+        : `https://appka-sport.vercel.app/event/${event.id}`;
+    const title = event.title?.trim() || t('event.detailTitle');
+    void Share.share({ message: `${title}\n${url}`, url, title });
+  }
+
+  function handleShareToTeam() {
+    if (!event) return;
+    router.push({
+      pathname: '/event/[id]/share-team',
       params: { id: event.id },
     });
   }
@@ -950,20 +975,29 @@ export default function EventDetailScreen() {
 
               {event.status === 'planned' && (event.is_joined || event.can_manage) ? (
                 <Pressable
-                  onPress={() =>
-                    router.push({
-                      pathname: '/event/[id]/share-team',
-                      params: { id: event.id },
-                    })
-                  }
+                  onPress={handleShareLink}
                   disabled={busy}
                   accessibilityRole="button"
-                  accessibilityLabel={t('teams.shareEvent')}
+                  accessibilityLabel={t('event.shareLink')}
                   style={({ pressed }) => [styles.shareIconBtn, pressed && styles.pressed]}>
                   <ShareIcon size={19} color={Brand.textPrimary} />
                 </Pressable>
               ) : null}
             </View>
+
+            {/* "Udostępnij drużynie" (posty na czacie drużyny) to inna rzecz niż
+                link wyżej — zwykły dołączony user bez uprawnień managera nie ma
+                przycisku "Zarządzaj", więc dostaje ją jako mały, drugorzędny
+                link tekstowy zamiast pełnego przycisku (nie zaśmieca hierarchii). */}
+            {event.status === 'planned' && event.is_joined && !event.can_manage ? (
+              <Pressable
+                onPress={handleShareToTeam}
+                disabled={busy}
+                hitSlop={8}
+                style={({ pressed }) => [styles.shareTeamLink, pressed && styles.pressed]}>
+                <Text style={styles.shareTeamLinkText}>{t('teams.shareEvent')}</Text>
+              </Pressable>
+            ) : null}
 
             {showManageActions ? (
               <Pressable
@@ -984,6 +1018,7 @@ export default function EventDetailScreen() {
                             params: { id: event.id },
                           }),
                       },
+                      { label: t('teams.shareEvent'), onPress: handleShareToTeam },
                       { label: t('event.finishEvent'), onPress: handleFinish },
                       { label: t('event.edit'), onPress: handleEdit },
                       { label: t('event.delete'), onPress: handleDelete, destructive: true },
@@ -1495,6 +1530,16 @@ const styles = StyleSheet.create({
     fontFamily: BrandFonts.bodyBold,
     fontSize: 15,
     color: '#ffffff',
+  },
+  shareTeamLink: {
+    alignSelf: 'center',
+    paddingVertical: 4,
+  },
+  shareTeamLinkText: {
+    fontFamily: BrandFonts.bodySemibold,
+    fontSize: 13,
+    color: Brand.textSecondary,
+    textDecorationLine: 'underline',
   },
 });
 // eventy: obsługa wydarzeń rozszerzonych (kategorie, zdjęcie, organizator)
