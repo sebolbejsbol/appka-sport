@@ -12,8 +12,10 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FieldRatingStars } from '@/components/field-rating-stars';
-import { Brand, BrandFonts } from '@/constants/theme';
-import { Typography } from '@/constants/ui';
+import { NavigateToFieldButton } from '@/components/navigate-to-field-button';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
+import { shadow } from '@/constants/ui';
+import { useUserLocation } from '@/hooks/use-user-location';
 import { t } from '@/i18n';
 import { formatEventDateTime } from '@/lib/datetime';
 import { formatCourtName, formatFieldSport, parseStoredFieldName } from '@/lib/field-display';
@@ -35,6 +37,7 @@ export default function FieldDetailsScreen() {
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ id?: string }>();
   const fieldId = params.id;
+  const { coords: userCoords } = useUserLocation();
 
   const [field, setField] = useState<FieldPoint | null>(null);
   const [loading, setLoading] = useState(true);
@@ -106,56 +109,58 @@ export default function FieldDetailsScreen() {
   }, [field?.id, field?.lng, field?.lat, storedStreet]);
 
   const avgText = summary?.avg_rating != null ? summary.avg_rating.toFixed(1) : t('fieldRatings.noRatingsYet');
+  const availability = field?.availability ?? ('empty' as CourtAvailability);
+  const availabilityColor = getAvailabilityColor(availability);
 
   return (
     <ScrollView
       style={styles.flex}
-      contentContainerStyle={[
-        styles.content,
-        { paddingTop: insets.top + 16, paddingBottom: insets.bottom + 24 },
-      ]}>
-      <Pressable onPress={() => goBack('/')} hitSlop={12} style={styles.backButton}>
-        <Text style={styles.backText}>‹ {t('common.back')}</Text>
-      </Pressable>
-
-      <Text style={styles.title}>{t('field.detailsTitle')}</Text>
+      contentContainerStyle={{ paddingBottom: insets.bottom + 24 }}
+      showsVerticalScrollIndicator={false}>
+      <View style={styles.photoHeader}>
+        {field?.photo_url ? (
+          <Image source={{ uri: field.photo_url }} style={styles.photoImage} resizeMode="cover" />
+        ) : null}
+        <Pressable
+          onPress={() => goBack('/')}
+          hitSlop={12}
+          style={({ pressed }) => [styles.backCircle, { top: insets.top + 12 }, pressed && styles.pressed]}>
+          <Text style={styles.backIcon}>←</Text>
+        </Pressable>
+      </View>
 
       {loading ? (
         <ActivityIndicator color={Brand.primary} style={styles.loader} />
       ) : loadError || !field ? (
         <Text style={styles.muted}>{t('field.loadError')}</Text>
       ) : (
-        <>
-          {field.photo_url ? (
-            <Image source={{ uri: field.photo_url }} style={styles.photo} resizeMode="cover" />
-          ) : null}
-
-          <Text style={styles.placeName}>{formatCourtName(field.name, field.sport)}</Text>
-          {(storedStreet ?? geoAddress) ? (
-            <Text style={styles.subtitle}>{storedStreet ?? geoAddress}</Text>
-          ) : null}
-
-          <View style={styles.metaRow}>
-            <Text style={styles.metaText}>{formatFieldSport(field.sport)}</Text>
+        <View style={styles.content}>
+          <View style={styles.titleRow}>
+            <View style={styles.titleBlock}>
+              <Text style={styles.placeName}>{formatCourtName(field.name, field.sport)}</Text>
+              {(storedStreet ?? geoAddress) ? (
+                <Text style={styles.subtitle}>{storedStreet ?? geoAddress}</Text>
+              ) : null}
+            </View>
+            {summary?.avg_rating != null ? (
+              <View style={styles.ratingPill}>
+                <Text style={styles.ratingPillStar}>★</Text>
+                <Text style={styles.ratingPillText}>{summary.avg_rating.toFixed(1)}</Text>
+              </View>
+            ) : null}
           </View>
 
-          <View style={styles.statusBadge}>
-            <View
-              style={[
-                styles.statusDot,
-                { backgroundColor: getAvailabilityColor(field.availability ?? ('empty' as CourtAvailability)) },
-              ]}
-            />
-            <Text
-              style={[
-                styles.statusBadgeText,
-                { color: getAvailabilityColor(field.availability ?? ('empty' as CourtAvailability)) },
-              ]}>
-              {getAvailabilityLabel(field.availability ?? ('empty' as CourtAvailability))}
-            </Text>
+          <View style={styles.pillsRow}>
+            <View style={styles.pill}>
+              <Text style={styles.pillText}>{formatFieldSport(field.sport)}</Text>
+            </View>
+            <View style={[styles.pill, { backgroundColor: `${availabilityColor}1F` }]}>
+              <View style={[styles.pillDot, { backgroundColor: availabilityColor }]} />
+              <Text style={[styles.pillText, { color: availabilityColor }]}>
+                {getAvailabilityLabel(availability)}
+              </Text>
+            </View>
           </View>
-
-          <Text style={styles.sectionTitle}>{t('fieldRatings.opinionsTitle')}</Text>
 
           {reviewsLoading ? (
             <ActivityIndicator color={Brand.primary} style={styles.loader} />
@@ -169,28 +174,33 @@ export default function FieldDetailsScreen() {
                   {summary?.avg_rating != null ? (
                     <FieldRatingStars value={Math.round(summary.avg_rating)} size="sm" />
                   ) : null}
+                  <Text style={styles.countText}>{formatRatingCount(summary?.rating_count ?? 0)}</Text>
                 </View>
-                <Text style={styles.countText}>{formatRatingCount(summary?.rating_count ?? 0)}</Text>
+
+                {summary && summary.rating_count > 0 ? (
+                  <View style={styles.breakdown}>
+                    {FIELD_RATING_DIMENSIONS.map((dimension) => {
+                      const avg = summary[`${dimension}_avg` as keyof FieldRatingSummary];
+                      if (typeof avg !== 'number') return null;
+                      return (
+                        <View key={dimension} style={styles.breakdownRow}>
+                          <Text style={styles.breakdownLabel} numberOfLines={1}>
+                            {t(`fieldRatings.dimensions.${dimension}`)}
+                          </Text>
+                          <View style={styles.breakdownTrack}>
+                            <View
+                              style={[styles.breakdownFill, { width: `${(avg / 5) * 100}%` }]}
+                            />
+                          </View>
+                          <Text style={styles.breakdownValue}>{avg.toFixed(1)}</Text>
+                        </View>
+                      );
+                    })}
+                  </View>
+                ) : null}
               </View>
 
-              {summary && summary.rating_count > 0 ? (
-                <View style={styles.breakdown}>
-                  {FIELD_RATING_DIMENSIONS.map((dimension) => {
-                    const avg = summary[`${dimension}_avg` as keyof FieldRatingSummary];
-                    if (typeof avg !== 'number') return null;
-                    return (
-                      <View key={dimension} style={styles.breakdownRow}>
-                        <Text style={styles.breakdownLabel}>
-                          {t(`fieldRatings.dimensions.${dimension}`)}
-                        </Text>
-                        <Text style={styles.breakdownValue}>{avg.toFixed(1)}</Text>
-                      </View>
-                    );
-                  })}
-                </View>
-              ) : null}
-
-              <Text style={styles.reviewsTitle}>{t('fieldRatings.reviewsTitle')}</Text>
+              <Text style={styles.sectionTitle}>{t('fieldRatings.reviewsTitle')}</Text>
               {reviews.length === 0 ? (
                 <Text style={styles.muted}>{t('fieldRatings.reviewsEmpty')}</Text>
               ) : (
@@ -198,7 +208,16 @@ export default function FieldDetailsScreen() {
               )}
             </>
           )}
-        </>
+
+          <View style={styles.navigateWrap}>
+            <NavigateToFieldButton
+              destination={{ lat: field.lat, lng: field.lng, name: field.name, fieldId: field.id }}
+              userCoords={userCoords}
+              variant="primary"
+              style={styles.navigateBtn}
+            />
+          </View>
+        </View>
       )}
     </ScrollView>
   );
@@ -217,17 +236,16 @@ function ReviewRow({ review }: { review: FieldRatingReview }) {
     });
 
   return (
-    <View style={styles.reviewRow}>
+    <View style={styles.reviewCard}>
       <View style={styles.reviewHeader}>
         <Text style={styles.reviewAuthor}>{author}</Text>
-        <Text style={styles.reviewMeta}>{overall.toFixed(1)}</Text>
+        <FieldRatingStars value={Math.round(overall)} size="sm" />
       </View>
       {review.event_starts_at ? (
         <Text style={styles.reviewEvent}>
           {t('fieldRatings.afterEvent')} {formatEventDateTime(review.event_starts_at)}
         </Text>
       ) : null}
-      <FieldRatingStars value={Math.round(overall)} size="sm" />
       {review.comment ? <Text style={styles.reviewComment}>{review.comment}</Text> : null}
     </View>
   );
@@ -238,167 +256,199 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Brand.screenBackground,
   },
+  photoHeader: {
+    height: 210,
+    backgroundColor: Brand.surfaceMuted,
+  },
+  photoImage: {
+    ...StyleSheet.absoluteFill,
+  },
+  backCircle: {
+    position: 'absolute',
+    left: 16,
+    width: 38,
+    height: 38,
+    borderRadius: 999,
+    backgroundColor: 'rgba(255,255,255,0.92)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    ...shadow('sm'),
+  },
+  backIcon: {
+    fontSize: 20,
+    color: Brand.textPrimary,
+    marginTop: -1,
+  },
+  pressed: {
+    opacity: 0.85,
+  },
   content: {
-    flexGrow: 1,
-    paddingHorizontal: 24,
-  },
-  backButton: {
-    alignSelf: 'flex-start',
-    paddingVertical: 8,
-  },
-  backText: {
-    fontFamily: BrandFonts.bodySemibold,
-    fontSize: 16,
-    color: Brand.textSecondary,
-  },
-  title: {
-    ...Typography.screenTitle,
-    marginTop: 8,
-    marginBottom: 16,
+    paddingHorizontal: 22,
+    paddingTop: 18,
   },
   loader: {
     marginVertical: 24,
   },
   muted: {
+    fontFamily: BrandFonts.body,
     fontSize: 14,
     color: Brand.textMuted,
     paddingVertical: 8,
   },
-  photo: {
-    width: '100%',
-    aspectRatio: 16 / 9,
-    borderRadius: 14,
-    backgroundColor: Brand.surfaceMuted,
-    marginBottom: 12,
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
+  },
+  titleBlock: {
+    flex: 1,
   },
   placeName: {
     fontFamily: BrandFonts.display,
-    fontSize: 25,
+    fontSize: 24,
     color: Brand.textPrimary,
+    lineHeight: 26,
   },
   subtitle: {
     fontFamily: BrandFonts.body,
-    fontSize: 14,
-    color: Brand.textSecondary,
-    marginTop: 2,
+    fontSize: 13.5,
+    color: Brand.textMuted,
+    marginTop: 6,
   },
-  metaRow: {
+  ratingPill: {
     flexDirection: 'row',
-    gap: 6,
-    marginTop: 8,
-    marginBottom: 4,
+    alignItems: 'center',
+    gap: 5,
+    backgroundColor: Brand.surface,
+    borderRadius: Radius.pill,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    ...shadow('sm'),
   },
-  metaText: {
-    fontFamily: BrandFonts.bodyMedium,
+  ratingPillStar: {
     fontSize: 14,
-    color: Brand.textSecondary,
+    color: Brand.amber,
   },
-  statusBadge: {
+  ratingPillText: {
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
+    fontSize: 14,
+    color: Brand.textPrimary,
+  },
+  pillsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    marginTop: 16,
+  },
+  pill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    alignSelf: 'flex-start',
-    marginTop: 2,
-    marginBottom: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: Radius.pill,
+    backgroundColor: Brand.surfaceMuted,
   },
-  statusDot: {
-    width: 8,
-    height: 8,
+  pillDot: {
+    width: 7,
+    height: 7,
     borderRadius: 4,
   },
-  statusBadgeText: {
+  pillText: {
     fontFamily: BrandFonts.bodyBold,
-    fontSize: 13,
-  },
-  sectionTitle: {
-    fontFamily: BrandFonts.bodySemibold,
-    fontSize: 13,
-    color: Brand.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.4,
-    marginTop: 18,
-    marginBottom: 10,
+    fontSize: 12,
+    color: Brand.textSecondary,
   },
   summaryCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
     backgroundColor: Brand.surface,
     borderRadius: 16,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: Brand.border,
-    marginBottom: 10,
+    marginTop: 18,
+    padding: 16,
+    gap: 12,
+    ...shadow('sm'),
   },
   summaryMain: {
+    alignItems: 'center',
     gap: 4,
   },
   avgValue: {
     fontFamily: BrandFonts.display,
     fontVariant: ['tabular-nums'],
-    fontSize: 30,
+    fontSize: 32,
     color: Brand.textPrimary,
   },
   countText: {
     fontFamily: BrandFonts.body,
-    fontSize: 13,
-    color: Brand.textSecondary,
-    textAlign: 'right',
-    flexShrink: 1,
-    maxWidth: '45%',
+    fontSize: 12,
+    color: Brand.textMuted,
+    marginTop: 2,
   },
   breakdown: {
-    gap: 6,
-    marginBottom: 12,
+    gap: 8,
+    paddingTop: 4,
+    borderTopWidth: 1,
+    borderTopColor: Brand.divider,
   },
   breakdownRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    gap: 12,
-    paddingVertical: 4,
+    alignItems: 'center',
+    gap: 10,
+    paddingTop: 6,
   },
   breakdownLabel: {
+    width: 90,
     fontFamily: BrandFonts.body,
-    fontSize: 13,
+    fontSize: 12.5,
     color: Brand.textSecondary,
+  },
+  breakdownTrack: {
     flex: 1,
+    height: 6,
+    borderRadius: 999,
+    backgroundColor: Brand.surfaceMuted,
+    overflow: 'hidden',
+  },
+  breakdownFill: {
+    height: '100%',
+    borderRadius: 999,
+    backgroundColor: Brand.amber,
   },
   breakdownValue: {
+    width: 26,
+    textAlign: 'right',
     fontFamily: BrandFonts.monoSemibold,
     fontVariant: ['tabular-nums'],
-    fontSize: 13,
+    fontSize: 12.5,
     color: Brand.textPrimary,
   },
-  reviewsTitle: {
+  sectionTitle: {
     fontFamily: BrandFonts.bodySemibold,
-    fontSize: 15,
-    color: Brand.textPrimary,
-    marginTop: 8,
-    marginBottom: 8,
+    fontSize: 11.5,
+    color: Brand.textMuted,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginTop: 22,
+    marginBottom: 10,
   },
-  reviewRow: {
-    paddingVertical: 12,
-    borderTopWidth: 1.5,
-    borderStyle: 'dashed',
-    borderTopColor: Brand.divider,
+  reviewCard: {
+    backgroundColor: Brand.surface,
+    borderRadius: 14,
+    padding: 14,
+    marginBottom: 10,
     gap: 4,
+    ...shadow('sm'),
   },
   reviewHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'baseline',
+    alignItems: 'center',
     gap: 8,
   },
   reviewAuthor: {
-    fontFamily: BrandFonts.bodySemibold,
-    fontSize: 14,
-    color: Brand.textPrimary,
-    flex: 1,
-  },
-  reviewMeta: {
-    fontFamily: BrandFonts.monoSemibold,
-    fontVariant: ['tabular-nums'],
-    fontSize: 13,
+    fontFamily: BrandFonts.bodyBold,
+    fontSize: 13.5,
     color: Brand.textPrimary,
   },
   reviewEvent: {
@@ -408,8 +458,16 @@ const styles = StyleSheet.create({
   },
   reviewComment: {
     fontFamily: BrandFonts.body,
-    fontSize: 14,
+    fontSize: 13.5,
     color: Brand.textSecondary,
+    lineHeight: 19,
     marginTop: 4,
+  },
+  navigateWrap: {
+    marginTop: 24,
+  },
+  navigateBtn: {
+    width: '100%',
+    paddingVertical: 15,
   },
 });
