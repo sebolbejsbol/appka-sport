@@ -29,7 +29,16 @@ import Animated, {
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { CalendarIcon, CompassIcon, PersonIcon } from '@/components/icons';
+import {
+  BellIcon,
+  CalendarIcon,
+  ChatIcon,
+  CheckCircleIcon,
+  CloseIcon,
+  CompassIcon,
+  PeopleIcon,
+  PersonIcon,
+} from '@/components/icons';
 import { DESKTOP_NAV_BREAKPOINT } from '@/components/web-app-shell';
 import { Brand, BrandFonts, Radius } from '@/constants/theme';
 import { shadow } from '@/constants/ui';
@@ -603,6 +612,35 @@ function NavRow({
  * (DesktopSidebar/AppDrawer, patrz komentarz przy subskrypcji tam) — ten
  * komponent dostaje je jako propsy i zarządza tylko stanem panelu/listy.
  */
+type NotificationIconMeta = {
+  Icon: typeof CalendarIcon;
+  color: string;
+  tint: string;
+};
+
+/** Kolor/ikona per typ powiadomienia — ten sam język co reszta apki (ink/blue/
+ * teal/amber/green), zamiast jednego szarego dzwoneczka na każdy wiersz. */
+function notificationIconMeta(type: string): NotificationIconMeta {
+  if (type === 'checkin_open') {
+    return { Icon: CheckCircleIcon, color: Brand.pitch, tint: Brand.pitchLight };
+  }
+  if (type === 'friend_request' || type === 'friend_request_accepted') {
+    return { Icon: PersonIcon, color: Brand.amberDark, tint: Brand.amberLight };
+  }
+  if (type.startsWith('team_') || type === 'removed_from_team') {
+    return { Icon: PeopleIcon, color: Brand.teal, tint: Brand.tealLight };
+  }
+  if (
+    type === 'post_comment' ||
+    type === 'post_like' ||
+    type === 'post_mention' ||
+    type === 'group_message'
+  ) {
+    return { Icon: ChatIcon, color: Brand.teal, tint: Brand.tealLight };
+  }
+  return { Icon: CalendarIcon, color: Brand.primary, tint: Brand.primaryLight };
+}
+
 function NotificationsBell({
   unreadCount,
   onUnreadCountChange,
@@ -692,7 +730,7 @@ function NotificationsBell({
         accessibilityRole="button"
         accessibilityLabel={t('nav.notifications')}
         style={({ pressed }) => [bellStyles.trigger, pressed && styles.pressed]}>
-        <Text style={bellStyles.triggerIcon}>🔔</Text>
+        <BellIcon size={18} color={Brand.textPrimary} strokeWidth={1.8} />
         {unreadCount ? (
           <Animated.View
             key={unreadCount}
@@ -715,12 +753,15 @@ function NotificationsBell({
                     onPress={() => void handleMarkAllRead()}
                     hitSlop={8}
                     accessibilityLabel={t('notifications.markAllRead')}
-                    style={bellStyles.headerAction}>
-                    <Text style={bellStyles.headerActionText}>✓</Text>
+                    style={({ pressed }) => [bellStyles.headerAction, pressed && styles.pressed]}>
+                    <CheckCircleIcon size={16} color={Brand.pitch} strokeWidth={2.2} />
                   </Pressable>
                 ) : null}
-                <Pressable onPress={closePanel} hitSlop={8} style={bellStyles.headerAction}>
-                  <Text style={bellStyles.headerActionText}>✕</Text>
+                <Pressable
+                  onPress={closePanel}
+                  hitSlop={8}
+                  style={({ pressed }) => [bellStyles.headerAction, pressed && styles.pressed]}>
+                  <CloseIcon size={14} color={Brand.textSecondary} strokeWidth={2.2} />
                 </Pressable>
               </View>
             </View>
@@ -729,28 +770,40 @@ function NotificationsBell({
             ) : loadError ? (
               <Text style={bellStyles.empty}>{t('notifications.loadError')}</Text>
             ) : rows.length === 0 ? (
-              <Text style={bellStyles.empty}>{t('notifications.empty')}</Text>
+              <View style={bellStyles.emptyWrap}>
+                <View style={bellStyles.emptyBadge}>
+                  <BellIcon size={22} color={Brand.textMuted} strokeWidth={1.6} />
+                </View>
+                <Text style={bellStyles.empty}>{t('notifications.empty')}</Text>
+              </View>
             ) : (
               <FlatList
                 data={rows}
                 keyExtractor={(item) => item.id}
                 style={bellStyles.list}
+                ItemSeparatorComponent={() => <View style={bellStyles.separator} />}
                 renderItem={({ item }) => {
                   const { title, body } = notificationDisplayText(item, t);
                   const unread = !item.read_at;
+                  const meta = notificationIconMeta(item.type);
                   return (
                     <Pressable
                       onPress={() => void handleItemPress(item)}
                       style={({ pressed }) => [
                         bellStyles.row,
-                        unread && bellStyles.rowUnread,
+                        unread && { backgroundColor: meta.tint },
                         pressed && styles.pressed,
                       ]}>
-                      {unread ? <View style={bellStyles.dot} /> : <View style={bellStyles.dotSpacer} />}
+                      <View style={[bellStyles.rowIcon, { backgroundColor: meta.tint }]}>
+                        <meta.Icon size={16} color={meta.color} strokeWidth={2} />
+                      </View>
                       <View style={styles.navItemMain}>
-                        <Text style={bellStyles.rowTitle} numberOfLines={1}>
-                          {title}
-                        </Text>
+                        <View style={bellStyles.rowTitleRow}>
+                          <Text style={bellStyles.rowTitle} numberOfLines={1}>
+                            {title}
+                          </Text>
+                          {unread ? <View style={[bellStyles.dot, { backgroundColor: meta.color }]} /> : null}
+                        </View>
                         {body ? (
                           <Text style={bellStyles.rowBody} numberOfLines={2}>
                             {body}
@@ -1248,10 +1301,6 @@ const bellStyles = StyleSheet.create({
     backgroundColor: Brand.screenBackground,
     position: 'relative',
   },
-  triggerIcon: {
-    fontFamily: BrandFonts.body,
-    fontSize: 18,
-  },
   root: {
     flex: 1,
     alignItems: 'center',
@@ -1269,9 +1318,7 @@ const bellStyles = StyleSheet.create({
     maxWidth: 380,
     maxHeight: 480,
     backgroundColor: Brand.surface,
-    borderRadius: Radius.md,
-    borderWidth: 1,
-    borderColor: Brand.border,
+    borderRadius: Radius.lg,
     overflow: 'hidden',
     ...shadow('lg'),
   },
@@ -1279,15 +1326,18 @@ const bellStyles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: Brand.border,
+    paddingHorizontal: 18,
+    paddingVertical: 16,
+    borderBottomWidth: 1.5,
+    borderStyle: 'dashed',
+    borderBottomColor: Brand.divider,
   },
   panelTitle: {
-    fontFamily: BrandFonts.bodyBold,
-    fontSize: 17,
+    fontFamily: BrandFonts.display,
+    fontSize: 20,
     color: Brand.textPrimary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.3,
   },
   headerActions: {
     flexDirection: 'row',
@@ -1301,65 +1351,82 @@ const bellStyles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: Brand.screenBackground,
   },
-  headerActionText: {
-    fontFamily: BrandFonts.bodyBold,
-    fontSize: 14,
-    color: Brand.textSecondary,
-    fontWeight: '700',
-  },
   loader: {
     marginVertical: 32,
+  },
+  emptyWrap: {
+    alignItems: 'center',
+    paddingVertical: 40,
+    paddingHorizontal: 24,
+    gap: 12,
+  },
+  emptyBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: Brand.surfaceMuted,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   empty: {
     fontFamily: BrandFonts.body,
     color: Brand.textMuted,
     textAlign: 'center',
-    paddingVertical: 32,
-    paddingHorizontal: 24,
     fontSize: 14,
   },
   list: {
     maxHeight: 420,
   },
+  separator: {
+    height: 1.5,
+    borderStyle: 'dashed',
+    borderTopWidth: 1.5,
+    borderTopColor: Brand.divider,
+    marginHorizontal: 16,
+  },
   row: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    gap: 10,
+    gap: 12,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: Brand.border,
+    paddingVertical: 13,
   },
-  rowUnread: {
-    backgroundColor: Brand.primaryLight,
+  rowIcon: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  rowTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   dot: {
-    width: 8,
-    height: 8,
+    width: 7,
+    height: 7,
     borderRadius: 4,
-    backgroundColor: Brand.primary,
-    marginTop: 6,
-  },
-  dotSpacer: {
-    width: 8,
-    height: 8,
-    marginTop: 6,
   },
   rowTitle: {
     fontFamily: BrandFonts.bodyBold,
     fontSize: 14,
     fontWeight: '700',
     color: Brand.textPrimary,
+    flexShrink: 1,
   },
   rowBody: {
     fontFamily: BrandFonts.body,
-    fontSize: 12,
+    fontSize: 12.5,
     color: Brand.textSecondary,
+    marginTop: 1,
   },
   rowTime: {
-    fontFamily: BrandFonts.body,
+    fontFamily: BrandFonts.monoMedium,
+    fontVariant: ['tabular-nums'],
     fontSize: 11,
     color: Brand.textMuted,
-    marginTop: 2,
+    marginTop: 3,
   },
 });
