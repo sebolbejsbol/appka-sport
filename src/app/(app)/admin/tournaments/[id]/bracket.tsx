@@ -1,11 +1,14 @@
 import { useFocusEffect, useLocalSearchParams, type Href } from 'expo-router';
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import Svg, { Path } from 'react-native-svg';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/button';
+import { TrophyIcon } from '@/components/icons';
 import { ScreenHeader } from '@/components/screen-header';
-import { Brand, BrandFonts } from '@/constants/theme';
+import { Brand, BrandFonts, Radius } from '@/constants/theme';
+import { shadow } from '@/constants/ui';
 import { useUserRole } from '@/hooks/use-user-role';
 import { t } from '@/i18n';
 import { goBack } from '@/lib/navigation';
@@ -19,6 +22,14 @@ import {
 import { getTournamentDetail, type Tournament } from '@/lib/tournaments';
 
 const TEAMS_PER_GROUP_ADVANCING = 2;
+
+const CARD_WIDTH = 190;
+const CARD_HEIGHT = 68;
+const EDITABLE_EXTRA_HEIGHT = 46;
+const ROUND_GAP = 70;
+const ROW_GAP = 140;
+const CANVAS_TOP_PAD = 44;
+const CANVAS_SIDE_PAD = 20;
 
 function roundLabel(round: number, totalRounds: number): string {
   const fromEnd = totalRounds - round;
@@ -38,7 +49,36 @@ function groupByRound(matches: TournamentPlayoffMatch[]): { round: number; items
     }
     map[m.round].push(m);
   }
-  return order.map((round) => ({ round, items: map[round] }));
+  order.sort((a, b) => a - b);
+  return order.map((round) => ({
+    round,
+    items: [...map[round]].sort((a, b) => a.slot - b.slot),
+  }));
+}
+
+/** Środek Y każdej karty per runda, wyliczony rekurencyjnie ze slotów (runda
+ * 0 rozstawiona równomiernie, kolejne = średnia dwóch dzieci z poprzedniej
+ * rundy) — jedyny sposób, żeby linie łączące trafiały dokładnie w środek
+ * kart niezależnie od tego, ile drużyn ma dany turniej. */
+function computeCenters(rounds: { round: number; items: TournamentPlayoffMatch[] }[]): number[][] {
+  const centers: number[][] = [];
+  rounds.forEach((r, roundIndex) => {
+    if (roundIndex === 0) {
+      centers.push(r.items.map((_, i) => CANVAS_TOP_PAD + i * ROW_GAP + CARD_HEIGHT / 2));
+      return;
+    }
+    const prev = centers[roundIndex - 1];
+    centers.push(
+      r.items.map((_, i) => {
+        const a = prev[2 * i];
+        const b = prev[2 * i + 1];
+        if (a == null) return prev[prev.length - 1] ?? CANVAS_TOP_PAD + CARD_HEIGHT / 2;
+        if (b == null) return a;
+        return (a + b) / 2;
+      }),
+    );
+  });
+  return centers;
 }
 
 function generateErrorMessage(result: AdminGenerateBracketResult): string {
@@ -134,6 +174,25 @@ export default function ManageTournamentBracketScreen() {
     void load();
   }
 
+  const rounds = useMemo(() => groupByRound(bracket), [bracket]);
+  const totalRounds = rounds.length > 0 ? rounds[rounds.length - 1].round : 0;
+  const centers = useMemo(() => computeCenters(rounds), [rounds]);
+
+  const canvasWidth =
+    CANVAS_SIDE_PAD * 2 + rounds.length * CARD_WIDTH + Math.max(0, rounds.length - 1) * ROUND_GAP + (rounds.length > 0 ? 90 : 0);
+  const canvasHeight =
+    rounds.length > 0
+      ? CANVAS_TOP_PAD + (rounds[0].items.length - 1) * ROW_GAP + CARD_HEIGHT + EDITABLE_EXTRA_HEIGHT + 40
+      : 0;
+
+  const finalMatch = rounds.length > 0 ? rounds[rounds.length - 1].items[0] : null;
+  const championName =
+    finalMatch?.status === 'completed'
+      ? finalMatch.winner_team_id === finalMatch.team_a_id
+        ? finalMatch.team_a_name
+        : finalMatch.team_b_name
+      : null;
+
   if (roleLoading) {
     return (
       <View style={[styles.container, { paddingTop: insets.top + 12 }]}>
@@ -150,9 +209,6 @@ export default function ManageTournamentBracketScreen() {
       </View>
     );
   }
-
-  const rounds = groupByRound(bracket);
-  const totalRounds = rounds.length > 0 ? rounds[rounds.length - 1].round : 0;
 
   return (
     <View style={styles.container}>
@@ -183,52 +239,160 @@ export default function ManageTournamentBracketScreen() {
           )}
         </View>
       ) : (
-        <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: insets.bottom + 24 }}>
-          {rounds.map((r) => (
-            <View key={r.round} style={styles.roundSection}>
-              <Text style={styles.roundHeading}>{roundLabel(r.round, totalRounds)}</Text>
-              {r.items.map((m) => (
-                <View key={m.id} style={styles.row}>
-                  <Text style={styles.rowTitle}>
-                    {m.team_a_name ?? t('tournamentPlayoffs.tbdLabel')} {t('tournamentMatches.vsLabel')} {m.team_b_name ?? t('tournamentPlayoffs.tbdLabel')}
-                  </Text>
-
-                  {m.status === 'completed' ? (
-                    <Text style={styles.finalScoreText}>{m.score_a} – {m.score_b}</Text>
-                  ) : m.status === 'scheduled' ? (
-                    <View style={styles.scoreRow}>
-                      <TextInput
-                        style={styles.scoreInput}
-                        keyboardType="number-pad"
-                        placeholder={t('tournamentMatches.scoreALabel')}
-                        placeholderTextColor={Brand.textMuted}
-                        value={scoreInputs[m.id]?.a ?? ''}
-                        onChangeText={(v) => setScoreField(m.id, 'a', v)}
-                      />
-                      <TextInput
-                        style={styles.scoreInput}
-                        keyboardType="number-pad"
-                        placeholder={t('tournamentMatches.scoreBLabel')}
-                        placeholderTextColor={Brand.textMuted}
-                        value={scoreInputs[m.id]?.b ?? ''}
-                        onChangeText={(v) => setScoreField(m.id, 'b', v)}
-                      />
-                      <Button
-                        label={t('tournamentMatches.saveResultAction')}
-                        onPress={() => void handleSaveResult(m.id)}
-                        disabled={busyId === m.id}
-                        style={styles.saveBtn}
-                      />
-                    </View>
-                  ) : null}
-
-                  {actionError[m.id] ? <Text style={styles.actionErrorText}>{actionError[m.id]}</Text> : null}
-                </View>
+        <ScrollView contentContainerStyle={styles.vScroll} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 12 }}>
+            <View style={[styles.canvas, { width: canvasWidth, height: canvasHeight }]}>
+              {rounds.map((r, roundIndex) => (
+                <Text
+                  key={`label-${r.round}`}
+                  style={[
+                    styles.roundLabel,
+                    { left: CANVAS_SIDE_PAD + roundIndex * (CARD_WIDTH + ROUND_GAP), width: CARD_WIDTH },
+                  ]}>
+                  {roundLabel(r.round, totalRounds)}
+                </Text>
               ))}
+
+              <Svg style={StyleSheet.absoluteFill} width={canvasWidth} height={canvasHeight}>
+                {rounds.slice(1).map((r, ri) => {
+                  const roundIndex = ri + 1;
+                  const x1 = CANVAS_SIDE_PAD + (roundIndex - 1) * (CARD_WIDTH + ROUND_GAP) + CARD_WIDTH;
+                  const xMid = x1 + ROUND_GAP / 2;
+                  const x2 = CANVAS_SIDE_PAD + roundIndex * (CARD_WIDTH + ROUND_GAP);
+                  return r.items.map((_, i) => {
+                    const yTop = centers[roundIndex - 1]?.[2 * i];
+                    const yBottom = centers[roundIndex - 1]?.[2 * i + 1];
+                    const yTarget = centers[roundIndex]?.[i];
+                    if (yTarget == null) return null;
+                    const paths: string[] = [];
+                    if (yTop != null) paths.push(`M${x1},${yTop} H${xMid} V${yTarget} H${x2}`);
+                    if (yBottom != null) paths.push(`M${x1},${yBottom} H${xMid} V${yTarget} H${x2}`);
+                    return paths.map((d, pi) => (
+                      <Path key={`${r.round}-${i}-${pi}`} d={d} stroke={Brand.borderStrong} strokeWidth={2} fill="none" />
+                    ));
+                  });
+                })}
+              </Svg>
+
+              {rounds.map((r, roundIndex) =>
+                r.items.map((m, i) => {
+                  const centerY = centers[roundIndex]?.[i] ?? CANVAS_TOP_PAD;
+                  const left = CANVAS_SIDE_PAD + roundIndex * (CARD_WIDTH + ROUND_GAP);
+                  const pending = m.status !== 'completed' && (!m.team_a_id || !m.team_b_id);
+                  const editable = m.status === 'scheduled' && m.team_a_id && m.team_b_id;
+                  const cardHeight = editable ? CARD_HEIGHT + EDITABLE_EXTRA_HEIGHT : CARD_HEIGHT;
+                  const top = centerY - cardHeight / 2;
+
+                  return (
+                    <View
+                      key={m.id}
+                      style={[
+                        styles.match,
+                        { left, top, width: CARD_WIDTH },
+                        pending && styles.matchPending,
+                      ]}>
+                      <MatchTeamRow
+                        name={m.team_a_name}
+                        isWinner={m.winner_team_id != null && m.winner_team_id === m.team_a_id}
+                        score={m.status === 'completed' ? m.score_a : null}
+                        editable={!!editable}
+                        value={scoreInputs[m.id]?.a ?? ''}
+                        onChangeValue={(v) => setScoreField(m.id, 'a', v)}
+                      />
+                      <View style={[styles.divider, pending && styles.dividerPending]} />
+                      <MatchTeamRow
+                        name={m.team_b_name}
+                        isWinner={m.winner_team_id != null && m.winner_team_id === m.team_b_id}
+                        score={m.status === 'completed' ? m.score_b : null}
+                        editable={!!editable}
+                        value={scoreInputs[m.id]?.b ?? ''}
+                        onChangeValue={(v) => setScoreField(m.id, 'b', v)}
+                      />
+
+                      {editable ? (
+                        <Button
+                          label={t('tournamentMatches.saveResultAction')}
+                          onPress={() => void handleSaveResult(m.id)}
+                          disabled={busyId === m.id}
+                          size="sm"
+                          style={styles.saveBtn}
+                        />
+                      ) : null}
+                      {actionError[m.id] ? (
+                        <Text style={styles.cardError}>{actionError[m.id]}</Text>
+                      ) : null}
+                    </View>
+                  );
+                }),
+              )}
+
+              {championName ? (
+                <View
+                  style={[
+                    styles.championWrap,
+                    {
+                      left:
+                        CANVAS_SIDE_PAD +
+                        rounds.length * (CARD_WIDTH + ROUND_GAP) -
+                        ROUND_GAP +
+                        20,
+                      top: (centers[centers.length - 1]?.[0] ?? CANVAS_TOP_PAD) - 20,
+                    },
+                  ]}>
+                  <View style={styles.championBadge}>
+                    <TrophyIcon size={20} color={Brand.amberDark} strokeWidth={2} />
+                  </View>
+                  <Text style={styles.championName} numberOfLines={1}>
+                    {championName}
+                  </Text>
+                </View>
+              ) : null}
             </View>
-          ))}
+          </ScrollView>
         </ScrollView>
       )}
+    </View>
+  );
+}
+
+function MatchTeamRow({
+  name,
+  isWinner,
+  score,
+  editable,
+  value,
+  onChangeValue,
+}: {
+  name: string | null;
+  isWinner: boolean;
+  score: number | null;
+  editable: boolean;
+  value: string;
+  onChangeValue: (v: string) => void;
+}) {
+  const pending = !name;
+  return (
+    <View style={styles.team}>
+      <Text
+        style={[styles.teamName, isWinner && styles.teamNameWin, pending && styles.teamNamePending]}
+        numberOfLines={1}>
+        {name ?? t('tournamentPlayoffs.tbdLabel')}
+      </Text>
+      {editable ? (
+        <TextInput
+          style={styles.teamScoreInput}
+          keyboardType="number-pad"
+          value={value}
+          onChangeText={onChangeValue}
+          placeholder="–"
+          placeholderTextColor="rgba(255,255,255,0.35)"
+        />
+      ) : score != null ? (
+        <Text style={[styles.teamScore, isWinner && styles.teamScoreWin]}>{score}</Text>
+      ) : null}
     </View>
   );
 }
@@ -239,31 +403,116 @@ const styles = StyleSheet.create({
   muted: { fontFamily: BrandFonts.body, fontSize: 15, color: Brand.textMuted, marginTop: 24, paddingHorizontal: 20 },
   generateBlock: { paddingHorizontal: 20, marginTop: 24, gap: 10 },
   generateBtn: { marginTop: 4 },
-  roundSection: { marginTop: 20 },
-  roundHeading: { fontFamily: BrandFonts.bodyBold, fontSize: 16, fontWeight: '700', color: Brand.textPrimary, marginBottom: 8 },
-  row: { paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: Brand.border, gap: 8 },
-  rowTitle: { fontFamily: BrandFonts.bodySemibold, fontSize: 14, fontWeight: '600', color: Brand.textPrimary },
-  scoreRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
-  scoreInput: {
-    fontFamily: BrandFonts.monoMedium,
-    fontVariant: ['tabular-nums'],
-    width: 64,
-    borderWidth: 1,
-    borderColor: Brand.border,
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-    fontSize: 14,
-    color: Brand.textPrimary,
-    textAlign: 'center',
+  vScroll: { paddingTop: 8, paddingBottom: 24 },
+  canvas: {
+    position: 'relative',
   },
-  saveBtn: { flex: 1 },
-  finalScoreText: {
+  roundLabel: {
+    position: 'absolute',
+    top: 4,
+    textAlign: 'center',
+    fontFamily: BrandFonts.monoSemibold,
+    fontSize: 11,
+    letterSpacing: 0.6,
+    textTransform: 'uppercase',
+    color: Brand.textMuted,
+  },
+  match: {
+    position: 'absolute',
+    backgroundColor: Brand.ink,
+    borderRadius: 12,
+    overflow: 'hidden',
+    ...shadow('md'),
+  },
+  matchPending: {
+    backgroundColor: Brand.surface,
+    borderWidth: 1.5,
+    borderStyle: 'dashed',
+    borderColor: Brand.border,
+    ...shadow('sm'),
+  },
+  team: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  teamName: {
+    flex: 1,
+    minWidth: 0,
+    fontFamily: BrandFonts.bodySemibold,
+    fontSize: 13,
+    color: '#ffffff',
+  },
+  teamNameWin: {
+    color: Brand.pitch,
+  },
+  teamNamePending: {
+    color: Brand.textMuted,
+    fontStyle: 'italic',
+  },
+  teamScore: {
     fontFamily: BrandFonts.monoSemibold,
     fontVariant: ['tabular-nums'],
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 12,
+    color: 'rgba(255,255,255,0.6)',
+  },
+  teamScoreWin: {
+    color: Brand.pitch,
+  },
+  teamScoreInput: {
+    width: 30,
+    fontFamily: BrandFonts.monoSemibold,
+    fontVariant: ['tabular-nums'],
+    fontSize: 13,
+    color: '#ffffff',
+    textAlign: 'center',
+    paddingVertical: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255,255,255,0.3)',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  dividerPending: {
+    backgroundColor: Brand.divider,
+  },
+  saveBtn: {
+    marginHorizontal: 10,
+    marginBottom: 8,
+    marginTop: 2,
+    minHeight: 32,
+    paddingVertical: 6,
+  },
+  cardError: {
+    fontFamily: BrandFonts.body,
+    fontSize: 10.5,
+    color: '#ff9d9d',
+    paddingHorizontal: 10,
+    paddingBottom: 8,
+  },
+  championWrap: {
+    position: 'absolute',
+    width: 96,
+    alignItems: 'center',
+    gap: 6,
+  },
+  championBadge: {
+    width: 40,
+    height: 40,
+    borderRadius: 999,
+    backgroundColor: Brand.amberLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  championName: {
+    fontFamily: BrandFonts.bodyBold,
+    fontSize: 12,
     color: Brand.textPrimary,
+    textAlign: 'center',
   },
   actionErrorText: { fontFamily: BrandFonts.body, fontSize: 12, color: Brand.danger },
 });
